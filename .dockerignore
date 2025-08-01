@@ -1,0 +1,15 @@
+.git
+.gitignore
+README.md
+.env
+.env.backup
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+/.idea
+/.vscode
+node_modules
+vendor
+public/storage
