@@ -58,6 +58,10 @@
             background-color: #fee2e2;
             text-align: center;
         }
+        .license {
+            background-color: #dbeafe;
+            text-align: center;
+        }
         .attendance-bar {
             width: 100%;
             background-color: #e5e7eb;
@@ -91,6 +95,7 @@
             <li>Duración menor a 30 minutos: Se considera falta</li>
             <li>Entre 30 y 59 minutos: Asistencia parcial (tarde)</li>
             <li>60 minutos o más: Asistencia completa (presente)</li>
+            <li>LIC: Licencia/Permiso otorgado</li>
         </ul>
     </div>
 
@@ -124,7 +129,9 @@
                         <td>{{ $row['inscription']->ci }}</td>
                         @foreach($classes as $class)
                             <td class="text-center">
-                                @if(isset($row['classes'][$class->id]['status']))
+                                @if(isset($row['classes'][$class->id]['has_license']) && $row['classes'][$class->id]['has_license'])
+                                    <div class="license">LIC</div>
+                                @elseif(isset($row['classes'][$class->id]['status']))
                                     @if($row['classes'][$class->id]['status'] === 'present')
                                         <div class="present">P</div>
                                     @elseif($row['classes'][$class->id]['status'] === 'late')

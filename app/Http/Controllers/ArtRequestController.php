@@ -7,6 +7,7 @@ use App\Models\ArtRequestFile;
 use App\Models\User;
 use App\Models\ContentPillar;
 use App\Models\TypeOfArt;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -71,7 +72,7 @@ class ArtRequestController extends Controller
 
         // Datos para filtros
         $designers = User::whereHas('roles', function($q) {
-            $q->where('name', 'designer');
+            $q->where('name', 'design');
         })->get();
         
         $contentPillars = ContentPillar::where('active', true)->get();
@@ -83,7 +84,7 @@ class ArtRequestController extends Controller
             'pending' => ArtRequest::active()->where('status', 'NO INICIADO')->count(),
             'in_progress' => ArtRequest::active()->where('status', 'EN CURSO')->count(),
             'completed' => ArtRequest::active()->where('status', 'COMPLETO')->count(),
-            'overdue' => ArtRequest::active()->where('delivery_date', '<', now())
+            'overdue' => ArtRequest::active()->whereDate('delivery_date', '<', now()->toDateString())
                 ->whereNotIn('status', ['COMPLETO', 'CANCELADO'])->count(),
         ];
 
@@ -99,7 +100,7 @@ class ArtRequestController extends Controller
     {
         $designers = User::whereHas('roles', function($q) {
             $q->where('name', 'design');
-        })->get();
+        })->active()->orderBy('name')->get();
         $contentPillars = ContentPillar::where('active', true)->orderBy('name')->get();
         $typeOfArts = TypeOfArt::where('active', true)->orderBy('name')->get();
 
@@ -121,10 +122,10 @@ class ArtRequestController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'details' => 'nullable|string',
-            'status' => 'required|in:COMPLETO,NO INICIADO,EN CURSO,RETRASADO,ESPERANDO APROBACIÓN,ESPERANDO INFORMACIÓN,CANCELADO,EN PAUSA',
+            'status' => 'required|in:COMPLETO,NO INICIADO,EN CURSO,RETRASADO,ESPERANDO APROBACION,ESPERANDO INFORMACION,CANCELADO,EN PAUSA',
             'priority' => 'required|in:ALTA,MEDIA,BAJA',
             'observations' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:51200',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:512000',
             'file_description' => 'nullable|string',
         ]);
 
@@ -147,16 +148,35 @@ class ArtRequestController extends Controller
                 'created_by' => Auth::id(),
             ]);
 
-            // Manejar archivo único - SIMPLE
+            // Manejar archivo único SOLO EN GOOGLE DRIVE
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
-                $filename = time() . '_' . $file->getClientOriginalName();
-                $path = $file->storeAs('art_requests', $filename, 'public');
+                
+                // Subir a Google Drive
+                $googleDriveService = new GoogleDriveService();
+                $designerName = $artRequest->designer ? $artRequest->designer->name : 'Sin Asignar';
+                $requesterName = $artRequest->requester ? $artRequest->requester->name : 'Desconocido';
+                $folderId = $googleDriveService->createHierarchicalFolder(
+                    'Solicitudes de Arte',
+                    $designerName,
+                    $requesterName,
+                    $artRequest->title
+                );
+                
+                $driveFileResult = $googleDriveService->uploadFile(
+                    $file->getRealPath(),
+                    $file->getClientOriginalName(),
+                    $file->getClientMimeType(),
+                    $request->file_description ?? null,
+                    $folderId
+                );
                 
                 ArtRequestFile::create([
                     'art_request_id' => $artRequest->id,
-                    'file_path' => $path,
+                    'file_path' => '', // Ya no necesitamos path local
                     'file_name' => $file->getClientOriginalName(),
+                    'stored_in_drive' => true,
+                    'google_drive_id' => $driveFileResult['id'],
                     'file_type' => $file->getClientMimeType(),
                     'file_category' => $this->determineFileCategory($file->getClientMimeType()),
                     'description' => $request->file_description,
@@ -203,7 +223,7 @@ class ArtRequestController extends Controller
         
         $designers = User::whereHas('roles', function($q) {
             $q->where('name', 'design');
-        })->get();
+        })->active()->orderBy('name')->get();
         $contentPillars = ContentPillar::where('active', true)->orderBy('name')->get();
         $typeOfArts = TypeOfArt::where('active', true)->orderBy('name')->get();
 
@@ -225,10 +245,10 @@ class ArtRequestController extends Controller
             'title' => 'required|string|max:255',
             'content' => 'required|string',
             'details' => 'nullable|string',
-            'status' => 'required|in:COMPLETO,NO INICIADO,EN CURSO,RETRASADO,ESPERANDO APROBACIÓN,ESPERANDO INFORMACIÓN,CANCELADO,EN PAUSA',
+            'status' => 'required|in:COMPLETO,NO INICIADO,EN CURSO,RETRASADO,ESPERANDO APROBACION,ESPERANDO INFORMACION,CANCELADO,EN PAUSA',
             'priority' => 'required|in:ALTA,MEDIA,BAJA',
             'observations' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:51200',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:512000',
             'file_description' => 'nullable|string',
         ]);
 
@@ -267,19 +287,40 @@ class ArtRequestController extends Controller
     public function addFile(Request $request, ArtRequest $artRequest)
     {
         $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:51200',
+            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:512000',
             'file_description' => 'nullable|string',
         ]);
 
         try {
             $file = $request->file('file');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $path = $file->storeAs('art_requests', $filename, 'public');
+            
+            // Subir a Google Drive
+            $googleDriveService = new GoogleDriveService();
+            
+            // Crear estructura jerárquica: "Solicitudes de Arte" -> Diseñador -> Solicitante -> Título
+            $designerName = $artRequest->designer ? $artRequest->designer->name : 'Sin Asignar';
+            $requesterName = $artRequest->requester ? $artRequest->requester->name : 'Desconocido';
+            $folderId = $googleDriveService->createHierarchicalFolder(
+                'Solicitudes de Arte',
+                $designerName,
+                $requesterName,
+                $artRequest->title
+            );
+            
+            $driveFileResult = $googleDriveService->uploadFile(
+                $file->getRealPath(),
+                $file->getClientOriginalName(),
+                $file->getClientMimeType(),
+                $request->file_description ?? null,
+                $folderId
+            );
             
             ArtRequestFile::create([
                 'art_request_id' => $artRequest->id,
-                'file_path' => $path,
+                'file_path' => '', // Ya no necesitamos path local
                 'file_name' => $file->getClientOriginalName(),
+                'stored_in_drive' => true,
+                'google_drive_id' => $driveFileResult['id'],
                 'file_type' => $file->getClientMimeType(),
                 'file_category' => $this->determineFileCategory($file->getClientMimeType()),
                 'description' => $request->file_description,
@@ -303,9 +344,17 @@ class ArtRequestController extends Controller
     public function destroy(ArtRequest $artRequest)
     {
         try {
-            // Eliminar archivos físicos
+            // Eliminar archivos SOLO de Google Drive
+            $googleDriveService = new GoogleDriveService();
+            
             foreach ($artRequest->files as $file) {
-                Storage::disk('public')->delete($file->file_path);
+                if ($file->stored_in_drive && $file->google_drive_id) {
+                    try {
+                        $googleDriveService->deleteFile($file->google_drive_id);
+                    } catch (\Exception $e) {
+                        Log::error('Error al eliminar archivo de Drive: ' . $e->getMessage());
+                    }
+                }
             }
             
             // Eliminar la solicitud (los archivos se eliminarán en cascada)
@@ -330,8 +379,17 @@ class ArtRequestController extends Controller
         try {
             $artRequest = $file->artRequest;
             
-            // Eliminar archivo físico
-            Storage::disk('public')->delete($file->file_path);
+            // Eliminar SOLO de Google Drive
+            if ($file->stored_in_drive && $file->google_drive_id) {
+                $googleDriveService = new GoogleDriveService();
+                $googleDriveService->deleteFile($file->google_drive_id);
+            } else {
+                Log::warning('Archivo no tiene ID de Google Drive', [
+                    'file_id' => $file->id,
+                    'stored_in_drive' => $file->stored_in_drive,
+                    'google_drive_id' => $file->google_drive_id
+                ]);
+            }
             
             // Eliminar registro
             $file->delete();
@@ -352,21 +410,42 @@ class ArtRequestController extends Controller
     public function serveFile(ArtRequestFile $file)
     {
         try {
-            $path = Storage::disk('public')->path($file->file_path);
+            Log::info('Intentando servir archivo', [
+                'file_id' => $file->id,
+                'file_name' => $file->file_name,
+                'stored_in_drive' => $file->stored_in_drive,
+                'google_drive_id' => $file->google_drive_id
+            ]);
             
-            if (!file_exists($path)) {
-                abort(404, 'Archivo no encontrado');
+            if ($file->stored_in_drive && $file->google_drive_id) {
+                Log::info('Archivo está en Drive, descargando...', ['google_drive_id' => $file->google_drive_id]);
+                
+                $googleDriveService = new GoogleDriveService();
+                $fileContent = $googleDriveService->downloadFile($file->google_drive_id);
+                
+                Log::info('Archivo descargado exitosamente', ['size' => strlen($fileContent)]);
+                
+                $headers = [
+                    'Content-Type' => $file->file_type,
+                    'Content-Disposition' => 'inline; filename="' . $file->file_name . '"',
+                ];
+                
+                return response($fileContent, 200, $headers);
+            } else {
+                Log::error('Archivo no disponible en Drive', [
+                    'file_id' => $file->id,
+                    'stored_in_drive' => $file->stored_in_drive,
+                    'google_drive_id' => $file->google_drive_id
+                ]);
+                abort(404, 'Archivo no encontrado en Google Drive');
             }
-            
-            $headers = [
-                'Content-Type' => $file->file_type,
-                'Content-Disposition' => 'inline; filename="' . $file->file_name . '"',
-            ];
-            
-            return response()->file($path, $headers);
         } catch (\Exception $e) {
-            Log::error('Error al servir archivo: ' . $e->getMessage());
-            abort(500, 'Error al servir archivo');
+            Log::error('Error al servir archivo', [
+                'file_id' => $file->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Error al servir archivo: ' . $e->getMessage());
         }
     }
 
@@ -376,16 +455,42 @@ class ArtRequestController extends Controller
     public function downloadFile(ArtRequestFile $file)
     {
         try {
-            $path = Storage::disk('public')->path($file->file_path);
+            Log::info('Intentando descargar archivo', [
+                'file_id' => $file->id,
+                'file_name' => $file->file_name,
+                'stored_in_drive' => $file->stored_in_drive,
+                'google_drive_id' => $file->google_drive_id
+            ]);
             
-            if (!file_exists($path)) {
-                abort(404, 'Archivo no encontrado');
+            if ($file->stored_in_drive && $file->google_drive_id) {
+                Log::info('Archivo está en Drive, descargando...', ['google_drive_id' => $file->google_drive_id]);
+                
+                $googleDriveService = new GoogleDriveService();
+                $fileContent = $googleDriveService->downloadFile($file->google_drive_id);
+                
+                Log::info('Archivo descargado exitosamente', ['size' => strlen($fileContent)]);
+                
+                $headers = [
+                    'Content-Type' => $file->file_type,
+                    'Content-Disposition' => 'attachment; filename="' . $file->file_name . '"',
+                ];
+                
+                return response($fileContent, 200, $headers);
+            } else {
+                Log::error('Archivo no disponible en Drive para descarga', [
+                    'file_id' => $file->id,
+                    'stored_in_drive' => $file->stored_in_drive,
+                    'google_drive_id' => $file->google_drive_id
+                ]);
+                abort(404, 'Archivo no encontrado en Google Drive');
             }
-            
-            return response()->download($path, $file->file_name);
         } catch (\Exception $e) {
-            Log::error('Error al descargar archivo: ' . $e->getMessage());
-            abort(500, 'Error al descargar archivo');
+            Log::error('Error al descargar archivo', [
+                'file_id' => $file->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            abort(500, 'Error al descargar archivo: ' . $e->getMessage());
         }
     }
 

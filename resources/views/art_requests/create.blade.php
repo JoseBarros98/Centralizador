@@ -58,16 +58,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Detalles -->
-                            <div>
-                                <x-label for="details" :value="__('Detalles Adicionales')" />
-                                <textarea id="details" name="details" rows="3" 
-                                          class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full @error('details') @enderror">{{ old('details') }}</textarea>
-                                @error('details')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Tipo de Arte -->
                                 <div>
@@ -157,66 +147,11 @@
                             </div>
 
                             <!-- Estado -->
-                            <div>
-                                <x-label for="status" :value="__('Estado')" />
-                                <select id="status" name="status" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full @error('status') @enderror" required>
-                                    <option value="">Seleccionar estado</option>
-                                    <option value="NO INICIADO" {{ old('status', 'NO INICIADO') == 'NO INICIADO' ? 'selected' : '' }}>No Iniciado</option>
-                                    <option value="EN CURSO" {{ old('status') == 'EN CURSO' ? 'selected' : '' }}>En Curso</option>
-                                    <option value="ESPERANDO APROBACIÓN" {{ old('status') == 'ESPERANDO APROBACIÓN' ? 'selected' : '' }}>Esperando Aprobación</option>
-                                    <option value="ESPERANDO INFORMACIÓN" {{ old('status') == 'ESPERANDO INFORMACIÓN' ? 'selected' : '' }}>Esperando Información</option>
-                                    <option value="EN PAUSA" {{ old('status') == 'EN PAUSA' ? 'selected' : '' }}>En Pausa</option>
-                                    <option value="COMPLETO" {{ old('status') == 'COMPLETO' ? 'selected' : '' }}>Completo</option>
-                                    <option value="CANCELADO" {{ old('status') == 'CANCELADO' ? 'selected' : '' }}>Cancelado</option>
-                                    <option value="RETRASADO" {{ old('status') == 'RETRASADO' ? 'selected' : '' }}>Retrasado</option>
-                                </select>
-                                @error('status')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            <input type="hidden" id="status" name="status" value="NO INICIADO">
 
-                            <!-- Observaciones -->
-                            <div>
-                                <x-label for="observations" :value="__('Observaciones')" />
-                                <textarea id="observations" name="observations" rows="3" 
-                                          class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full @error('observations') @enderror">{{ old('observations') }}</textarea>
-                                @error('observations')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Archivo -->
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
-                    <div class="p-6 bg-white border-b border-gray-200">
-                        <h3 class="text-lg font-medium text-gray-900 mb-4">Archivo Adjunto</h3>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <x-label for="file" :value="__('Archivo')" />
-                                <input type="file" id="file" name="file" 
-                                       class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 @error('file') border-red-300 @enderror"
-                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.zip,.rar">
-                                <p class="mt-1 text-xs text-gray-500">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, MP4, AVI, MOV, ZIP, RAR (máx. 50MB)</p>
-                                @error('file')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                            
-                            <div>
-                                <x-label for="file_description" :value="__('Descripción del archivo')" />
-                                <x-input id="file_description" class="block mt-1 w-full @error('file_description') border-gray-300 @enderror" 
-                                         type="text" name="file_description" :value="old('file_description')" placeholder="Descripción opcional..." />
-                                @error('file_description')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Botones -->
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 bg-white border-b border-gray-200">

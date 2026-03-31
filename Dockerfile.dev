@@ -1,0 +1,15 @@
+# Dockerfile.dev - Solo para desarrollo con Vite hot reload
+FROM node:18-alpine
+
+WORKDIR /var/www
+
+# Instalar dependencias
+COPY package*.json ./
+RUN npm ci --no-audit --no-fund
+
+# El código se monta como volumen en desarrollo
+# No copiamos el código aquí para permitir hot reload
+
+EXPOSE 5173
+
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

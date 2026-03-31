@@ -16,6 +16,7 @@ class Grade extends Model
         'name',
         'last_name',
         'grade',
+        'approval_type',
     ];
 
     /**
@@ -60,10 +61,37 @@ class Grade extends Model
     }
 
     /**
+     * Obtener la clase de color para el estado (alias de getColorClass).
+     */
+    public function getStatusColor()
+    {
+        return $this->getColorClass();
+    }
+
+    /**
      * Obtener el seguimiento asociado a esta calificación.
      */
     public function followup()
     {
         return $this->hasOne(GradeFollowup::class);
+    }
+
+    /**
+     * Obtener todos los seguimientos asociados a esta calificación.
+     */
+    public function followups()
+    {
+        return $this->hasMany(GradeFollowup::class);
+    }
+
+    /**
+     * Verificar si la calificación tiene un seguimiento abierto.
+     * Un seguimiento se considera abierto si tiene status 'open'.
+     */
+    public function hasOpenFollowup()
+    {
+        return $this->followups()
+            ->where('status', 'open')
+            ->exists();
     }
 }

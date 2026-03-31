@@ -12,7 +12,8 @@ class DocumentFollowup extends Model
     protected $fillable = [
         'inscription_id',
         'observations',
-        'created_by'
+        'created_by',
+        'status'
     ];
 
     public function inscription()
@@ -49,5 +50,30 @@ class DocumentFollowup extends Model
     public function getMessagesAttribute()
     {
         return $this->getMessages();
+    }
+
+    // Métodos para verificar el estado del seguimiento
+    public function isClosed()
+    {
+        return $this->status === 'closed';
+    }
+
+    public function isOpen()
+    {
+        return $this->status === 'open';
+    }
+
+    // Método para cerrar el seguimiento
+    public function close()
+    {
+        $this->status = 'closed';
+        $this->save();
+    }
+
+    // Método para abrir el seguimiento
+    public function open()
+    {
+        $this->status = 'open';
+        $this->save();
     }
 }

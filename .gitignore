@@ -1,3 +1,6 @@
+# ============================================================
+# Laravel
+# ============================================================
 /.phpunit.cache
 /node_modules
 /public/build
@@ -9,6 +12,7 @@
 .env
 .env.backup
 .env.production
+.env.staging
 .phpactor.json
 .phpunit.result.cache
 Homestead.json
@@ -16,8 +20,53 @@ Homestead.yaml
 npm-debug.log
 yarn-error.log
 /auth.json
+
+# ============================================================
+# Docker
+# ============================================================
+docker-compose.override.yml
+.docker/
+*.env.docker
+
+# ============================================================
+# Google API credentials
+# ============================================================
+/storage/app/google-credentials*.json
+service-account*.json
+credentials*.json
+token*.json
+
+# ============================================================
+# Generated exports & uploads
+# ============================================================
+/storage/app/exports/
+/storage/app/imports/
+/storage/app/public/uploads/
+/storage/app/private/
+
+# ============================================================
+# IDE / Editors
+# ============================================================
 /.fleet
 /.idea
 /.nova
 /.vscode
 /.zed
+*.swp
+*.swo
+.DS_Store
+
+# ============================================================
+# OS
+# ============================================================
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ============================================================
+# Logs & coverage
+# ============================================================
+/storage/logs/*.log
+*.log
+/coverage/
+/clover.xml

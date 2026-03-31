@@ -10,15 +10,18 @@ return new class extends Migration
     {
         Schema::create('modules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('program_id')->constrained()->onDelete('cascade');
-            $table->string('name');
-            $table->foreignId('teacher_id')->constrained('teachers');
-            $table->foreignId('monitor_id')->constrained('users');
-            $table->integer('class_count')->default(0);
-            $table->boolean('active')->default(true);
-            $table->date('recovery_start_date')->nullable();
-            $table->date('recovery_end_date')->nullable();
-            $table->text('recovery_notes')->nullable();
+            $table->foreignId('program_id')->constrained()->onDelete('cascade')->comment('id_programa externo');
+            $table->string('name')->comment('nombre_modulo externo');
+            $table->date('start_date')->nullable()->comment('fecha_inicio externo');
+            $table->date('finalization_date')->nullable()->comment('fecha_fin externo');
+            $table->string('status')->nullable()->comment('estado_modulo externo');
+            $table->string('teacher_name')->nullable()->comment('docente externo (temporal, usar teacher_id cuando esté disponible)');
+            $table->foreignId('teacher_id')->nullable()->constrained('teachers')->comment('ID del docente local');
+            $table->foreignId('monitor_id')->nullable()->constrained('users')->comment('Campo editable local');
+            $table->date('recovery_start_date')->nullable()->comment('Campo editable local');
+            $table->date('recovery_end_date')->nullable()->comment('Campo editable local');
+            $table->text('recovery_notes')->nullable()->comment('Campo editable local');
+            $table->integer('teacher_rating')->nullable()->comment('Campo editable local');
             $table->timestamps();
         });
     }

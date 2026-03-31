@@ -40,17 +40,7 @@
                             @enderror
                         </div>
 
-                        <div class="mb-4">
-                            <div class="flex items-center">
-                                <label for="active" class="inline-flex items-center">
-                                    <input id="active" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" name="active" value="1" {{ old('active', $typeOfArt->active) ? 'checked' : '' }}>
-                                    <span class="ml-2 text-sm text-gray-600">{{ __('Activo') }}</span>
-                                </label>
-                            </div>
-                            @error('active')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <input type="hidden" id="active" name="active" value="{{ old('active', $typeOfArt->active) ? '1' : '0' }}">
 
                         <div class="flex items-center justify-end mt-6 pt-4 border-t border-gray-200">
                             <a href="{{ route('type_of_arts.show', $typeOfArt) }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 active:bg-gray-500 focus:outline-none focus:border-gray-500 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150 mr-3">

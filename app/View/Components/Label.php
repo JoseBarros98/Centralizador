@@ -9,7 +9,7 @@ class Label extends Component
     /**
      * The input field the label belongs to.
      *
-     * @var string
+     * @var string|null
      */
     public $for;
 
@@ -23,11 +23,11 @@ class Label extends Component
     /**
      * Create a new component instance.
      *
-     * @param  string  $for
+     * @param  string|null  $for
      * @param  string|null  $value
      * @return void
      */
-    public function __construct($for, $value = null)
+    public function __construct($for = null, $value = null)
     {
         $this->for = $for;
         $this->value = $value;

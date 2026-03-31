@@ -1,15 +1,81 @@
+# Git
 .git
 .gitignore
-README.md
-.env
-.env.backup
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-/.idea
-/.vscode
+.gitattributes
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Node.js - CRÍTICO PARA REDUCIR TAMAÑO
 node_modules
-vendor
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+# package-lock.json  # Comentado porque se necesita para npm ci
+
+# Tests
+tests
+phpunit.xml
+.phpunit.result.cache
+coverage
+
+# Development
+.env*
+!.env.example
+!.env.production
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Laravel specific
+storage/app/*
+!storage/app/.gitignore
+!storage/app/public
+storage/framework/cache/*
+!storage/framework/cache/.gitignore
+storage/framework/sessions/*
+!storage/framework/sessions/.gitignore
+storage/framework/testing/*
+!storage/framework/testing/.gitignore
+storage/framework/views/*
+!storage/framework/views/.gitignore
+storage/logs/*
+!storage/logs/.gitignore
+
+# Assets en desarrollo (se generan en build)
+public/hot
 public/storage
+public/mix-manifest.json
+public/build
+
+# Cache
+bootstrap/cache/*
+!bootstrap/cache/.gitignore
+
+# Vendor (se instala con composer en el contenedor)
+vendor
+
+# Documentation
+README.md
+CHANGELOG.md
+docs/
+*.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Backups
+*.backup
+*.bak
+
+# Temporary files
+tmp/
+temp/

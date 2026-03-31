@@ -14,9 +14,16 @@ class TeacherFile extends Model
         'teacher_id',
         'file_path',
         'file_name',
+        'stored_in_drive',
+        'google_drive_id',
         'file_type',
         'updated_by',
         'description',
+        'academic_info',
+    ];
+
+    protected $casts = [
+        'academic_info' => 'array',
     ];
     
     public function teacher()

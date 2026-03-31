@@ -66,15 +66,6 @@
                                 @enderror
                             </div>
 
-                            <!-- Detalles -->
-                            <div>
-                                <x-label for="details" :value="__('Detalles Adicionales')" />
-                                <textarea id="details" name="details" rows="3" 
-                                          class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full @error('details')  @enderror">{{ old('details', $artRequest->details) }}</textarea>
-                                @error('details')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Tipo de Arte -->
@@ -169,34 +160,8 @@
                                 </div>
                             </div>
 
-                            <!-- Estado -->
-                            <div>
-                                <x-label for="status" :value="__('Estado')" />
-                                <select id="status" name="status" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full @error('status') @enderror" required>
-                                    <option value="">Seleccionar estado</option>
-                                    <option value="NO INICIADO" {{ old('status', $artRequest->status) == 'NO INICIADO' ? 'selected' : '' }}>No Iniciado</option>
-                                    <option value="EN CURSO" {{ old('status', $artRequest->status) == 'EN CURSO' ? 'selected' : '' }}>En Curso</option>
-                                    <option value="ESPERANDO APROBACIÓN" {{ old('status', $artRequest->status) == 'ESPERANDO APROBACIÓN' ? 'selected' : '' }}>Esperando Aprobación</option>
-                                    <option value="ESPERANDO INFORMACIÓN" {{ old('status', $artRequest->status) == 'ESPERANDO INFORMACIÓN' ? 'selected' : '' }}>Esperando Información</option>
-                                    <option value="EN PAUSA" {{ old('status', $artRequest->status) == 'EN PAUSA' ? 'selected' : '' }}>En Pausa</option>
-                                    <option value="COMPLETO" {{ old('status', $artRequest->status) == 'COMPLETO' ? 'selected' : '' }}>Completo</option>
-                                    <option value="CANCELADO" {{ old('status', $artRequest->status) == 'CANCELADO' ? 'selected' : '' }}>Cancelado</option>
-                                    <option value="RETRASADO" {{ old('status', $artRequest->status) == 'RETRASADO' ? 'selected' : '' }}>Retrasado</option>
-                                </select>
-                                @error('status')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            <input type="hidden" name="status" value="{{ old('status', $artRequest->status) }}">
 
-                            <!-- Observaciones -->
-                            <div>
-                                <x-label for="observations" :value="__('Observaciones')" />
-                                <textarea id="observations" name="observations" rows="3" 
-                                          class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full @error('observations')  @enderror">{{ old('observations', $artRequest->observations) }}</textarea>
-                                @error('observations')
-                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                                @enderror
-                            </div>
                         </div>
                     </div>
                 </div>

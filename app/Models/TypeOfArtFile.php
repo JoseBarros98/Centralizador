@@ -14,6 +14,8 @@ class TypeOfArtFile extends Model
         'type_of_art_id',
         'file_path',
         'file_name',
+        'stored_in_drive',
+        'google_drive_id',
         'file_type',
         'description',
     ];

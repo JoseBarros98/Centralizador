@@ -9,11 +9,16 @@
 
     <div >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            @php
+                $currentUser = auth()->user();
+                $isTeamLeader = $currentUser && $currentUser->leadsActiveMarketingTeam();
+            @endphp
+
             <!-- Filtros -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
                     <form method="GET" action="{{ route('inscriptions.index') }}" class="space-y-4">
-                        <!-- Campo de búsqueda y botón Nueva Inscripción -->
+                        <!-- Campo de búsqueda y botón Sincronizar -->
                         <div class="flex flex-col md:flex-row md:items-end md:justify-between w-full gap-4">
                             <div class="w-full md:w-1/2">
                                 <x-label for="search" :value="__('Buscar')" />
@@ -26,14 +31,17 @@
                                     </button>
                                 </div>
                             </div>
-                            
-                            @can('inscription.create')
-                            <div>
-                                <a href="{{ route('inscriptions.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:border-indigo-800 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-                                    Nueva Inscripción
-                                </a>
+
+                            <div class="w-full md:w-auto">
+                                <button
+                                    type="submit"
+                                    form="sync-inscriptions-form"
+                                    class="w-full md:w-auto inline-flex items-center justify-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700"
+                                    onclick="return confirm('Se sincronizarán las inscripciones y se vincularán asesores automáticamente. ¿Deseas continuar?')"
+                                >
+                                    Sincronizar Inscripciones
+                                </button>
                             </div>
-                            @endcan
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -69,9 +77,9 @@
                                 <x-label for="status" :value="__('Estado')" />
                                 <select id="status" name="status" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
                                     <option value="">Todos</option>
-                                    <option value="Completo" {{ request('status') == 'Completo' ? 'selected' : '' }}>Completo</option>
-                                    <option value="Completando" {{ request('status') == 'Completando' ? 'selected' : '' }}>Completando</option>
-                                    <option value="Adelanto" {{ request('status') == 'Adelanto' ? 'selected' : '' }}>Adelanto</option>
+                                    <option value="Completo" {{ request('local_payment_status') == 'Completo' ? 'selected' : '' }}>Completo</option>
+                                    <option value="Completando" {{ request('local_payment_status') == 'Completando' ? 'selected' : '' }}>Completando</option>
+                                    <option value="Adelanto" {{ request('local_payment_status') == 'Adelanto' ? 'selected' : '' }}>Adelanto</option>
                                 </select>
                             </div>
                             
@@ -103,6 +111,10 @@
                             </x-button>
                         </div>
                     </form>
+
+                    <form id="sync-inscriptions-form" method="POST" action="{{ route('inscriptions.sync') }}" class="hidden">
+                        @csrf
+                    </form>
                 </div>
             </div>
             
@@ -110,26 +122,30 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
                     {{-- <h3 class="text-lg font-medium text-gray-900 mb-4">{{ $statsTitle ?? 'Estadísticas' }}</h3> --}}
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div class="bg-gray-100 p-4 rounded-lg">
-                            <p class="text-sm text-gray-600">Total Inscritos</p>
-                            <p class="text-2xl font-bold">{{ $stats['total'] }}</p>
+                    <div class="gap-2" style="display:flex; flex-wrap:nowrap; gap:0.5rem; align-items:stretch;">
+                        <div class="bg-gray-100 p-3 rounded-lg min-w-0" style="flex:1 1 0; min-width:0;">
+                            <p class="text-xs md:text-sm text-gray-600 leading-tight">Inscritos Latam</p>
+                            <p class="text-xl md:text-2xl font-bold">{{ $stats['inscritos_latam'] }}</p>
                         </div>
-                        <div class="bg-green-100 p-4 rounded-lg">
-                            <p class="text-sm text-gray-600">Completos</p>
-                            <p class="text-2xl font-bold">{{ $stats['completo'] }}</p>
+                        <div class="bg-orange-100 p-3 rounded-lg min-w-0" style="flex:1 1 0; min-width:0;">
+                            <p class="text-xs md:text-sm text-gray-600 leading-tight">Otra sede</p>
+                            <p class="text-xl md:text-2xl font-bold">{{ $stats['otra_sede'] }}</p>
                         </div>
-                        <div class="bg-yellow-100 p-4 rounded-lg">
-                            <p class="text-sm text-gray-600">Completando</p>
-                            <p class="text-2xl font-bold">{{ $stats['completando'] }}</p>
+                        <div class="bg-green-100 p-3 rounded-lg min-w-0" style="flex:1 1 0; min-width:0;">
+                            <p class="text-xs md:text-sm text-gray-600 leading-tight">Completos</p>
+                            <p class="text-xl md:text-2xl font-bold">{{ $stats['completo'] }}</p>
                         </div>
-                        <div class="bg-blue-100 p-4 rounded-lg">
-                            <p class="text-sm text-gray-600">Adelantos</p>
-                            <p class="text-2xl font-bold">{{ $stats['adelanto'] }}</p>
+                        <div class="bg-yellow-100 p-3 rounded-lg min-w-0" style="flex:1 1 0; min-width:0;">
+                            <p class="text-xs md:text-sm text-gray-600 leading-tight">Completando</p>
+                            <p class="text-xl md:text-2xl font-bold">{{ $stats['completando'] }}</p>
                         </div>
-                        <div class="bg-purple-100 p-4 rounded-lg">
-                            <p class="text-sm text-gray-600">Total Pagado (Bs)</p>
-                            <p class="text-2xl font-bold">{{ number_format($stats['total_paid'], 2) }}</p>
+                        <div class="bg-blue-100 p-3 rounded-lg min-w-0" style="flex:1 1 0; min-width:0;">
+                            <p class="text-xs md:text-sm text-gray-600 leading-tight">Adelantos</p>
+                            <p class="text-xl md:text-2xl font-bold">{{ $stats['adelanto'] }}</p>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg min-w-0" style="flex:1 1 0; min-width:0;">
+                            <p class="text-xs md:text-sm text-gray-600 leading-tight">Total Pagado (Bs)</p>
+                            <p class="text-xl md:text-2xl font-bold">{{ number_format($stats['total_paid'], 2) }}</p>
                         </div>
                     </div>
                 </div>
@@ -142,45 +158,18 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CI</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Programa</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Creador</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Pagado</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asesor</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado Inscripción</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Pagado</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($inscriptions as $inscription)
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $inscription->code }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->inscription_date->format('d/m/Y') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $inscription->first_name }} {{ $inscription->paternal_surname }} {{ $inscription->maternal_surname }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->ci }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->program->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->creator->name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            @if($inscription->status == 'Completo')
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                    Completo
-                                                </span>
-                                            @elseif($inscription->status == 'Completando')
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                    Completando
-                                                </span>
-                                            @else
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                    Adelanto
-                                                </span>
-                                            @endif
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ number_format($inscription->total_paid, 2) }} Bs</td>
-                                        
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex space-x-3">
                                                 <a href="{{ route('inscriptions.show', $inscription) }}" 
@@ -193,8 +182,17 @@
                                                     <span class="sr-only">Ver</span>
                                                 </a>
                                                 
-                                                @can('inscription.edit')
-                                                    @if(auth()->user()->id === $inscription->created_by)
+                                                @php
+                                                    $canEditInscription = $currentUser
+                                                        && (
+                                                            $currentUser->hasRole('admin')
+                                                            || $currentUser->id === $inscription->created_by
+                                                            || ($isTeamLeader && optional($inscription->creator)->email === 'sistema.externo@centtest.local')
+                                                        )
+                                                        && ($currentUser->can('inscription.edit') || $isTeamLeader);
+                                                @endphp
+
+                                                @if($canEditInscription)
                                                         <a href="{{ route('inscriptions.edit', $inscription) }}" 
                                                         class="text-yellow-600 hover:text-yellow-900"
                                                         title="Editar inscripción">
@@ -203,27 +201,64 @@
                                                             </svg>
                                                             <span class="sr-only">Editar</span>
                                                         </a>
-                                                    @endif
-                                                @endcan
-                                                
-                                                @can('inscription.delete')
-                                                @if(auth()->user()->id === $inscription->created_by)
-                                                <form method="POST" action="{{ route('inscriptions.destroy', $inscription) }}" class="inline" onsubmit="return confirm('¿Estás seguro de eliminar esta inscripción?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" 
-                                                            class="text-red-600 hover:text-red-900"
-                                                            title="Eliminar inscripción">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                        <span class="sr-only">Eliminar</span>
-                                                    </button>
-                                                </form>
                                                 @endif
-                                                @endcan
                                             </div>
                                         </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->inscription_date->format('d/m/Y') }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <div class="font-semibold">{{ $inscription->getFullName() }}</div>
+                                            <div class="text-xs text-gray-500">CI: {{ $inscription->ci }}</div>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {{ $inscription->getAdvisorName() }}
+                                            @if($inscription->external_advisor_name && $inscription->creator->email === 'sistema.externo@centtest.local')
+                                                <span class="ml-1 text-xs text-gray-400" title="Asesor externo sin cuenta en el sistema">(Externo)</span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            @php
+                                                $paymentStatus = $inscription->display_payment_status ?? ($inscription->local_payment_status ?? $inscription->status);
+                                            @endphp
+                                            @if($paymentStatus == 'Completo')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                    Completo
+                                                </span>
+                                            @elseif($paymentStatus == 'Completando')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                    Completando
+                                                </span>
+                                            @elseif($paymentStatus == 'Adelanto')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                                    Adelanto
+                                                </span>
+                                            @else
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    Pendiente
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            @if($inscription->external_inscription_status == 'Inscrito')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                    Inscrito
+                                                </span>
+                                            @elseif($inscription->external_inscription_status == 'Preinscrito')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                                    Preinscrito
+                                                </span>
+                                            @elseif($inscription->external_inscription_status == 'Retirado')
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                                    Retirado
+                                                </span>
+                                            @else
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                    Pendiente
+                                                </span>
+                                            @endif
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ number_format($inscription->display_total_paid, 2) }} Bs</td>
+                                        
+                                        
                                     </tr>
                                 @empty
                                     <tr>

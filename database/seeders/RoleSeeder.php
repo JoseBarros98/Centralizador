@@ -10,79 +10,69 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        // Crear roles
-        $adminRole = Role::create(['name' => 'admin']);
-        $marketingRole = Role::create(['name' => 'marketing']);
-        $academicRole = Role::create(['name' => 'academic']);
-        $designRole = Role::create(['name' => 'design']);
-        $operatorRole = Role::create(['name' => 'operator']);
-        $viewerRole = Role::create(['name' => 'viewer']);
+        // Limpiar caché de permisos
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Permisos del Sistema (actualizados según los constructores)
-        $permissions = [
-            // Dashboard
+        // Crear roles
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $marketingRole = Role::firstOrCreate(['name' => 'marketing']);
+        $academicRole = Role::firstOrCreate(['name' => 'academic']);
+        $designRole = Role::firstOrCreate(['name' => 'design']);
+        $accountantRole = Role::firstOrCreate(['name' => 'accountant']);
+
+        // Lista de permisos que deberían existir
+        $expectedPermissions = [
             'dashboard.view',
-            
-            // Inscription
             'inscription.view', 'inscription.create', 'inscription.edit', 'inscription.delete',
-            
-            // ArtRequest (content.* según el constructor)
+            'inscriptions.sync',
+
             'content.view', 'content.create', 'content.edit', 'content.delete', 'content.toggle_active', 'content.manage_files',
-            
-            // ContentPillar
+
             'content_pillar.view', 'content_pillar.create', 'content_pillar.edit', 'content_pillar.delete', 'content_pillar.toggle_active', 'content_pillar.manage_files',
-            
-            // TypeOfArt
+
             'type_of_art.view', 'type_of_art.create', 'type_of_art.edit', 'type_of_art.delete', 'type_of_art.toggle_active',
-            
-            // Program
+
             'program.view', 'program.create', 'program.edit', 'program.delete',
-            
-            // Module
-            'program.view', // Nota: Según constructores, módulos usan permisos de program
-            
-            // ModuleClass
-            'program.view', 'program.create', 'program.edit', 'program.delete',
-            
-            // Attendance
             'program.view_attendance', 'program.manage_attendance', 'program.export_attendance',
-            
-            // Calendar
-            'program.view',
-            
-            // User
+            'program.request_teacher_payments',
+
             'user.view', 'user.create', 'user.edit', 'user.delete',
+
+            'marketing.view', 'marketing.create', 'marketing.edit', 'marketing.delete',
+            'marketing.manage_teams', 'marketing.manage_goals', 'marketing.view_reports',
+
+            'payment_request.view', 'payment_request.create', 'payment_request.edit', 'payment_request.delete',
             
-            // DocumentFollowup
-            'inscription.view', 'inscription.edit',
+            'graduation_cite.view', 'graduation_cite.create', 'graduation_cite.edit', 'graduation_cite.delete',
+
+            'program_allocation.view', 'program_allocation.create', 'program_allocation.edit', 'program_allocation.delete',
             
-            // GradeFollowup
-            'program.view', 'program.create',
-            
-            // Document
-            'inscription.view', 'inscription.create', 'inscription.edit', 'inscription.delete',
-            
-            // Receipt
-            'inscription.view', 'inscription.edit', 'inscription.delete'
+            'system.view_logs'
         ];
 
-        foreach ($permissions as $permissionName) {
+        // Solo crear permisos que no existan
+        foreach ($expectedPermissions as $permissionName) {
             Permission::firstOrCreate(['name' => $permissionName]);
         }
 
+        // Limpiar la caché antes de asignar permisos
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
         // Asignar todos los permisos al rol de administrador
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole->syncPermissions(Permission::all());
         
         // Marketing
-        $marketingRole->givePermissionTo([
+        $marketingRole->syncPermissions([
             'inscription.view', 'inscription.create', 'inscription.edit', 'inscription.delete',
             'program.view',
             'content.view', 'content.create', 'content.edit', 'content.delete',
+            'marketing.view', 'marketing.create', 'marketing.edit', 'marketing.delete',
+            'marketing.manage_teams', 'marketing.manage_goals', 'marketing.view_reports',
             'dashboard.view'
         ]);
         
         // Designer
-        $designRole->givePermissionTo([
+        $designRole->syncPermissions([
             'content_pillar.view', 'content_pillar.create', 'content_pillar.edit', 'content_pillar.delete', 'content_pillar.toggle_active', 'content_pillar.manage_files',
             'type_of_art.view', 'type_of_art.create', 'type_of_art.edit', 'type_of_art.delete', 'type_of_art.toggle_active',
             'content.view', 'content.create', 'content.edit', 'content.delete', 'content.toggle_active', 'content.manage_files',
@@ -90,27 +80,25 @@ class RoleSeeder extends Seeder
         ]);
 
         // Academic
-        $academicPermissions = collect($permissions)->diff([
+        $academicPermissions = collect($expectedPermissions)->diff([
             'inscription.create', 'inscription.delete',
             'content_pillar.view', 'content_pillar.create', 'content_pillar.edit', 'content_pillar.delete', 'content_pillar.toggle_active', 'content_pillar.manage_files',
             'type_of_art.view', 'type_of_art.create', 'type_of_art.edit', 'type_of_art.delete', 'type_of_art.toggle_active',
             'user.view', 'user.create', 'user.edit', 'user.delete',
+            'program_allocation.view', 'program_allocation.create', 'program_allocation.edit', 'program_allocation.delete',
+            'system.view_logs'
         ])->toArray();
         
-        $academicRole->givePermissionTo($academicPermissions);
+        $academicRole->syncPermissions($academicPermissions);
         
-        // Operator
-        $operatorRole->givePermissionTo([
-            'inscription.view', 'inscription.create', 'inscription.edit',
+        // Accountant
+        $accountantRole->syncPermissions([
+            'dashboard.view',
             'program.view',
-            'dashboard.view'
-        ]);
-        
-        // Viewer
-        $viewerRole->givePermissionTo([
-            'inscription.view',
-            'program.view',
-            'dashboard.view'
+            'program.request_teacher_payments',
+            'payment_request.view', 'payment_request.create', 'payment_request.edit', 'payment_request.delete',
+            'graduation_cite.view', 'graduation_cite.create', 'graduation_cite.edit', 'graduation_cite.delete',
+            'program_allocation.view', 'program_allocation.create', 'program_allocation.edit', 'program_allocation.delete'
         ]);
     }
 }

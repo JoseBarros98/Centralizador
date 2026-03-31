@@ -7,6 +7,20 @@
         </div>
     </x-slot>
 
+<style>
+/* Estilos para badges de estado */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    display: inline-flex;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    border-radius: 9999px;
+}
+.status-active { background-color: #dcfce7; color: #166534; }
+.status-inactive { background-color: #fecaca; color: #991b1b; }
+</style>
+
     <div >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Barra de búsqueda y botón nuevo -->
@@ -66,13 +80,9 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             @if($user->active)
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                    Activo
-                                                </span>
+                                                <span class="status-badge status-active">Activo</span>
                                             @else
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                                    Inactivo
-                                                </span>
+                                                <span class="status-badge status-inactive">Inactivo</span>
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $user->created_at->format('d/m/Y') }}</td>

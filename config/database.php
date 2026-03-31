@@ -62,6 +62,27 @@ return [
             ]) : [],
         ],
 
+        # Conexión a la base de datos MySQL externa
+        'mysql_external' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_EXTERNAL_HOST'),
+            'port' => env('DB_EXTERNAL_PORT', '3306'),
+            'database' => env('DB_EXTERNAL_DATABASE'),
+            'username' => env('DB_EXTERNAL_USERNAME'),
+            'password' => env('DB_EXTERNAL_PASSWORD'),
+            'unix_socket' => env('DB_EXTERNAL_SOCKET', ''),
+            'charset' => env('DB_EXTERNAL_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_EXTERNAL_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

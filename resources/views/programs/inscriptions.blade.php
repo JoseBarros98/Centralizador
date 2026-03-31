@@ -18,7 +18,7 @@
     <div >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Estadísticas -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -30,7 +30,7 @@
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">Total Inscritos</dt>
-                                    <dd class="text-lg font-medium text-gray-900">{{ $inscriptions->count() }}</dd>
+                                    <dd class="text-lg font-medium text-gray-900">{{ $inscriptionsStats->count() }}</dd>
                                 </dl>
                             </div>
                         </div>
@@ -49,7 +49,7 @@
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">Con Documentos Completos</dt>
                                     <dd class="text-lg font-medium text-gray-900">
-                                        {{ $inscriptions->filter(function($i) {
+                                        {{ $inscriptionsStats->filter(function($i) {
                                             return $i->has_identity_card && 
                                                    $i->has_degree_title && 
                                                    $i->has_academic_diploma && 
@@ -62,6 +62,12 @@
                     </div>
                 </div>
 
+                @php
+                    $withCommitment = $inscriptionsStats->filter(fn($i) => $i->documents->where('document_type', 'compromiso')->isNotEmpty())->count();
+                    $withoutCommitment = $inscriptionsStats->count() - $withCommitment;
+                    $withFreezing = $inscriptionsStats->filter(fn($i) => $i->documents->where('document_type', 'congelamiento')->isNotEmpty())->count();
+                    $withoutFreezing = $inscriptionsStats->count() - $withFreezing;
+                @endphp
                 <div class="bg-white overflow-hidden shadow rounded-lg">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -72,10 +78,26 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">Con Carta de Compromiso</dt>
-                                    <dd class="text-lg font-medium text-gray-900">
-                                        {{ $inscriptions->where('has_commitment_letter', true)->count() }}
-                                    </dd>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Carta de Compromiso</dt>
+                                    <dd class="text-lg font-medium text-gray-900">{{ $withCommitment }}</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <svg class="h-6 w-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                </svg>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">Carta de Congelamiento</dt>
+                                    <dd class="text-lg font-medium text-gray-900">{{ $withFreezing }}</dd>
                                 </dl>
                             </div>
                         </div>
@@ -94,7 +116,7 @@
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">Con Seguimiento</dt>
                                     <dd class="text-lg font-medium text-gray-900">
-                                        {{ $inscriptions->filter(function($i) {
+                                        {{ $inscriptionsStats->filter(function($i) {
                                             return $i->documentFollowups->count() > 0;
                                         })->count() }}
                                     </dd>
@@ -112,29 +134,44 @@
                         <h3 class="text-lg font-medium text-gray-900">Lista de Inscritos</h3>
                     </div>
 
+                    <form method="GET" action="{{ route('programs.inscriptions', $program) }}" class="mb-4">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ $search ?? '' }}"
+                                placeholder="Buscar por nombre, CI o estado"
+                                class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-full sm:w-96"
+                            >
+                            <div class="flex gap-2">
+                                <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white tracking-widest hover:bg-indigo-700 focus:outline-none focus:border-indigo-700 focus:ring ring-indigo-300 transition ease-in-out duration-150">
+                                    Buscar
+                                </button>
+                                @if(!empty($search))
+                                    <a href="{{ route('programs.inscriptions', $program) }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 tracking-widest hover:bg-gray-300 transition ease-in-out duration-150">
+                                        Limpiar
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+                    </form>
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CI</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado académico</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Opciones</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre y CI</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado Inscripción</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado Académico</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado Titulación</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inscrito Universidad</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documentos</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse ($inscriptions as $inscription)
                                     <tr id="inscription-{{ $inscription->id }}">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $inscription->first_name }} {{ $inscription->paternal_surname }} {{ $inscription->maternal_surname }}
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->ci }}</td>
-
-                                        {{-- Estado académico del participante --}}
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $inscription->academic_status }}
-                                        </td>
-
                                         {{-- Opciones --}}
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <div class="flex space-x-3">
@@ -143,17 +180,102 @@
                                                 </a>
                                                 
                                                 @can('program.edit')
-                                                <a  title="Editar datos personales">
+                                                <a href="{{ route('inscriptions.edit', $inscription) }}" title="Editar datos personales">
                                                     <x-action-icons action="edit" />
                                                 </a>
                                                 @endcan
-                                                
                                             </div>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <p class="text-sm font-medium text-gray-900">{{ $inscription->getFullName() }}</p>
+                                            <p class="text-xs text-gray-500">CI: {{ $inscription->ci ?: '-' }}</p>
+                                        </td>
+
+                                        @php
+                                            $inscriptionStatus = strtoupper(trim((string) ($inscription->external_inscription_status ?: '-')));
+                                            $rawAcademicStatus = $inscription->estado_academico ?? $inscription->external_academic_status;
+                                            $academicStatus = strtoupper(trim((string) ($rawAcademicStatus ?: '-')));
+                                            $degreeStatus = strtoupper(trim((string) ($inscription->external_degree_status ?: '-')));
+
+                                            $getBadgeClasses = function ($status) {
+                                                if ($status === '-' || $status === '') return 'bg-gray-100 text-gray-700';
+                                                if (str_contains($status, 'PREINSCRIT')) {
+                                                    return 'bg-yellow-100 text-yellow-800';
+                                                }
+                                                if (str_contains($status, 'ACTIVO') || str_contains($status, 'VIGENTE') || str_contains($status, 'INSCRITO') || str_contains($status, 'APROB')) {
+                                                    return 'bg-green-100 text-green-800';
+                                                }
+                                                if (str_contains($status, 'PROCESO') || str_contains($status, 'CURSO') || str_contains($status, 'PENDIENTE')) {
+                                                    return 'bg-yellow-100 text-yellow-800';
+                                                }
+                                                if (str_contains($status, 'RETIR') || str_contains($status, 'BAJA') || str_contains($status, 'REPROB') || str_contains($status, 'NO')) {
+                                                    return 'bg-red-100 text-red-800';
+                                                }
+                                                return 'bg-blue-100 text-blue-800';
+                                            };
+                                        @endphp
+
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $getBadgeClasses($inscriptionStatus) }}">
+                                                {{ $inscription->external_inscription_status ?: '-' }}
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $getBadgeClasses($academicStatus) }}">
+                                                {{ $rawAcademicStatus ?: '-' }}
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $getBadgeClasses($degreeStatus) }}">
+                                                {{ $inscription->external_degree_status ?: '-' }}
+                                            </span>
+                                        </td>
+
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            @if(is_null($inscription->external_university_enrolled))
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">-</span>
+                                            @else
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $inscription->external_university_enrolled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                    {{ $inscription->external_university_enrolled ? 'Sí' : 'No' }}
+                                                </span>
+                                            @endif
+                                        </td>
+
+                                        {{-- Documentos --}}
+                                        @php
+                                            $docs = [
+                                                'CI'   => $inscription->has_identity_card,
+                                                'Tít.' => $inscription->has_degree_title,
+                                                'Dipl' => $inscription->has_academic_diploma,
+                                                'Nac.' => $inscription->has_birth_certificate,
+                                                'Comp' => $inscription->documents->where('document_type', 'compromiso')->isNotEmpty(),
+                                                'Cong' => $inscription->documents->where('document_type', 'congelamiento')->isNotEmpty(),
+                                            ];
+                                            $allDocs = collect($docs)->every(fn($v) => $v);
+                                        @endphp
+                                        <td class="px-6 py-4 text-sm">
+                                            @if($allDocs)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                    <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                                    Completos
+                                                </span>
+                                            @else
+                                                <div class="flex flex-wrap gap-1">
+                                                    @foreach($docs as $label => $has)
+                                                        <span title="{{ $label }}" class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ $has ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                                                            {{ $label }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No hay inscritos para mostrar</td>
+                                        <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No hay inscritos para mostrar</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -161,7 +283,7 @@
                     </div>
 
                     <!-- Paginación -->
-                    @if(isset($inscriptions) && method_exists($inscriptions, 'links') && $inscriptions->hasPages())
+                    @if($inscriptions->hasPages())
                         <div class="mt-6">
                             {{ $inscriptions->links() }}
                         </div>

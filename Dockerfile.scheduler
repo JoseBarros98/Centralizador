@@ -1,0 +1,46 @@
+# Dockerfile para el scheduler de Laravel
+FROM php:8.4-fpm-alpine
+
+# Instalar extensiones PHP necesarias
+RUN apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        libzip-dev \
+        oniguruma-dev \
+    && apk add --no-cache \
+        libzip \
+        mysql-client \
+        bash \
+    && docker-php-ext-install -j$(nproc) \
+        pdo_mysql \
+        mbstring \
+        pcntl \
+        bcmath \
+        zip \
+    && apk del .build-deps \
+    && rm -rf /var/cache/apk/*
+
+# Crear usuario no-root
+RUN addgroup -g 1000 www && \
+    adduser -u 1000 -G www -s /bin/sh -D www
+
+# Establecer directorio de trabajo
+WORKDIR /var/www
+
+# Copiar la aplicación Laravel completa (se monta como volumen en dev)
+# En producción se copia desde el build multi-stage
+COPY --chown=www:www . .
+
+# Crear directorios necesarios
+RUN mkdir -p storage/logs bootstrap/cache \
+    && chown -R www:www storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+# Copiar el script del scheduler
+COPY --chown=www:www docker/start-scheduler.sh /start-scheduler.sh
+RUN chmod +x /start-scheduler.sh
+
+# Cambiar a usuario no-root
+USER www
+
+# Ejecutar el scheduler
+CMD ["/start-scheduler.sh"]

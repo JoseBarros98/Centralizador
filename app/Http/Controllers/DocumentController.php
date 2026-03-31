@@ -4,16 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Models\Inscription;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Routing\Controller;
 
 class DocumentController extends Controller
 {
-    public function __construct()
+    protected $googleDriveService;
+
+    public function __construct(GoogleDriveService $googleDriveService)
     {
-        $this->middleware(['permission:inscription.view'])->only(['index', 'show', 'serve']);
+        $this->googleDriveService = $googleDriveService;
+        $this->middleware(['permission:inscription.view'])->only(['index', 'show', 'serve', 'download']);
         $this->middleware(['permission:inscription.create'])->only(['create', 'store']);
         $this->middleware(['permission:inscription.edit'])->only(['edit', 'update']);
         $this->middleware(['permission:inscription.delete'])->only(['destroy']);
@@ -48,15 +53,23 @@ class DocumentController extends Controller
         $uploaded = 0;
         foreach ($files as $idx => $file) {
             if ($file) {
-                $path = $file->store('documents', 'public');
-                $document = new Document();
-                $document->inscription_id = $inscription->id;
-                $document->file_path = $path;
-                $document->file_name = $file->getClientOriginalName();
-                $document->file_type = $file->getClientMimeType();
-                $document->description = $descriptions[$idx] ?? null;
-                $document->document_type = $types[$idx] ?? null;
-                $document->created_by = Auth::id();
+                // Subir archivo DIRECTAMENTE a Google Drive - SIN fallback local
+                $driveFile = $this->uploadToGoogleDrive($file, $inscription);
+                
+                $document = new Document([
+                    'inscription_id' => $inscription->id,
+                    'file_path' => '', // String vacío - NO se guarda localmente
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $driveFile['size'],
+                    'description' => $descriptions[$idx] ?? null,
+                    'document_type' => $types[$idx] ?? null,
+                    'google_drive_id' => $driveFile['id'],
+                    'google_drive_link' => $driveFile['webViewLink'],
+                    'stored_in_drive' => true,
+                    'created_by' => Auth::id(),
+                ]);
+                
                 $document->save();
                 $uploaded++;
             }
@@ -76,14 +89,27 @@ class DocumentController extends Controller
      */
     public function serve(Document $document)
     {
-        
-        // Verificar si el archivo existe
-        if (!Storage::disk('public')->exists($document->file_path)) {
-            abort(404, 'El archivo no existe.');
-        }
-        
-        // Servir el archivo
-        return response()->file(Storage::disk('public')->path($document->file_path));
+        // TODOS los archivos están en Google Drive
+        $content = $this->googleDriveService->downloadFile($document->google_drive_id);
+        $headers = [
+            'Content-Type' => $document->file_type,
+            'Content-Disposition' => 'inline; filename="' . $document->file_name . '"',
+        ];
+        return response($content, 200, $headers);
+    }
+
+    /**
+     * Descargar el archivo del documento.
+     */
+    public function download(Document $document)
+    {
+        // TODOS los archivos están en Google Drive
+        $content = $this->googleDriveService->downloadFile($document->google_drive_id);
+        $headers = [
+            'Content-Type' => $document->file_type,
+            'Content-Disposition' => 'attachment; filename="' . $document->file_name . '"',
+        ];
+        return response($content, 200, $headers);
     }
 
     /**
@@ -91,11 +117,10 @@ class DocumentController extends Controller
      */
     public function destroy(Inscription $inscription, Document $document, Request $request)
     {
-        // Eliminar el archivo físico
-        if (Storage::disk('public')->exists($document->file_path)) {
-            Storage::disk('public')->delete($document->file_path);
-        }
-        // Eliminar el registro
+        // TODOS los archivos están en Google Drive - eliminar de Drive
+        $this->googleDriveService->deleteFile($document->google_drive_id);
+        
+        // Eliminar el registro de la base de datos
         $document->delete();
 
         // Redirección según origen
@@ -106,5 +131,44 @@ class DocumentController extends Controller
         }
         return redirect()->route('inscriptions.show', $inscription)
             ->with('success', 'Documento eliminado correctamente.');
+    }
+
+    /**
+     * Helper method para subir archivos a Google Drive
+     */
+    private function uploadToGoogleDrive($file, Inscription $inscription)
+    {
+        // Crear estructura jerárquica: Inscripciones -> Programa -> Estudiante
+        $programName = optional($inscription->program)->name ?? 'Sin Programa';
+        $studentName = trim(($inscription->first_name ?? '') . ' ' . ($inscription->paternal_surname ?? ''));
+        if (empty($studentName) && !empty($inscription->full_name)) {
+            $studentName = trim($inscription->full_name);
+        }
+        if (empty($studentName)) {
+            $studentName = 'Sin Nombre - ' . ($inscription->code ?? $inscription->id);
+        }
+
+        $folderId = $this->getOrCreateHierarchicalFolder('Inscripciones', $programName, $studentName);
+        
+        // Usar el path temporal del archivo subido
+        $tempPath = $file->getRealPath();
+        
+        $driveFile = $this->googleDriveService->uploadFile(
+            $tempPath,
+            $file->getClientOriginalName(),
+            $file->getClientMimeType(),
+            'Documento subido desde inscripción',
+            $folderId
+        );
+        
+        return $driveFile;
+    }
+
+    /**
+     * Helper method para obtener o crear estructura jerárquica de carpetas
+     */
+    private function getOrCreateHierarchicalFolder($mainCategory, $subfolder, $tertiaryFolder = null)
+    {
+        return $this->googleDriveService->createHierarchicalFolder($mainCategory, $subfolder, $tertiaryFolder);
     }
 }

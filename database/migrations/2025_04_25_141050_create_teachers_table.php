@@ -13,17 +13,21 @@ return new class extends Migration
     {
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
+            $table->string('external_id')->unique()->nullable()->comment('id_docente de la BD externa');
             $table->string('name');
-            $table->string('paternal_surname')->nullable();
-            $table->string('maternal_surname')->nullable();
-            $table->string('email')->unique();
+            $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->string('address')->nullable();
             $table->date('birth_date')->nullable();
+            $table->string('bank')->nullable();
+            $table->string('account_number')->nullable();
+            $table->enum('bill', ['Si', 'No'])->default('No');
+            $table->enum('esam_worker', ['Si', 'No'])->default('No');
             $table->string('profession')->nullable();
-            $table->string('ci')->unique();
+            $table->string('ci')->nullable();
             $table->enum('academic_degree', ['Lic.', 'Ing.', 'Dr.', 'M.Sc.', 'Ph.D.','M.Sc. Ing.', 'M.Sc. Lic.', 'M.Sc. Dr.', 'Ph.D. Ing.', 'Ph.D. Lic.'])->nullable();
-            $table->unsignedBigInteger('created_by');
+            $table->boolean('is_external')->default(false)->comment('Indica si el docente viene de la BD externa');
+            $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
 
             $table->foreign('created_by')->references('id')->on('users')->onDelete('cascade');

@@ -34,97 +34,126 @@
                             <h3 class="text-lg font-medium text-gray-900">Información Principal</h3>
                         </div>
                         <div class="p-6 bg-white space-y-6">
-                            <!-- Descripción -->
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Descripción</h4>
-                                <div class="prose prose-sm max-w-none">
-                                    <p class="text-gray-900 whitespace-pre-wrap">{{ $artRequest->description }}</p>
-                                </div>
-                            </div>
+                            @php
+                                $statusColors = [
+                                    'NO INICIADO' => 'bg-gray-100 text-gray-800',
+                                    'EN CURSO' => 'bg-blue-100 text-blue-800',
+                                    'ESPERANDO APROBACION' => 'bg-yellow-100 text-yellow-800',
+                                    'ESPERANDO INFORMACION' => 'bg-orange-100 text-orange-800',
+                                    'EN PAUSA' => 'bg-purple-100 text-purple-800',
+                                    'COMPLETO' => 'bg-green-100 text-green-800',
+                                    'CANCELADO' => 'bg-red-100 text-red-800',
+                                    'RETRASADO' => 'bg-red-100 text-red-800'
+                                ];
+                                $priorityColors = [
+                                    'BAJA' => 'bg-gray-100 text-gray-800',
+                                    'MEDIA' => 'bg-blue-100 text-blue-800',
+                                    'ALTA' => 'bg-orange-100 text-orange-800'
+                                ];
+                                $hasObservations = filled(trim((string) $artRequest->observations));
+                            @endphp
 
-                            <!-- Contenido -->
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Contenido</h4>
-                                <div class="prose prose-sm max-w-none">
-                                    <p class="text-gray-900 whitespace-pre-wrap">{{ $artRequest->content }}</p>
-                                </div>
-                            </div>
-
-                            @if($artRequest->details)
-                            <!-- Detalles -->
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Detalles Adicionales</h4>
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <p class="text-gray-900 whitespace-pre-wrap">{{ $artRequest->details }}</p>
-                                </div>
-                            </div>
-                            @endif
-
-                            <!-- Tipo de Arte -->
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Tipo de Arte</h4>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                    {{ $artRequest->typeOfArt->name }}
-                                </span>
-                            </div>
-
-                            <!-- Pilar de Contenido -->
-                            @if($artRequest->contentPillar)
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Pilar de Contenido</h4>
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                                    {{ $artRequest->contentPillar->name }}
-                                </span>
-                            </div>
-                            @endif
-
-                            <!-- Fechas -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Fecha de Solicitud</h4>
-                                    <div class="flex items-center">
-                                        <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span class="text-gray-900">{{ $artRequest->request_date->format('d/m/Y') }}</span>
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Estado</p>
+                                    <div class="mt-3">
+                                        <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium {{ $statusColors[$artRequest->status] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $artRequest->status }}
+                                        </span>
                                     </div>
                                 </div>
 
-                                @if($artRequest->delivery_date)
-                                <div>
-                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Fecha de Entrega</h4>
-                                    <div class="flex items-center">
-                                        <svg class="h-5 w-5 text-gray-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span class="text-gray-900">{{ $artRequest->delivery_date->format('d/m/Y') }}</span>
-                                        @if($artRequest->delivery_date->isPast() && $artRequest->status !== 'COMPLETO')
-                                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                Vencida
+                                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Prioridad</p>
+                                    <div class="mt-3">
+                                        <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium {{ $priorityColors[$artRequest->priority] ?? 'bg-gray-100 text-gray-800' }}">
+                                            {{ $artRequest->priority }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Diseñador Asignado</p>
+                                    <p class="mt-3 text-sm font-medium text-gray-900">{{ $artRequest->designer->name ?? 'Sin asignar' }}</p>
+                                </div>
+
+                                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Entrega</p>
+                                    @if($artRequest->delivery_date)
+                                        <div class="mt-3 flex flex-wrap items-center gap-2">
+                                            <span class="text-sm font-medium text-gray-900">{{ $artRequest->delivery_date->format('d/m/Y') }}</span>
+                                            @if($artRequest->delivery_date->isPast() && $artRequest->status !== 'COMPLETO')
+                                                <span class="inline-flex items-center rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">Vencida</span>
+                                            @elseif($artRequest->delivery_date->isToday())
+                                                <span class="inline-flex items-center rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">Hoy</span>
+                                            @elseif($artRequest->delivery_date->diffInDays() <= 3)
+                                                <span class="inline-flex items-center rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">Próxima</span>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <p class="mt-3 text-sm text-gray-500">Sin fecha definida</p>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-6 xl:grid-cols-5">
+                                <div class="xl:col-span-2 rounded-xl border border-gray-200 p-5">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Descripción</p>
+                                    <p class="mt-3 text-sm leading-7 text-gray-900 whitespace-pre-wrap">{{ $artRequest->description }}</p>
+                                </div>
+
+                                <div class="xl:col-span-3 rounded-xl border border-indigo-100 bg-indigo-50/50 p-5">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-indigo-600">Contenido</p>
+                                    <p class="mt-3 text-sm leading-7 text-gray-900 whitespace-pre-wrap">{{ $artRequest->content }}</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <div class="rounded-xl border border-gray-200 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Tipo de Arte</p>
+                                    <div class="mt-3">
+                                        <span class="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800">
+                                            {{ $artRequest->typeOfArt->name }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-gray-200 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pilar de Contenido</p>
+                                    <div class="mt-3">
+                                        @if($artRequest->contentPillar)
+                                            <span class="inline-flex items-center rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-800">
+                                                {{ $artRequest->contentPillar->name }}
                                             </span>
-                                        @elseif($artRequest->delivery_date->isToday())
-                                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                                Hoy
-                                            </span>
-                                        @elseif($artRequest->delivery_date->diffInDays() <= 3)
-                                            <span class="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                                                Próxima
-                                            </span>
+                                        @else
+                                            <p class="text-sm text-gray-500">Sin pilar asignado</p>
                                         @endif
                                     </div>
                                 </div>
-                                @endif
-                            </div>
 
-                            @if($artRequest->observations)
-                            <!-- Observaciones -->
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Observaciones</h4>
-                                <div class="bg-gray-50 rounded-lg p-4">
-                                    <p class="text-gray-900 whitespace-pre-wrap">{{ $artRequest->observations }}</p>
+                                <div class="rounded-xl border border-gray-200 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha de Solicitud</p>
+                                    <div class="mt-3 flex items-center">
+                                        <svg class="mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span class="text-sm font-medium text-gray-900">{{ $artRequest->request_date->format('d/m/Y') }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-gray-200 p-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha de Entrega</p>
+                                    <div class="mt-3 flex items-center">
+                                        <svg class="mr-2 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                        <span class="text-sm font-medium text-gray-900">
+                                            {{ $artRequest->delivery_date ? $artRequest->delivery_date->format('d/m/Y') : 'Sin fecha definida' }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                            @endif
+
                         </div>
                     </div>
 
@@ -188,15 +217,16 @@
                         @endif
 
                         <!-- Agregar Archivo -->
+                        @hasanyrole(['admin','design'])
                         <div class="p-6 bg-gray-50 border-t border-gray-200">
                             <form action="{{ route('art_requests.files.add', $artRequest) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                 @csrf
                                 <div>
                                     <x-label for="file" :value="__('Agregar Archivo')" />
-                                    <input type="file" name="file" id="file" required
+                                    <input type="file" name="file" id="file" 
                                            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.zip,.rar"
                                            class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
-                                    <p class="mt-1 text-xs text-gray-500">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, MP4, AVI, MOV, ZIP, RAR (máx. 50MB)</p>
+                                    <p class="mt-1 text-xs text-gray-500">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, MP4, AVI, MOV, ZIP, RAR (máx. 5MB)</p>
                                 </div>
                                 <div>
                                     <x-label for="file_description" :value="__('Descripción del Archivo')" />
@@ -208,18 +238,44 @@
                                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                                         </svg>
-                                        Agregar Archivo
+                                        Subir Archivo
                                     </x-button>
                                 </div>
                             </form>
                         </div>
+                        @endhasanyrole
                     </div>
+
+                    <!-- Historial de Modificaciones -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">Historial de Modificaciones</h3>
+                                <p class="mt-1 text-sm text-gray-600">Control de cambios realizados al arte</p>
+                            </div>
+                            
+                            <button onclick="openRecordModificationModal()" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Registrar Cambios
+                            </button>
+                            
+                        </div>
+
+                        <x-art-request-modifications-history :artRequest="$artRequest" />
+                    </div>
+
+                    <!-- Modal para registrar modificación -->
+                    
+                    <x-art-request-record-modification-modal :artRequest="$artRequest" />
+                    
                 </div>
 
                 <!-- Sidebar -->
                 <div class="space-y-6">
                     <!-- Cambiar Estado -->
-                    @role(['design', 'admin'])
+                    @hasanyrole(['admin','design'])
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
                             <h3 class="text-lg font-medium text-gray-900">Cambiar Estado</h3>
@@ -249,8 +305,8 @@
                                                 class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
                                             <option value="NO INICIADO" {{ $artRequest->status == 'NO INICIADO' ? 'selected' : '' }}>No Iniciado</option>
                                             <option value="EN CURSO" {{ $artRequest->status == 'EN CURSO' ? 'selected' : '' }}>En Curso</option>
-                                            <option value="ESPERANDO APROBACIÓN" {{ $artRequest->status == 'ESPERANDO APROBACIÓN' ? 'selected' : '' }}>Esperando Aprobación</option>
-                                            <option value="ESPERANDO INFORMACIÓN" {{ $artRequest->status == 'ESPERANDO INFORMACIÓN' ? 'selected' : '' }}>Esperando Información</option>
+                                            <option value="ESPERANDO APROBACION" {{ $artRequest->status == 'ESPERANDO APROBACION' ? 'selected' : '' }}>Esperando Aprobación</option>
+                                            <option value="ESPERANDO INFORMACION" {{ $artRequest->status == 'ESPERANDO INFORMACION' ? 'selected' : '' }}>Esperando Información</option>
                                             <option value="EN PAUSA" {{ $artRequest->status == 'EN PAUSA' ? 'selected' : '' }}>En Pausa</option>
                                             <option value="COMPLETO" {{ $artRequest->status == 'COMPLETO' ? 'selected' : '' }}>Completo</option>
                                             <option value="CANCELADO" {{ $artRequest->status == 'CANCELADO' ? 'selected' : '' }}>Cancelado</option>
@@ -264,50 +320,8 @@
                             </form>
                         </div>
                     </div>
-                    @endrole
+                    @endhasanyrole
 
-                    <!-- Estado y Prioridad Actual -->
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6 bg-white border-b border-gray-200">
-                            <h3 class="text-lg font-medium text-gray-900">Estado Actual</h3>
-                        </div>
-                        <div class="p-6 bg-white space-y-4">
-                            <!-- Estado -->
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Estado</h4>
-                                @php
-                                    $statusColors = [
-                                        'NO INICIADO' => 'bg-gray-100 text-gray-800',
-                                        'EN CURSO' => 'bg-blue-100 text-blue-800',
-                                        'ESPERANDO APROBACIÓN' => 'bg-yellow-100 text-yellow-800',
-                                        'ESPERANDO INFORMACIÓN' => 'bg-orange-100 text-orange-800',
-                                        'EN PAUSA' => 'bg-purple-100 text-purple-800',
-                                        'COMPLETO' => 'bg-green-100 text-green-800',
-                                        'CANCELADO' => 'bg-red-100 text-red-800',
-                                        'RETRASADO' => 'bg-red-100 text-red-800'
-                                    ];
-                                @endphp
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$artRequest->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                    {{ $artRequest->status }}
-                                </span>
-                            </div>
-
-                            <!-- Prioridad -->
-                            <div>
-                                <h4 class="text-sm font-medium text-gray-700 mb-2">Prioridad</h4>
-                                @php
-                                    $priorityColors = [
-                                        'BAJA' => 'bg-gray-100 text-gray-800',
-                                        'MEDIA' => 'bg-blue-100 text-blue-800',
-                                        'ALTA' => 'bg-orange-100 text-orange-800'
-                                    ];
-                                @endphp
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $priorityColors[$artRequest->priority] ?? 'bg-gray-100 text-gray-800' }}">
-                                    {{ $artRequest->priority }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Información del Solicitante -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -370,7 +384,7 @@
                     </div>
 
                     <!-- Acciones -->
-                    @role(['admin', 'marketing', 'academic'])
+                    @hasanyrole(['admin', 'marketing', 'academic'])
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 bg-white">
                             <div class="flex flex-col space-y-3">
@@ -393,7 +407,7 @@
                             </div>
                         </div>
                     </div>
-                    @endrole
+                    @endhasanyrole
                 </div>
             </div>
         </div>

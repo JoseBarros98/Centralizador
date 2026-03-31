@@ -43,28 +43,51 @@
                                     </div>
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Docente</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $module->teacher->full_name }}</dd>
+                                        <dd class="mt-1 text-sm text-gray-900">
+                                            @if($module->teacher)
+                                                <div class="flex items-center space-x-2">
+                                                    <a href="{{ route('teachers.show', $module->teacher) }}" 
+                                                       class="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-150 font-medium" 
+                                                       title="Ver perfil del docente">
+                                                        {{ $module->teacher->full_name }}
+                                                    </a>
+                                                    @if($module->teacher->is_external)
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800" title="Docente sincronizado desde BD externa">
+                                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                                                            </svg>
+                                                            Sincronizado
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            @elseif($module->teacher_name)
+                                                <div class="flex items-center space-x-2">
+                                                    <span class="text-gray-700">{{ $module->teacher_name }}</span>
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800" title="Docente de BD externa sin asignar localmente">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                        </svg>
+                                                        Pendiente
+                                                    </span>
+                                                </div>
+                                            @else
+                                                <span class="text-gray-400">No asignado</span>
+                                            @endif
+                                        </dd>
                                     </div>
                                     <div>
                                         <dt class="text-sm font-medium text-gray-500">Encargado de Monitoreo</dt>
                                         <dd class="mt-1 text-sm text-gray-900">{{ $module->monitor->name ?? 'No asignado' }}</dd>
                                     </div>
                                     <div>
-                                        <dt class="text-sm font-medium text-gray-500">Número de Clases</dt>
-                                        <dd class="mt-1 text-sm text-gray-900">{{ $module->class_count }}</dd>
-                                    </div>
-                                    <div>
                                         <dt class="text-sm font-medium text-gray-500">Estado</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
-                                            @if($module->active)
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                    Activo
-                                                </span>
-                                            @else
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                                    Inactivo
-                                                </span>
-                                            @endif
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                @if($module->status == 'Desarrollo') bg-green-100 text-green-800
+                                                @elseif($module->status == 'Pendiente') bg-yellow-100 text-yellow-800
+                                                @else bg-gray-100 text-gray-600 @endif">
+                                                {{ $module->status }}
+                                            </span>
                                         </dd>
                                     </div>
                                 </dl>
@@ -72,10 +95,24 @@
                         </div>
 
                         <div>
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Descripción</h3>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">Fechas</h3>
                             <div class="border-t border-gray-200 pt-4">
-                                <p class="text-sm text-gray-900">{{ $module->description ?: 'No hay descripción disponible.' }}</p>
+                                <dl class="grid grid-cols-1 gap-y-6">
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Fecha de Inicio</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">
+                                            {{ $module->start_date ? $module->start_date->format('d/m/Y') : 'No definida' }}
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500">Fecha de Finalización</dt>
+                                        <dd class="mt-1 text-sm text-gray-900">
+                                            {{ $module->finalization_date ? $module->finalization_date->format('d/m/Y') : 'No definida' }}
+                                        </dd>
+                                    </div>
+                                </dl>
                             </div>
+
                             
                             @role(['admin', 'academic'])
                             <h3 class="text-lg font-medium text-gray-900 mt-8 mb-4">Recuperatorio</h3>
@@ -178,10 +215,57 @@
             <!-- Clases -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
+                    @php
+                        $sortedClasses = $module->classes->sortBy('class_date')->values();
+                        $weekdayLabels = [
+                            0 => 'Domingo',
+                            1 => 'Lunes',
+                            2 => 'Martes',
+                            3 => 'Miercoles',
+                            4 => 'Jueves',
+                            5 => 'Viernes',
+                            6 => 'Sabado',
+                        ];
+                        $classPatternDays = $sortedClasses
+                            ->map(static fn ($moduleClass) => $moduleClass->class_date->dayOfWeek)
+                            ->unique()
+                            ->sort()
+                            ->values()
+                            ->map(static fn ($weekday) => $weekdayLabels[$weekday] ?? null)
+                            ->filter()
+                            ->implode(', ');
+                        $firstScheduledClass = $sortedClasses->first();
+                        $lastScheduledClass = $sortedClasses->last();
+                    @endphp
+
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-medium text-gray-900">Clases</h3>
                         
                     </div>
+
+                    @if($sortedClasses->isNotEmpty())
+                        <div class="mb-6 rounded-lg border border-indigo-200 bg-indigo-50 p-4">
+                            <h4 class="text-sm font-semibold text-indigo-900">Resumen del patron</h4>
+                            <div class="mt-2 grid grid-cols-1 gap-3 text-sm text-indigo-900 md:grid-cols-3">
+                                <div>
+                                    <p class="text-xs font-medium uppercase tracking-wide text-indigo-700">Dias</p>
+                                    <p class="mt-1">{{ $classPatternDays ?: 'No definido' }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium uppercase tracking-wide text-indigo-700">Rango</p>
+                                    <p class="mt-1">
+                                        {{ $firstScheduledClass?->class_date?->format('d/m/Y') ?? 'No definido' }}
+                                        a
+                                        {{ $lastScheduledClass?->class_date?->format('d/m/Y') ?? 'No definido' }}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-medium uppercase tracking-wide text-indigo-700">Sesiones</p>
+                                    <p class="mt-1">{{ $sortedClasses->count() }} clases programadas</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -200,8 +284,9 @@
                                     <tr>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $class->class_date->format('d/m/Y') }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            @if($class->class_link)
-                                                <a href="{{ $class->class_link }}" target="_blank" class="text-blue-600 hover:text-blue-900">{{ __('Abrir enlace') }}</a>
+                                            @php($classMeetingLink = $module->shared_google_meet_link ?: ($class->google_meet_link ?: $class->class_link))
+                                            @if($classMeetingLink)
+                                                <a href="{{ $classMeetingLink }}" target="_blank" class="text-blue-600 hover:text-blue-900">{{ __('Abrir enlace') }}</a>
                                             @else
                                                 <span class="text-gray-500">{{ __('No disponible') }}</span>
                                             @endif
@@ -218,9 +303,9 @@
                                             @else
                                                 <a href="{{ route('attendances.upload', [$program->id, $module->id, $class->id]) }}" class="text-yellow-600 hover:text-yellow-900 flex items-center">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0   stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                                                     </svg>
-                                                    {{ __('Subir CSV') }}
+                                                    {{ __('Subir XLSX') }}
                                                 </a>
                                             @endif
                                         </td>

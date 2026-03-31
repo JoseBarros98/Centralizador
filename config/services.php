@@ -35,4 +35,23 @@ return [
         ],
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect_uri' => env('GOOGLE_REDIRECT_URI'),
+        'access_token' => env('GOOGLE_ACCESS_TOKEN'),
+        'refresh_token' => env('GOOGLE_REFRESH_TOKEN'),
+        'drive_folder_id' => env('GOOGLE_DRIVE_FOLDER_ID'), // Carpeta principal para los archivos
+    ],
+
+    'google_calendar' => [
+        'client_id' => env('GOOGLE_CALENDAR_CLIENT_ID', env('GOOGLE_CLIENT_ID')),
+        'client_secret' => env('GOOGLE_CALENDAR_CLIENT_SECRET', env('GOOGLE_CLIENT_SECRET')),
+        'redirect_uri' => env('GOOGLE_CALENDAR_REDIRECT_URI', env('GOOGLE_REDIRECT_URI')),
+        'access_token' => env('GOOGLE_CALENDAR_ACCESS_TOKEN', env('GOOGLE_ACCESS_TOKEN')),
+        'refresh_token' => env('GOOGLE_CALENDAR_REFRESH_TOKEN', env('GOOGLE_REFRESH_TOKEN')),
+        'calendar_id' => env('GOOGLE_CALENDAR_ID', 'primary'),
+        'enable_members_api' => env('GOOGLE_MEET_ENABLE_MEMBERS_API', false),
+    ],
+
 ];

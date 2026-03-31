@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -30,9 +32,32 @@ class User extends Authenticatable
         'active' => 'boolean',
     ];
 
-    public function createdInscriptions()
+    public function contentPillarFiles(): HasMany
     {
-        return $this->hasMany(Inscription::class, 'created_by');
+        return $this->hasMany(ContentPillarFile::class);
+    }
+
+    // Relaciones con el módulo de metas de marketing
+    public function leadTeams(): HasMany
+    {
+        return $this->hasMany(MarketingTeam::class, 'leader_id');
+    }
+
+    public function leadsActiveMarketingTeam(): bool
+    {
+        return $this->leadTeams()->where('active', true)->exists();
+    }
+
+    public function marketingTeamMemberships(): HasMany
+    {
+        return $this->hasMany(MarketingTeamMember::class);
+    }
+
+    public function marketingTeams(): BelongsToMany
+    {
+        return $this->belongsToMany(MarketingTeam::class, 'marketing_team_members', 'user_id', 'team_id')
+                   ->withPivot(['active', 'joined_at', 'left_at'])
+                   ->withTimestamps();
     }
 
     public function updatedInscriptions()
@@ -51,5 +76,35 @@ class User extends Authenticatable
         return $query->where('active', true);
     }
 
-    
+    /**
+     * Relación polimórfica para notificaciones
+     */
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable')->latest();
+    }
+
+    /**
+     * Obtener notificaciones no leídas
+     */
+    public function unreadNotifications()
+    {
+        return $this->notifications()->unread();
+    }
+
+    /**
+     * Obtener el conteo de notificaciones no leídas
+     */
+    public function getUnreadNotificationsCountAttribute()
+    {
+        return $this->unreadNotifications()->count();
+    }
+
+    /**
+     * Verificar si el usuario es administrador
+     */
+    public function isAdmin()
+    {
+        return $this->hasRole(['admin', 'administrador', 'Administrator']);
+    }
 }

@@ -14,10 +14,26 @@ class Attendance extends Model
         'inscription_id',
         'name',
         'email',
+        'join_time',
+        'leave_time',
         'duration',
         'is_registered_inscription',
         'attendance_percentage',
-        'status'
+        'status',
+        'has_license',
+        'license_type',
+        'license_notes',
+        'license_granted_by',
+        'license_granted_at',
+        'drive_file_id',
+        'drive_folder_id'
+    ];
+
+    protected $casts = [
+        'has_license' => 'boolean',
+        'license_granted_at' => 'datetime',
+        'join_time' => 'datetime',
+        'leave_time' => 'datetime'
     ];
 
     public const STATUS_PRESENT = 'present';
@@ -89,6 +105,46 @@ class Attendance extends Model
             return 'bg-yellow-500';
         } else {
             return 'bg-red-500';
+        }
+    }
+
+    /**
+     * Get the human-readable text for the license type.
+     *
+     * @return string
+     */
+    public function getLicenseTypeTextAttribute()
+    {
+        $types = [
+            'permiso' => 'Permiso General',
+            'licencia_medica' => 'Licencia Médica',
+            'licencia_laboral' => 'Licencia Laboral',
+            'emergencia_familiar' => 'Emergencia Familiar',
+            'otro' => 'Otro'
+        ];
+
+        return $types[$this->license_type] ?? $this->license_type;
+    }
+
+    /**
+     * Get the formatted join time.
+     *
+     * @return string
+     */
+    public function getFormattedJoinTimeAttribute()
+    {
+        if (!$this->join_time) {
+            return '-';
+        }
+
+        try {
+            if (is_string($this->join_time)) {
+                return date('H:i', strtotime($this->join_time));
+            } else {
+                return $this->join_time->format('H:i');
+            }
+        } catch (\Exception $e) {
+            return $this->join_time;
         }
     }
 }

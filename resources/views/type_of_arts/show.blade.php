@@ -23,12 +23,26 @@
         </div>
     </x-slot>
 
+<style>
+/* Estilos para badges de estado */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    display: inline-flex;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    border-radius: 9999px;
+}
+.status-active { background-color: #dcfce7; color: #166534; }
+.status-inactive { background-color: #fecaca; color: #991b1b; }
+</style>
+
     <div >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
                     <div class="mb-4">
-                        <h3 class="text-lg font-medium text-gray-900">Información del Pilar</h3>
+                        <h3 class="text-lg font-medium text-gray-900">Información del Tipo de Arte</h3>
                         <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Nombre:</p>
@@ -37,7 +51,7 @@
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Estado:</p>
                                 <p class="text-base">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $typeOfArt->active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    <span class="status-badge {{ $typeOfArt->active ? 'status-active' : 'status-inactive' }}">
                                         {{ $typeOfArt->active ? 'Activo' : 'Inactivo' }}
                                     </span>
                                 </p>
@@ -87,7 +101,7 @@
 
                     @if($typeOfArt->files->isEmpty())
                         <div class="text-center py-4">
-                            <p class="text-gray-500">No hay archivos asociados a este pilar de contenido.</p>
+                            <p class="text-gray-500">No hay archivos asociados a este tipo de arte.</p>
                         </div>
                     @else
                         <div class="overflow-x-auto">
@@ -182,7 +196,8 @@
     </div>
 
     <!-- Modal de subida de archivos -->
-    <div id="upload-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div id="upload-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 hidden modal-overlay">
+        <div class="flex items-center justify-center h-full">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium text-gray-900">Subir archivo</h3>
@@ -199,7 +214,7 @@
                 <div class="mb-4">
                     <label for="file" class="block text-sm font-medium text-gray-700">Archivo</label>
                     <input type="file" name="file" id="file" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                    <p class="text-xs text-gray-500 mt-1">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, MP4, ZIP, RAR. Tamaño máximo: 20MB.</p>
+                    <p class="text-xs text-gray-500 mt-1">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, MP4, ZIP, RAR. Tamaño máximo: 5MB.</p>
                 </div>
                 
                 <div class="mb-4">

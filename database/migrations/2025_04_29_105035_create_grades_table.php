@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('last_name');
             $table->decimal('grade', 5, 2);
+            $table->enum('approval_type', ['regular', 'recuperatorio', 'tutoria'])->default('regular');
             $table->boolean('approved')->default(false);
             $table->string('original_name')->nullable(); // Nombre original del archivo
             $table->timestamps();

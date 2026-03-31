@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('mail_was_sent')->default(false)->after('accesses_were_sent');
 
             //Estado académico
-            $table->enum('academic_status', ['Activo', 'Retirado', 'Congelado', 'Cambio'])->after('mail_was_sent');
+            $table->enum('academic_status', ['Activo', 'Retirado', 'Congelado', 'Cambio', 'Devolucion', 'En Tramite', 'Titulado'])->after('mail_was_sent');
             $table->boolean('has_freezing_letter')->default(false)->after('academic_status');
             $table->string('freezing_letter_path')->nullable()->after('has_freezing_letter');
             $table->text('freezing_letter_observations')->nullable()->after('freezing_letter_path');

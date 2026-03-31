@@ -12,7 +12,18 @@ class Receipt extends Model
     protected $fillable = [
         'inscription_id',
         'file_path',
+        'file_name',
+        'file_type', 
+        'file_size',
+        'google_drive_id',
+        'google_drive_link',
+        'stored_in_drive',
         'created_by'
+    ];
+
+    protected $casts = [
+        'stored_in_drive' => 'boolean',
+        'file_size' => 'integer',
     ];
 
     /**

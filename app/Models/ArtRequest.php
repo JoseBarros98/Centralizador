@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class ArtRequest extends Model
 {
@@ -60,6 +61,11 @@ class ArtRequest extends Model
         return $this->hasMany(ArtRequestFile::class);
     }
 
+    public function modifications()
+    {
+        return $this->hasMany(ArtRequestModification::class)->orderBy('created_at', 'DESC');
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -94,8 +100,8 @@ class ArtRequest extends Model
             'NO INICIADO' => 'gray',
             'EN CURSO' => 'blue',
             'RETRASADO' => 'red',
-            'ESPERANDO APROBACIÓN' => 'yellow',
-            'ESPERANDO INFORMACIÓN' => 'orange',
+            'ESPERANDO APROBACION' => 'yellow',
+            'ESPERANDO INFORMACION' => 'orange',
             'CANCELADO' => 'red',
             'EN PAUSA' => 'purple',
             default => 'gray'
@@ -114,6 +120,60 @@ class ArtRequest extends Model
 
     public function isOverdue()
     {
-        return $this->delivery_date < now() && $this->status !== 'COMPLETO';
+        if (!$this->delivery_date || $this->status === 'COMPLETO') {
+            return false;
+        }
+
+        // Una fecha de entrega sin hora debe vencer al final del día (23:59:59)
+        return $this->delivery_date->copy()->endOfDay()->lt(now());
+    }
+
+    /**
+     * Registrar una modificación en el arte
+     */
+    public function recordModification($type, $description, $oldValue = null, $newValue = null, $details = null)
+    {
+        return $this->modifications()->create([
+            'modification_type' => $type,
+            'description' => $description,
+            'old_value' => $oldValue,
+            'new_value' => $newValue,
+            'details' => $details,
+            'created_by' => Auth::id() ?? $this->updated_by,
+        ]);
+    }
+
+    /**
+     * Contar modificaciones de un tipo específico
+     */
+    public function countModificationsByType($type)
+    {
+        return $this->modifications()->where('modification_type', $type)->count();
+    }
+
+    /**
+     * Obtener todas las modificaciones agrupadas por tipo
+     */
+    public function getModificationsSummary()
+    {
+        $types = ['COLOR', 'TAMAÑO', 'TEXTO', 'CONTENIDO', 'POSICIÓN', 'ESTILO', 'FUENTE', 'IMAGEN', 'OTRO'];
+        $summary = [];
+        
+        foreach ($types as $type) {
+            $count = $this->countModificationsByType($type);
+            if ($count > 0) {
+                $summary[$type] = $count;
+            }
+        }
+        
+        return $summary;
+    }
+
+    /**
+     * Obtener el total de modificaciones
+     */
+    public function getTotalModifications()
+    {
+        return $this->modifications()->count();
     }
 }

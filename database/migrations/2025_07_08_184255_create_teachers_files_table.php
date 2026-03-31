@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('file_name');
             $table->string('file_type');
             $table->text('description')->nullable();
+            $table->json('academic_info')->nullable()->comment('Información académica extraída del archivo (Diplomado, Maestría, Doctorado)');
             $table->unsignedBigInteger('created_by');
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();

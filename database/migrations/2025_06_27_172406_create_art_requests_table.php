@@ -28,8 +28,8 @@ return new class extends Migration
                 'NO INICIADO', 
                 'EN CURSO', 
                 'RETRASADO', 
-                'ESPERANDO APROBACIÓN', 
-                'ESPERANDO INFORMACIÓN', 
+                'ESPERANDO APROBACION', 
+                'ESPERANDO INFORMACION', 
                 'CANCELADO', 
                 'EN PAUSA'
             ])->default('NO INICIADO');

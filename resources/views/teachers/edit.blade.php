@@ -25,25 +25,11 @@
 
     <!-- Datos Personales -->
     <h3 class="text-lg font-semibold mb-2 text-indigo-700">Datos Personales</h3>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div>
             <label for="name" class="block text-sm font-medium text-gray-700">Nombre</label>
             <input type="text" name="name" id="name" value="{{ old('name', $teacher->name) }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
             @error('name')
-                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-            @enderror
-        </div>
-        <div>
-            <label for="paternal_surname" class="block text-sm font-medium text-gray-700">Apellido Paterno</label>
-            <input type="text" name="paternal_surname" id="paternal_surname" value="{{ old('paternal_surname', $teacher->paternal_surname) }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            @error('paternal_surname')
-                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-            @enderror
-        </div>
-        <div>
-            <label for="maternal_surname" class="block text-sm font-medium text-gray-700">Apellido Materno</label>
-            <input type="text" name="maternal_surname" id="maternal_surname" value="{{ old('maternal_surname', $teacher->maternal_surname) }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
-            @error('maternal_surname')
                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
             @enderror
         </div>
@@ -92,9 +78,24 @@
     <!-- Datos Profesionales -->
     <h3 class="text-lg font-semibold mb-2 text-indigo-700">Datos Profesionales</h3>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
-            <label for="profession" class="block text-sm font-medium text-gray-700">Profesión</label>
-            <input type="text" name="profession" id="profession" value="{{ old('profession', $teacher->profession) }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+        <div class="relative">
+            <label for="profession-search" class="block text-sm font-medium text-gray-700">
+                Profesión
+                <button type="button" onclick="openCreateProfessionModal()" class="ml-2 text-indigo-600 hover:text-indigo-900 text-xs">
+                    + Nueva profesión
+                </button>
+            </label>
+            <input type="text" 
+                   id="profession-search" 
+                   placeholder="Buscar profesión..." 
+                   value="{{ old('profession', $teacher->profession) }}"
+                   class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                   autocomplete="off">
+            <input type="hidden" name="profession" id="profession" value="{{ old('profession', $teacher->profession) }}">
+            
+            <!-- Contenedor de resultados -->
+            <div id="profession-results" class="hidden absolute z-10 w-full bg-white shadow-lg rounded-md mt-1 max-h-60 overflow-auto border border-gray-200"></div>
+            
             @error('profession')
                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
             @enderror
@@ -113,6 +114,42 @@
                 <option value="M.Sc. Dr." {{ old('academic_degree', $teacher->academic_degree) == 'M.Sc. Dr.' ? 'selected' : '' }}>M.Sc. Dr.</option>
                 <option value="Ph.D. Ing." {{ old('academic_degree', $teacher->academic_degree) == 'Ph.D. Ing.' ? 'selected' : '' }}>Ph.D. Ing.</option>
                 <option value="Ph.D. Lic." {{ old('academic_degree', $teacher->academic_degree) == 'Ph.D. Lic.' ? 'selected' : '' }}>Ph.D. Lic.</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Datos Bancarios -->
+    <h3 class="text-lg font-semibold mb-2 text-indigo-700">Datos Bancarios</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div>
+            <label for="bank" class="block text-sm font-medium text-gray-700">Banco</label>
+            <input type="text" name="bank" id="bank" value="{{ old('bank', $teacher->bank) }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+            @error('bank')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label for="account_number" class="block text-sm font-medium text-gray-700">Número de cuenta</label>
+            <input type="text" name="account_number" id="account_number" value="{{ old('account_number', $teacher->account_number) }}" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+            @error('account_number')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+        <div>
+            <label for="bill" class="block text-sm font-medium text-gray-700">¿Emite Factura?</label>
+            <select id="bill" name="bill" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                <option value="">Seleccione una opción</option>
+                <option value="Si" {{ old('bill', $teacher->bill) == 'Si' ? 'selected' : '' }}>Sí</option>
+                <option value="No" {{ old('bill', $teacher->bill) == 'No' ? 'selected' : '' }}>No</option>
+            </select>
+        </div>
+        <div>
+            <label for="esam_worker" class="block text-sm font-medium text-gray-700">¿Es trabajador de ESAM?</label>
+            <select id="esam_worker" name="esam_worker" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                <option value="">Seleccione una opción</option>
+                <option value="Si" {{ old('esam_worker', $teacher->esam_worker) == 'Si' ? 'selected' : '' }}>Sí</option>
+                <option value="No" {{ old('esam_worker', $teacher->esam_worker) == 'No' ? 'selected' : '' }}>No</option>
             </select>
         </div>
     </div>
@@ -232,5 +269,173 @@
             // Inicializar la visibilidad de los botones
             updateRemoveButtons();
         });
+
+        // ========== BÚSQUEDA DE PROFESIONES ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            setupSearchField('profession', '/api/inscriptions/search-professions');
+
+            function setupSearchField(fieldName, apiUrl) {
+                const searchInput = document.getElementById(`${fieldName}-search`);
+                const hiddenInput = document.getElementById(fieldName);
+                const resultsContainer = document.getElementById(`${fieldName}-results`);
+                let searchTimeout;
+
+                if (!searchInput || !hiddenInput || !resultsContainer) return;
+
+                // Búsqueda con debounce
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    const query = this.value.trim();
+
+                    if (query.length < 2) {
+                        resultsContainer.classList.add('hidden');
+                        hiddenInput.value = '';
+                        return;
+                    }
+
+                    searchTimeout = setTimeout(() => {
+                        fetch(`${apiUrl}?query=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => displayResults(data, fieldName))
+                            .catch(error => console.error('Error:', error));
+                    }, 300);
+                });
+
+                // Mostrar resultados
+                function displayResults(data, fieldName) {
+                    const resultsContainer = document.getElementById(`${fieldName}-results`);
+                    const searchInput = document.getElementById(`${fieldName}-search`);
+                    
+                    if (data.length === 0) {
+                        resultsContainer.innerHTML = '<p class="p-2 text-gray-500 text-sm">No se encontraron resultados</p>';
+                        resultsContainer.classList.remove('hidden');
+                        return;
+                    }
+
+                    let html = '<ul class="divide-y divide-gray-200">';
+                    data.forEach(item => {
+                        html += `
+                            <li class="p-2 hover:bg-gray-100 cursor-pointer" data-id="${item.id}" data-name="${item.name}">
+                                <span class="text-sm">${item.name}</span>
+                            </li>
+                        `;
+                    });
+                    html += '</ul>';
+
+                    resultsContainer.innerHTML = html;
+                    resultsContainer.classList.remove('hidden');
+
+                    // Manejar selección
+                    resultsContainer.querySelectorAll('li').forEach(li => {
+                        li.addEventListener('click', function() {
+                            const name = this.getAttribute('data-name');
+                            searchInput.value = name;
+                            hiddenInput.value = name;
+                            resultsContainer.classList.add('hidden');
+                        });
+                    });
+                }
+
+                // Cerrar resultados al hacer clic fuera
+                document.addEventListener('click', function(event) {
+                    if (!searchInput.contains(event.target) && !resultsContainer.contains(event.target)) {
+                        resultsContainer.classList.add('hidden');
+                    }
+                });
+
+                // Limpiar valor oculto si el usuario borra el campo de búsqueda
+                searchInput.addEventListener('blur', function() {
+                    setTimeout(() => {
+                        if (!this.value.trim()) {
+                            hiddenInput.value = '';
+                        }
+                    }, 200);
+                });
+            }
+        });
+
+        // ========== FUNCIONES PARA MODAL DE CREACIÓN DE PROFESIÓN ==========
+        function openCreateProfessionModal() {
+            document.getElementById('new-profession-name').value = '';
+            window.dispatchEvent(new CustomEvent('open-modal', { detail: 'create-profession-modal' }));
+        }
+
+        function closeModal(modalId) {
+            window.dispatchEvent(new CustomEvent('close-modal', { detail: modalId }));
+        }
+
+        // Función para crear profesión
+        function createProfession() {
+            const name = document.getElementById('new-profession-name').value.trim();
+            
+            if (!name) {
+                alert('Por favor ingrese el nombre de la profesión');
+                return;
+            }
+
+            // Mostrar indicador de carga
+            const submitBtn = document.getElementById('create-profession-btn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Guardando...';
+
+            fetch('/professions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ name: name })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar el campo de búsqueda con la nueva profesión
+                    document.getElementById('profession-search').value = data.profession.name;
+                    document.getElementById('profession').value = data.profession.name;
+                    
+                    // Cerrar modal
+                    closeModal('create-profession-modal');
+                    
+                    alert('Profesión creada exitosamente');
+                } else {
+                    alert(data.message || 'Error al crear la profesión');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al crear la profesión');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        }
     </script>
+
+    <!-- Modal para crear nueva profesión -->
+    <x-modal id="create-profession-modal">
+        <div class="p-6">
+            <h2 class="text-lg font-medium text-gray-900 mb-4">
+                {{ __('Nueva Profesión') }}
+            </h2>
+
+            <div class="mb-4">
+                <x-label for="new-profession-name" :value="__('Nombre de la Profesión')" />
+                <x-input id="new-profession-name" class="block mt-1 w-full" type="text" required autofocus />
+            </div>
+
+            <div class="flex justify-end">
+                <button type="button" onclick="closeModal('create-profession-modal')" 
+                        class="mr-3 inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 focus:outline-none focus:border-gray-500 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
+                    Cancelar
+                </button>
+                <button type="button" id="create-profession-btn" onclick="createProfession()" 
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+                    Guardar
+                </button>
+            </div>
+        </div>
+    </x-modal>
 </x-app-layout>

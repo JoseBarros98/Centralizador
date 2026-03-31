@@ -24,6 +24,24 @@
             </div>
         </div>
     </x-slot>
+
+<style>
+/* Estilos para badges de estado */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    display: inline-flex;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    border-radius: 9999px;
+}
+.status-active { background-color: #dcfce7; color: #166534; }
+.status-inactive { background-color: #fecaca; color: #991b1b; }
+
+/* Estilos para badges de roles y permisos */
+.role-badge { background-color: #e0e7ff; color: #3730a3; }
+.permission-badge { background-color: #dcfce7; color: #166534; }
+</style>
     
     <div >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -52,13 +70,9 @@
                                         <dt class="text-sm font-medium text-gray-500">Estado</dt>
                                         <dd class="mt-1 text-sm text-gray-900">
                                             @if($user->active)
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                    Activo
-                                                </span>
+                                                <span class="status-badge status-active">Activo</span>
                                             @else
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                                    Inactivo
-                                                </span>
+                                                <span class="status-badge status-inactive">Inactivo</span>
                                             @endif
                                         </dd>
                                     </div>
@@ -83,9 +97,7 @@
                                         <dd class="mt-1 text-sm text-gray-900">
                                             <div class="flex flex-wrap gap-2">
                                                 @foreach ($user->roles as $role)
-                                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-indigo-100 text-indigo-800">
-                                                        {{ ucfirst($role->name) }}
-                                                    </span>
+                                                    <span class="status-badge role-badge">{{ ucfirst($role->name) }}</span>
                                                 @endforeach
                                             </div>
                                         </dd>
@@ -95,9 +107,7 @@
                                         <dd class="mt-1 text-sm text-gray-900">
                                             <div class="flex flex-wrap gap-2">
                                                 @foreach ($user->getAllPermissions() as $permission)
-                                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                        {{ $permission->name }}
-                                                    </span>
+                                                    <span class="status-badge permission-badge">{{ $permission->name }}</span>
                                                 @endforeach
                                             </div>
                                         </dd>

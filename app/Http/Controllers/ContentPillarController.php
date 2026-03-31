@@ -4,16 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\ContentPillar;
 use App\Models\ContentPillarFile;
+use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Routing\Controller;
 
 class ContentPillarController extends Controller
 {
-    public function __construct()
+    protected $googleDriveService;
+
+    public function __construct(GoogleDriveService $googleDriveService)
     {
+        $this->googleDriveService = $googleDriveService;
         $this->middleware('permission:content_pillar.view')->only(['index', 'show']);
         $this->middleware('permission:content_pillar.create')->only(['create', 'store']);
         $this->middleware('permission:content_pillar.edit')->only(['edit', 'update']);
@@ -26,9 +29,20 @@ class ContentPillarController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $contentPillars = ContentPillar::with('creator')->orderBy('name')->paginate(15);
+        $query = ContentPillar::with('creator');
+
+        // Búsqueda por nombre o descripción
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $contentPillars = $query->orderBy('name')->paginate(15);
         
         return view('content_pillars.index', compact('contentPillars'));
     }
@@ -51,7 +65,7 @@ class ContentPillarController extends Controller
             'description' => 'nullable|string',
             'active' => 'boolean',
             'files' => 'nullable|array',
-            'files.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,zip,rar|max:20480',
+            'files.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,zip,rar|max:512000',
             'file_descriptions' => 'nullable|array',
             'file_descriptions.*' => 'nullable|string',
         ]);
@@ -68,14 +82,19 @@ class ContentPillarController extends Controller
         // Procesar archivos si existen
         if ($request->hasFile('files')) {
             foreach ($request->file('files') as $index => $file) {
-                $path = $file->store('content_pillars', 'public');
+                // Subir archivo DIRECTAMENTE a Google Drive - SIN fallback local
+                $driveFile = $this->uploadToGoogleDrive($file, $contentPillar->name);
                 
                 $contentPillarFile = new ContentPillarFile([
                     'content_pillar_id' => $contentPillar->id,
-                    'file_path' => $path,
+                    'file_path' => '', // String vacío - NO se guarda localmente
                     'file_name' => $file->getClientOriginalName(),
                     'file_type' => $file->getClientMimeType(),
                     'description' => $request->input("file_descriptions.{$index}") ?? null,
+                    'google_drive_id' => $driveFile['id'],
+                    'google_drive_link' => $driveFile['webViewLink'],
+                    'file_size' => $driveFile['size'],
+                    'stored_in_drive' => true,
                 ]);
                 
                 $contentPillarFile->created_by = Auth::id();
@@ -118,7 +137,7 @@ class ContentPillarController extends Controller
                 'description' => 'nullable|string',
                 'active' => 'boolean',
                 'files' => 'nullable|array',
-                'files.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,zip,rar|max:20480',
+                'files.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,zip,rar|max:512000',
                 'file_descriptions' => 'nullable|array',
                 'file_descriptions.*' => 'nullable|string',
             ]);
@@ -130,7 +149,7 @@ class ContentPillarController extends Controller
             $contentPillar->updated_by = Auth::id();
             $contentPillar->save();
 
-            // Procesar nuevos archivos si existen
+            // Procesar nuevos archivos si existen - SOLO GOOGLE DRIVE
             if ($request->hasFile('files')) {
                 $files = $request->file('files');
                 $descriptions = $request->input('file_descriptions', []);
@@ -138,18 +157,27 @@ class ContentPillarController extends Controller
                 foreach ($files as $index => $file) {
                     // Solo procesar si el archivo no está vacío y es válido
                     if ($file && $file->isValid()) {
-                        $path = $file->store('content_pillars', 'public');
-                        
-                        $contentPillarFile = new ContentPillarFile([
-                            'content_pillar_id' => $contentPillar->id,
-                            'file_path' => $path,
-                            'file_name' => $file->getClientOriginalName(),
-                            'file_type' => $file->getClientMimeType(),
-                            'description' => $descriptions[$index] ?? null,
-                        ]);
-                        
-                        $contentPillarFile->created_by = Auth::id();
-                        $contentPillarFile->save();
+                        try {
+                            // Subir archivo DIRECTAMENTE a Google Drive
+                            $driveFile = $this->uploadToGoogleDrive($file, $contentPillar->name);
+                            
+                            $contentPillarFile = new ContentPillarFile([
+                                'content_pillar_id' => $contentPillar->id,
+                                'file_path' => '', // String vacío - NO se guarda localmente
+                                'file_name' => $file->getClientOriginalName(),
+                                'file_type' => $file->getClientMimeType(),
+                                'description' => $descriptions[$index] ?? null,
+                                'google_drive_id' => $driveFile['id'],
+                                'google_drive_link' => $driveFile['webViewLink'],
+                                'stored_in_drive' => true,
+                            ]);
+                            
+                            $contentPillarFile->created_by = Auth::id();
+                            $contentPillarFile->save();
+                        } catch (\Exception $e) {
+                            Log::error('Error al subir archivo en update: ' . $e->getMessage());
+                            // Continuar con otros archivos si hay error en uno
+                        }
                     }
                 }
             }
@@ -171,16 +199,30 @@ class ContentPillarController extends Controller
      */
     public function destroy(ContentPillar $contentPillar)
     {
-        // Eliminar archivos físicos
-        foreach ($contentPillar->files as $file) {
-            Storage::disk('public')->delete($file->file_path);
+        try {
+            // Eliminar archivos SOLO de Google Drive
+            foreach ($contentPillar->files as $file) {
+                if ($file->stored_in_drive && $file->google_drive_id) {
+                    try {
+                        $googleDriveService = new GoogleDriveService();
+                        $googleDriveService->deleteFile($file->google_drive_id);
+                    } catch (\Exception $e) {
+                        Log::error('Error al eliminar archivo de Drive: ' . $e->getMessage());
+                    }
+                }
+            }
+            
+            // Eliminar el pilar (los archivos se eliminarán en cascada)
+            $contentPillar->delete();
+            
+            return redirect()->route('content-pillars.index')
+                ->with('success', 'Pilar de contenido eliminado correctamente.');
+                
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar pilar de contenido: ' . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['error' => 'Error al eliminar el pilar de contenido: ' . $e->getMessage()]);
         }
-        
-        // Eliminar el pilar (los archivos se eliminarán en cascada)
-        $contentPillar->delete();
-        
-        return redirect()->route('content-pillars.index')
-            ->with('success', 'Pilar de contenido eliminado correctamente.');
     }
     
     /**
@@ -189,49 +231,40 @@ class ContentPillarController extends Controller
     public function uploadFile(Request $request, ContentPillar $contentPillar)
     {
         $validated = $request->validate([
-            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,zip,rar|max:20480',
+            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,zip,rar|max:512000',
             'description' => 'nullable|string',
         ]);
 
-        try {
-            $file = $request->file('file');
-            $path = $file->store('content_pillars', 'public');
-            
-            $contentPillarFile = new ContentPillarFile([
-                'content_pillar_id' => $contentPillar->id,
-                'file_path' => $path,
-                'file_name' => $file->getClientOriginalName(),
-                'file_type' => $file->getClientMimeType(),
-                'description' => $validated['description'] ?? null,
+        $file = $request->file('file');
+        
+        // Subir archivo DIRECTAMENTE a Google Drive - SIN fallback local
+        $driveFile = $this->uploadToGoogleDrive($file, $contentPillar->name);
+        
+        $contentPillarFile = new ContentPillarFile([
+            'content_pillar_id' => $contentPillar->id,
+            'file_path' => '', // String vacío - NO se guarda localmente
+            'file_name' => $file->getClientOriginalName(),
+            'file_type' => $file->getClientMimeType(),
+            'description' => $validated['description'] ?? null,
+            'google_drive_id' => $driveFile['id'],
+            'google_drive_link' => $driveFile['webViewLink'],
+            'file_size' => $driveFile['size'],
+            'stored_in_drive' => true,
+        ]);
+        
+        $contentPillarFile->created_by = Auth::id();
+        $contentPillarFile->save();
+        
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Archivo subido correctamente',
+                'file' => $contentPillarFile
             ]);
-            
-            $contentPillarFile->created_by = Auth::id();
-            $contentPillarFile->save();
-            
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Archivo subido correctamente',
-                    'file' => $contentPillarFile
-                ]);
-            }
-            
-            return redirect()->route('content-pillars.show', $contentPillar)
-                ->with('success', 'Archivo subido correctamente.');
-        } catch (\Exception $e) {
-            Log::error('Error al subir archivo: ' . $e->getMessage());
-            
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Error al subir archivo: ' . $e->getMessage()
-                ], 500);
-            }
-            
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(['file' => 'Error al subir archivo: ' . $e->getMessage()]);
         }
+        
+        return redirect()->route('content-pillars.show', $contentPillar)
+            ->with('success', 'Archivo subido correctamente.');
     }
     
     /**
@@ -239,23 +272,16 @@ class ContentPillarController extends Controller
      */
     public function deleteFile(ContentPillarFile $file)
     {
-        try {
-            $contentPillar = $file->contentPillar;
-            
-            // Eliminar archivo físico
-            Storage::disk('public')->delete($file->file_path);
-            
-            // Eliminar registro
-            $file->delete();
-            
-            return redirect()->route('content-pillars.show', $contentPillar)
-                ->with('success', 'Archivo eliminado correctamente.');
-        } catch (\Exception $e) {
-            Log::error('Error al eliminar archivo: ' . $e->getMessage());
-            
-            return redirect()->back()
-                ->withErrors(['file' => 'Error al eliminar archivo: ' . $e->getMessage()]);
-        }
+        $contentPillar = $file->contentPillar;
+        
+        // TODOS los archivos están en Google Drive - eliminar de Drive
+        $this->googleDriveService->deleteFile($file->google_drive_id);
+        
+        // Eliminar registro de la base de datos
+        $file->delete();
+        
+        return redirect()->route('content-pillars.show', $contentPillar)
+            ->with('success', 'Archivo eliminado correctamente.');
     }
     
     /**
@@ -263,23 +289,15 @@ class ContentPillarController extends Controller
      */
     public function serveFile(ContentPillarFile $file)
     {
-        try {
-            $path = Storage::disk('public')->path($file->file_path);
-            
-            if (!file_exists($path)) {
-                abort(404, 'Archivo no encontrado');
-            }
-            
-            $headers = [
-                'Content-Type' => $file->file_type,
-                'Content-Disposition' => 'inline; filename="' . $file->file_name . '"',
-            ];
-            
-            return response()->file($path, $headers);
-        } catch (\Exception $e) {
-            Log::error('Error al servir archivo: ' . $e->getMessage());
-            abort(500, 'Error al servir archivo');
-        }
+        // TODOS los archivos están en Google Drive
+        $content = $this->googleDriveService->downloadFile($file->google_drive_id);
+        
+        $headers = [
+            'Content-Type' => $file->file_type,
+            'Content-Disposition' => 'inline; filename="' . $file->file_name . '"',
+        ];
+        
+        return response($content, 200, $headers);
     }
     
     /**
@@ -287,18 +305,13 @@ class ContentPillarController extends Controller
      */
     public function downloadFile(ContentPillarFile $file)
     {
-        try {
-            $path = Storage::disk('public')->path($file->file_path);
-            
-            if (!file_exists($path)) {
-                abort(404, 'Archivo no encontrado');
-            }
-            
-            return response()->download($path, $file->file_name);
-        } catch (\Exception $e) {
-            Log::error('Error al descargar archivo: ' . $e->getMessage());
-            abort(500, 'Error al descargar archivo');
-        }
+        // TODOS los archivos están en Google Drive
+        $content = $this->googleDriveService->downloadFile($file->google_drive_id);
+        
+        return response($content, 200, [
+            'Content-Type' => $file->file_type,
+            'Content-Disposition' => 'attachment; filename="' . $file->file_name . '"',
+        ]);
     }
 
     /**
@@ -311,5 +324,62 @@ class ContentPillarController extends Controller
         $contentPillar->save();
         return redirect()->route('content-pillars.show', $contentPillar)
             ->with('success', 'Estado del pilar de contenido actualizado correctamente.');
+    }
+
+    /**
+     * Helper method para subir archivos a Google Drive
+     */
+    private function uploadToGoogleDrive($file, $folderName)
+    {
+        // Crear carpeta si no existe
+        $folderId = $this->getOrCreateDriveFolder($folderName);
+        
+        // Usar el path temporal del archivo subido
+        $tempPath = $file->getRealPath();
+        
+        try {
+            $driveFile = $this->googleDriveService->uploadFile(
+                $tempPath,
+                $file->getClientOriginalName(),
+                $file->getClientMimeType(),
+                'Archivo subido desde Laravel',
+                $folderId
+            );
+            
+            return $driveFile;
+        } catch (\Exception $e) {
+            Log::error('Error en uploadToGoogleDrive: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Obtener o crear carpeta en Google Drive con estructura jerárquica
+     */
+    private function getOrCreateDriveFolder($folderName)
+    {
+        try {
+            // Usar estructura jerárquica: "Pilar de Contenido" -> nombre específico del pilar
+            $folderId = $this->googleDriveService->createHierarchicalFolder('Pilar de Contenido', $folderName);
+            
+            Log::info('Carpeta jerárquica creada para pilar de contenido', [
+                'folder_id' => $folderId,
+                'main_category' => 'Pilar de Contenido',
+                'subfolder' => $folderName
+            ]);
+            
+            return $folderId;
+        } catch (\Exception $e) {
+            Log::error('Error creando carpeta jerárquica: ' . $e->getMessage());
+            
+            // Fallback: usar el método anterior
+            $configFolderId = config('services.google.drive_folder_id');
+            if (!empty($configFolderId)) {
+                return $configFolderId;
+            }
+            
+            // Si todo falla, usar null para subir a la raíz
+            return null;
+        }
     }
 }

@@ -15,6 +15,15 @@ class ContentPillarFile extends Model
         'file_name',
         'file_type',
         'description',
+        'google_drive_id',
+        'google_drive_link',
+        'file_size',
+        'stored_in_drive',
+    ];
+
+    protected $casts = [
+        'stored_in_drive' => 'boolean',
+        'file_size' => 'integer',
     ];
 
     /**

@@ -25,9 +25,35 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
+                    <!-- Formulario de búsqueda -->
+                    <div class="mb-4">
+                        <form method="GET" action="{{ route('content-pillars.index') }}" class="flex gap-2 max-w-lg">
+                            <input type="text" name="search" value="{{ request('search') }}" 
+                                   placeholder="Buscar por nombre o descripción..." 
+                                   class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                Buscar
+                            </button>
+                            @if(request('search'))
+                                <a href="{{ route('content-pillars.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    Limpiar
+                                </a>
+                            @endif
+                        </form>
+                    </div>
+
                     @if($contentPillars->isEmpty())
                         <div class="text-center py-4">
-                            <p class="text-gray-500">No hay pilares de contenido registrados.</p>
+                            <p class="text-gray-500">
+                                @if(request('search'))
+                                    No se encontraron pilares de contenido que coincidan con "{{ request('search') }}".
+                                @else
+                                    No hay pilares de contenido registrados.
+                                @endif
+                            </p>
                         </div>
                     @else
                         <div class="overflow-x-auto">
@@ -112,9 +138,12 @@
                             </table>
                         </div>
                         
-                        <div class="mt-4">
-                            {{ $contentPillars->links() }}
-                        </div>
+                        <!-- Paginación con parámetros de búsqueda -->
+                        @if($contentPillars->hasPages())
+                            <div class="mt-4">
+                                {{ $contentPillars->appends(request()->except('page'))->links() }}
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>

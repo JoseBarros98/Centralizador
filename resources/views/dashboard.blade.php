@@ -6,21 +6,24 @@
     <div class="mb-6">
         <div class="flex flex-col md:flex-row justify-between items-center">
             <div class="w-full md:w-auto mb-4 md:mb-0">
-                <h1 class="text-2xl font-semibold text-gray-800">Dashboard</h1>
-                <p class="text-gray-600">{{ $viewType === 'monthly' ? 'Vista mensual - ' . $nombreMes . ' ' . $year : 'Vista anual - ' . $year }}</p>
+                <h1 class="text-2xl font-semibold text-gray-800 ">Dashboard</h1>
+                <p class="text-gray-600 ">{{ $viewType === 'monthly' ? 'Vista Mensual - ' . strtoupper($nombreMes) . ' ' . $year : 'Vista Anual - ' . $year }}</p>
             </div>
             <div class="w-full md:w-auto">
                 <form method="GET" action="{{ route('dashboard') }}" class="flex flex-wrap gap-2">
-                    <select id="view_type" name="view_type" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" onchange="toggleMonthField()">
+                    {{-- <select id="view_type" name="view_type" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" onchange="toggleMonthField()">
                         <option value="monthly" {{ $viewType === 'monthly' ? 'selected' : '' }}>Mensual</option>
                         <option value="yearly" {{ $viewType === 'yearly' ? 'selected' : '' }}>Anual</option>
-                    </select>
+                    </select> --}}
                     
-                    <div id="month-field" style="{{ $viewType === 'yearly' ? 'display: none;' : '' }}">
+                    <div id="month-field">
                         <select id="month" name="month" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                            <option value="all" {{ (isset($month) && (string) $month === 'all') || $viewType === 'yearly' ? 'selected' : '' }}>
+                                TODOS LOS MESES (ANUAL)
+                            </option>
                             @for ($i = 1; $i <= 12; $i++)
                                 <option value="{{ $i }}" {{ isset($month) && $month == $i ? 'selected' : '' }}>
-                                    {{ ucfirst(\Carbon\Carbon::createFromDate(null, $i, 1)->translatedFormat('F')) }}
+                                    {{ strtoupper(\Carbon\Carbon::createFromDate(null, $i, 1)->translatedFormat('F')) }}
                                 </option>
                             @endfor
                         </select>
@@ -34,8 +37,8 @@
                         @endfor
                     </select>
                     
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:border-indigo-700 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
-                        Filtrar
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white  tracking-widest hover:bg-indigo-700 focus:outline-none focus:border-indigo-700 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
+                        FILTRAR
                     </button>
                 </form>
             </div>
@@ -47,8 +50,8 @@
         <!-- Total Inscritos -->
         <div class="bg-white rounded-lg shadow p-6 flex justify-between items-center">
             <div>
-                <h2 class="text-3xl font-bold text-indigo-900">{{ $stats['total'] }}</h2>
-                <p class="text-gray-600">Total Inscritos</p>
+                <h2 class="text-3xl font-bold text-indigo-900">{{ number_format($stats['total']) }}</h2>
+                <p class="text-gray-600 ">Total Inscritos</p>
                 <div class="mt-2 flex items-center">
                     @if($stats['percentage_change_total'] > 0)
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
@@ -66,8 +69,8 @@
                         </svg>
                         <span class="text-gray-500 text-sm ml-1">0%</span>
                     @endif
-                    <span class="text-gray-500 text-xs ml-2">
-                        vs {{ $viewType === 'monthly' ? $nombreMesAnterior : $previousYear }}
+                    <span class="text-gray-500 text-xs ml-2 ">
+                        vs {{ $viewType === 'monthly' ? strtoupper($nombreMesAnterior) : $previousYear }}
                     </span>
                 </div>
             </div>
@@ -81,8 +84,8 @@
         <!-- Total Pagado con comparación -->
         <div class="bg-white rounded-lg shadow p-6 flex justify-between items-center">
             <div>
-                <h2 class="text-3xl font-bold text-indigo-900">{{ number_format($stats['total_paid'], 2) }} Bs</h2>
-                <p class="text-gray-600">Total Pagado</p>
+                <h2 class="text-3xl font-bold text-indigo-900">{{ number_format($stats['total_paid'], 2) }} BS</h2>
+                <p class="text-gray-600 ">Total Pagado</p>
                 <div class="mt-2 flex items-center">
                     @if($stats['percentage_change_total_paid'] > 0)
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
@@ -100,8 +103,8 @@
                         </svg>
                         <span class="text-gray-500 text-sm ml-1">0%</span>
                     @endif
-                    <span class="text-gray-500 text-xs ml-2">
-                        vs {{ $viewType === 'monthly' ? $nombreMesAnterior : $previousYear }}
+                    <span class="text-gray-500 text-xs ml-2 ">
+                        vs {{ $viewType === 'monthly' ? strtoupper($nombreMesAnterior) : $previousYear }}
                     </span>
                 </div>
             </div>
@@ -116,8 +119,8 @@
         <!-- Total sin adelantos (Completo + Completando) -->
         <div class="bg-white rounded-lg shadow p-6 flex justify-between items-center">
             <div>
-                <h2 class="text-3xl font-bold text-indigo-900">{{ $stats['total_sin_adelantos'] }}</h2>
-                <p class="text-gray-600">Inscripciones Completas</p>
+                <h2 class="text-3xl font-bold text-indigo-900">{{ number_format($stats['total_sin_adelantos']) }}</h2>
+                <p class="text-gray-600 ">Inscripciones Completas</p>
                 <div class="mt-2 flex items-center">
                     @if($stats['percentage_change_total_sin_adelantos'] > 0)
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
@@ -135,17 +138,17 @@
                         </svg>
                         <span class="text-gray-500 text-sm ml-1">0%</span>
                     @endif
-                    <span class="text-gray-500 text-xs ml-2">
-                        vs {{ $viewType === 'monthly' ? $nombreMesAnterior : $previousYear }}
+                    <span class="text-gray-500 text-xs ml-2 ">
+                        vs {{ $viewType === 'monthly' ? strtoupper($nombreMesAnterior) : $previousYear }}
                     </span>
                 </div>
                 <div class="flex items-center mt-1">
                     <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
-                    <span class="text-xs text-gray-600">Completos: {{ $stats['completo'] }}</span>
+                    <span class="text-xs text-gray-600 ">Completos: {{ number_format($stats['completo']) }}</span>
                 </div>
                 <div class="flex items-center mt-1">
                     <div class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></div>
-                    <span class="text-xs text-gray-600">Completando: {{ $stats['completando'] }}</span>
+                    <span class="text-xs text-gray-600 ">Completando: {{ number_format($stats['completando']) }}</span>
                 </div>
             </div>
             <div class="bg-green-500 p-3 rounded-lg">
@@ -158,8 +161,8 @@
         <!-- Adelantos -->
         <div class="bg-white rounded-lg shadow p-6 flex justify-between items-center">
             <div>
-                <h2 class="text-3xl font-bold text-indigo-900">{{ $stats['adelanto'] }}</h2>
-                <p class="text-gray-600">Adelantos</p>
+                <h2 class="text-3xl font-bold text-indigo-900">{{ number_format($stats['adelanto']) }}</h2>
+                <p class="text-gray-600 ">Adelantos</p>
                 <div class="mt-2 flex items-center">
                     @if($stats['percentage_change_adelanto'] > 0)
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
@@ -177,8 +180,8 @@
                         </svg>
                         <span class="text-gray-500 text-sm ml-1">0%</span>
                     @endif
-                    <span class="text-gray-500 text-xs ml-2">
-                        vs {{ $viewType === 'monthly' ? $nombreMesAnterior : $previousYear }}
+                    <span class="text-gray-500 text-xs ml-2 ">
+                        vs {{ $viewType === 'monthly' ? strtoupper($nombreMesAnterior) : $previousYear }}
                     </span>
                 </div>
                 <div class="mt-2">
@@ -188,7 +191,7 @@
                         @endphp
                         <div class="bg-blue-500 h-2.5 rounded-full" style="width: {{ $porcentajeAdelantos }}%"></div>
                     </div>
-                    <span class="text-xs text-gray-600">{{ number_format($porcentajeAdelantos, 1) }}% del total</span>
+                    <span class="text-xs text-gray-600 ">{{ number_format($porcentajeAdelantos, 1) }}% DEL TOTAL</span>
                 </div>
             </div>
             <div class="bg-blue-500 p-3 rounded-lg">
@@ -198,180 +201,170 @@
             </div>
         </div>
     </div>
+
+    <!-- Evolucion progresiva de inscripciones (ancho completo) -->
+    <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Evolucion Progresiva de Inscripciones</h3>
+        </div>
+        <div class="h-80 relative">
+            <canvas id="progressiveChart" class="w-full h-full"></canvas>
+        </div>
+    </div>
+
+    @if($viewType === 'yearly')
+        <!-- Gráficos de evolución anual debajo de evolución progresiva -->
+        <div class="space-y-6 mb-6">
+            <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Evolución mensual de inscripciones</h3>
+                <div class="h-80 relative">
+                    <canvas id="monthlyChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Evolución mensual de pagos</h3>
+                <div class="h-80 relative">
+                    <canvas id="monthlyPaymentChart" class="w-full h-full"></canvas>
+                </div>
+            </div>
+        </div>
+    @endif
     
-    <!-- Nuevos gráficos: Inscripciones por creador y por programa -->
+    <!-- Gráficos: Inscripciones por residencia, género y plan de pagos -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Inscripciones por creador -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Inscripciones por Asesor</h3>
-                    <div class="text-sm text-gray-500">{{ $viewType === 'monthly' ? 'Mensual' : 'Anual' }}</div>
+        <!-- Inscripciones por residencia -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">
+                Inscripciones por Departamento
+            </h3>
+            <div id="departmentChartContainer" class="relative" style="min-height: 400px;">
+                <canvas id="departamentosChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Columna derecha con género y plan de pago -->
+        <div class="space-y-6">
+            <!-- Inscripciones por género -->
+            {{-- <div class="bg-white rounded-lg shadow p-4 h-48"> --}}
+            <div class="bg-white rounded-lg shadow p-4 h-60">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Inscripciones por Género</h3>
+                <div class="w-full flex flex-row justify-center items-start gap-4 h-40">
+                    <!-- Masculino -->
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="flex flex-col items-center mb-2">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center mb-1 bg-blue-500 shadow-lg">
+                                <!-- Icono Flaticon hombre -->
+                                <img src="https://cdn-icons-png.flaticon.com/512/2922/2922540.png" alt="Hombre" class="w-6 h-6" style="filter: brightness(0) invert(1);">
+                            </div>
+                            <div class="text-base font-bold text-blue-700 mb-1" id="male-count">0</div>
+                            <div class="text-xs font-semibold text-blue-500 tracking-wide">MASCULINO</div>
+                        </div>
+                        <div class="flex flex-col space-y-1 text-xs w-full">
+                            <div class="flex items-center bg-green-50 px-1 py-1 rounded-md">
+                                <div class="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                                <span id="male-completo" class="font-medium text-green-700 text-xs">0</span>
+                                <span class="ml-1 text-xs text-gray-500">Completo</span>
+                            </div>
+                            <div class="flex items-center bg-yellow-50 px-1 py-1 rounded-md">
+                                <div class="w-2 h-2 rounded-full bg-yellow-500 mr-1"></div>
+                                <span id="male-completando" class="font-medium text-yellow-700 text-xs">0</span>
+                                <span class="ml-1 text-xs text-gray-500">Completando</span>
+                            </div>
+                            <div class="flex items-center bg-blue-50 px-1 py-1 rounded-md">
+                                <div class="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
+                                <span id="male-adelanto" class="font-medium text-blue-700 text-xs">0</span>
+                                <span class="ml-1 text-xs text-gray-500">Adelanto</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Femenino -->
+                    <div class="flex flex-col items-center flex-1">
+                        <div class="flex flex-col items-center mb-2">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center mb-1 bg-pink-500 shadow-lg">
+                                <!-- Icono Flaticon mujer -->
+                                <img src="https://cdn-icons-png.flaticon.com/512/2922/2922579.png" alt="Mujer" class="w-6 h-6" style="filter: brightness(0) invert(1);">
+                            </div>
+                            <div class="text-base font-bold text-pink-700 mb-1" id="female-count">0</div>
+                            <div class="text-xs font-semibold text-pink-500 tracking-wide">FEMENINO</div>
+                        </div>
+                        <div class="flex flex-col space-y-1 text-xs w-full">
+                            <div class="flex items-center bg-green-50 px-1 py-1 rounded-md">
+                                <div class="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+                                <span id="female-completo" class="font-medium text-green-700 text-xs">0</span>
+                                <span class="ml-1 text-xs text-gray-500">Completo</span>
+                            </div>
+                            <div class="flex items-center bg-yellow-50 px-1 py-1 rounded-md">
+                                <div class="w-2 h-2 rounded-full bg-yellow-500 mr-1"></div>
+                                <span id="female-completando" class="font-medium text-yellow-700 text-xs">0</span>
+                                <span class="ml-1 text-xs text-gray-500">Completando</span>
+                            </div>
+                            <div class="flex items-center bg-blue-50 px-1 py-1 rounded-md">
+                                <div class="w-2 h-2 rounded-full bg-blue-500 mr-1"></div>
+                                <span id="female-adelanto" class="font-medium text-blue-700 text-xs">0</span>
+                                <span class="ml-1 text-xs text-gray-500">Adelanto</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="h-80">
-                    <canvas id="creatorChart"></canvas>
+            </div>
+
+            <!-- Plan de pago -->
+            <div class="bg-white rounded-lg shadow p-4 h-75">
+                <h3 class="text-sm font-medium text-gray-900 mb-3">Plan de pago</h3>
+                <div class="h-32 relative">
+                    <canvas id="paymentPlanBarChart" class="w-full h-full"></canvas>
                 </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Grid de gráficos: Asesor y Programa -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Inscripciones por asesor -->
+        <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Inscripciones por Asesor</h3>   
+            </div>
+            <div id="advisorChartContainer" class="relative" style="min-height: 400px;">
+                <canvas id="creatorChart" class="w-full h-full"></canvas>
             </div>
         </div>
         
         <!-- Inscripciones por programa -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Inscripciones por Programa</h3>
-                    <div class="text-sm text-gray-500">{{ $viewType === 'monthly' ? 'Mensual' : 'Anual' }}</div>
-                </div>
-                <div class="h-80">
-                    <canvas id="programChart"></canvas>
-                </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Inscripciones por Programa</h3>
+            </div>
+            <div id="programChartContainer" class="relative" style="min-height: 400px;">
+                <canvas id="programChart" class="w-full h-full"></canvas>
             </div>
         </div>
     </div>
     
-    <!-- Gráficos secundarios -->
+    <!-- Gráficos adicionales -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <!-- Inscripciones por estado -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Inscripciones por Estado</h3>
-                    <div class="text-sm text-gray-500">{{ $viewType === 'monthly' ? 'Mensual' : 'Anual' }}</div>
-                </div>
-                <div class="h-64">
-                    <canvas id="statusChart"></canvas>
-                </div>
+        <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Inscripciones por Estado</h3>
+                
+            </div>
+            <div class="h-56 relative">
+                <canvas id="statusChart" class="w-full h-full"></canvas>
             </div>
         </div>
         
-        <!-- Inscripciones por plan de pago -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Inscripciones por Plan de Pago</h3>
-                    <div class="text-sm text-gray-500">{{ $viewType === 'monthly' ? 'Mensual' : 'Anual' }}</div>
-                </div>
-                <div class="h-64">
-                    <canvas id="paymentPlanChart"></canvas>
-                </div>
+        <!-- Inscripciones por medio de pago -->
+        <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Inscripciones por Medio de Pago</h3>
             </div>
-        </div>
-    </div>
-    
-    <!-- Gráficos por residencia y profesión -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <!-- Inscripciones por residencia -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Inscripciones por Residencia</h3>
-                    <div class="text-sm text-gray-500">{{ $viewType === 'monthly' ? 'Mensual' : 'Anual' }}</div>
-                </div>
-                <div class="h-64">
-                    <canvas id="residenceChart"></canvas>
-                </div>
+            <div class="h-56 relative">
+                <canvas id="paymentMethodChart" class="w-full h-full"></canvas>
             </div>
         </div>
         
-        <!-- Inscripciones por profesión -->
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-gray-900">Inscripciones por Profesión</h3>
-                    <div class="text-sm text-gray-500">{{ $viewType === 'monthly' ? 'Mensual' : 'Anual' }}</div>
-                </div>
-                <div class="h-64">
-                    <canvas id="professionChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    @if($viewType === 'yearly')
-    <!-- Gráfico de evolución mensual (solo para vista anual) -->
-    <div class="bg-white rounded-lg shadow mb-6">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Evolución Mensual de Inscripciones</h3>
-                <div class="text-sm text-gray-500">{{ $year }}</div>
-            </div>
-            <div class="h-80">
-                <canvas id="monthlyChart"></canvas>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Gráfico de total pagado por mes (solo para vista anual) -->
-    <div class="bg-white rounded-lg shadow mb-6">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Total Pagado por Mes</h3>
-                <div class="text-sm text-gray-500">{{ $year }}</div>
-            </div>
-            <div class="h-64">
-                <canvas id="monthlyPaymentChart"></canvas>
-            </div>
-        </div>
-    </div>
-    @endif
-    
-    <!-- Últimas Inscripciones -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Últimas Inscripciones</h3>
-                <a href="{{ route('inscriptions.index') }}" class="text-indigo-600 hover:text-indigo-800 text-sm">Ver todas</a>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Programa</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Pagado</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse ($latestInscriptions as $inscription)
-                            <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $inscription->code }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $inscription->first_name }} {{ $inscription->paternal_surname }}
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->program->name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @if($inscription->status == 'Completo')
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            Completo
-                                        </span>
-                                    @elseif($inscription->status == 'Completando')
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                            Completando
-                                        </span>
-                                    @else
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                            Adelanto
-                                        </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ number_format($inscription->total_paid, 2) }} Bs</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->inscription_date->format('d/m/Y') }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="{{ route('inscriptions.show', $inscription) }}" class="text-indigo-600 hover:text-indigo-900">Ver</a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="7" class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">No hay inscripciones para mostrar</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
     
     @push('scripts')
@@ -408,10 +401,17 @@
                 'credito': 'rgba(236, 72, 153, 0.7)' // Rosa
             };
             
-            // Nuevo gráfico: Inscripciones por creador
+            // Nuevo gráfico: Inscripciones por creador (Asesor)
             const creatorChartCtx = document.getElementById('creatorChart').getContext('2d');
             const advisorLabels = JSON.parse('{!! $chartData["advisorLabels"] !!}');
             const advisorDatasets = JSON.parse('{!! $chartData["advisorDatasets"] !!}');
+
+            // Ajustar altura del contenedor según la cantidad de asesores
+            const advisorChartContainer = document.getElementById('advisorChartContainer');
+            const advisorMinHeight = 400;
+            const advisorHeightPerItem = 40; // pixels por cada asesor
+            const advisorCalculatedHeight = Math.max(advisorMinHeight, advisorLabels.length * advisorHeightPerItem);
+            advisorChartContainer.style.height = advisorCalculatedHeight + 'px';
             
             new Chart(creatorChartCtx, {
                 type: 'bar',
@@ -419,21 +419,27 @@
                     labels: advisorLabels,
                     datasets: [
                         {
-                            label: 'Completo',
+                            label: 'COMPLETO',
                             data: advisorDatasets['Completo'],
                             backgroundColor: colors['Completo'],
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1,
                             stack: 'Stack 0',
                         },
                         {
-                            label: 'Completando',
+                            label: 'COMPLETANDO',
                             data: advisorDatasets['Completando'],
                             backgroundColor: colors['Completando'],
+                            borderColor: 'rgba(234, 179, 8, 1)',
+                            borderWidth: 1,
                             stack: 'Stack 0',
                         },
                         {
-                            label: 'Adelanto',
+                            label: 'ADELANTO',
                             data: advisorDatasets['Adelanto'],
                             backgroundColor: colors['Adelanto'],
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
                             stack: 'Stack 0',
                         }
                     ]
@@ -442,18 +448,50 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 15,
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1
+                        }
+                    },
                     scales: {
                         x: {
                             stacked: true,
                             beginAtZero: true,
                             grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
                                 drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
                             }
                         },
                         y: {
                             stacked: true,
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                },
+                                maxRotation: 0
                             }
                         }
                     }
@@ -465,27 +503,51 @@
             const programLabels = JSON.parse('{!! $chartData["programLabels"] !!}');
             const programDatasets = JSON.parse('{!! $chartData["programDatasets"] !!}');
 
+            // Función para truncar texto largo
+            function truncateLabel(label, maxLength = 35) {
+                if (label.length > maxLength) {
+                    return label.substring(0, maxLength) + '...';
+                }
+                return label;
+            }
+
+            // Crear labels truncadas para visualización
+            const truncatedProgramLabels = programLabels.map(label => truncateLabel(label));
+
+            // Ajustar altura del contenedor según la cantidad de programas
+            const programChartContainer = document.getElementById('programChartContainer');
+            const minHeight = 400;
+            const heightPerItem = 50; // pixels por cada programa
+            const calculatedHeight = Math.max(minHeight, programLabels.length * heightPerItem);
+            programChartContainer.style.height = calculatedHeight + 'px';
+
             new Chart(programChartCtx, {
                 type: 'bar',
                 data: {
-                    labels: programLabels,
+                    labels: truncatedProgramLabels,
                     datasets: [
                         {
-                            label: 'Completo',
+                            label: 'COMPLETO',
                             data: programDatasets['Completo'],
                             backgroundColor: colors['Completo'],
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1,
                             stack: 'Stack 0',
                         },
                         {
-                            label: 'Completando',
+                            label: 'COMPLETANDO',
                             data: programDatasets['Completando'],
                             backgroundColor: colors['Completando'],
+                            borderColor: 'rgba(234, 179, 8, 1)',
+                            borderWidth: 1,
                             stack: 'Stack 0',
                         },
                         {
-                            label: 'Adelanto',
+                            label: 'ADELANTO',
                             data: programDatasets['Adelanto'],
                             backgroundColor: colors['Adelanto'],
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1,
                             stack: 'Stack 0',
                         }
                     ]
@@ -494,18 +556,59 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     indexAxis: 'y',
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 15,
+                                padding: 15,
+                                font: {
+                                    size: 12,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            callbacks: {
+                                // Mostrar el nombre completo en el tooltip
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return programLabels[index];
+                                }
+                            }
+                        }
+                    },
                     scales: {
                         x: {
                             stacked: true,
                             beginAtZero: true,
                             grid: {
+                                color: 'rgba(0, 0, 0, 0.05)',
                                 drawBorder: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
                             }
                         },
                         y: {
                             stacked: true,
                             grid: {
                                 display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                maxRotation: 0,
+                                autoSkip: false,
+                                padding: 5
                             }
                         }
                     }
@@ -516,14 +619,46 @@
             const statusCtx = document.getElementById('statusChart').getContext('2d');
             const statusData = JSON.parse('{!! $chartData["statusData"] !!}');
             
+            // Mapear los nombres de estado a nombres amigables
+            const statusMapping = {
+                'Completo': 'COMPLETO',
+                'Completando': 'COMPLETANDO',
+                'Adelanto': 'ADELANTO'
+            };
+
+            // Crear arrays de etiquetas, datos y colores para estados
+            const statusLabels = [];
+            const statusValues = [];
+            const statusColors = [
+                'rgba(34, 197, 94, 0.8)',   // Verde - Completo
+                'rgba(234, 179, 8, 0.8)',   // Amarillo - Completando
+                'rgba(59, 130, 246, 0.8)'   // Azul - Adelanto
+            ];
+
+            Object.entries(statusData).forEach(([status, count]) => {
+                const friendlyName = statusMapping[status] || status.toUpperCase();
+                statusLabels.push(friendlyName);
+                statusValues.push(count);
+            });
+
+            // Asegurar que tenemos los colores correctos para cada estado
+            const finalStatusColors = statusLabels.map(label => {
+                if (label === 'COMPLETO') return 'rgba(34, 197, 94, 0.8)';
+                if (label === 'COMPLETANDO') return 'rgba(234, 179, 8, 0.8)';
+                if (label === 'ADELANTO') return 'rgba(59, 130, 246, 0.8)';
+                return 'rgba(156, 163, 175, 0.8)'; // Gris para otros
+            });
+            
             new Chart(statusCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: Object.keys(statusData),
+                    labels: statusLabels,
                     datasets: [{
-                        data: Object.values(statusData),
-                        backgroundColor: Object.keys(statusData).map(status => colors[status]),
-                        borderWidth: 1
+                        data: statusValues,
+                        backgroundColor: finalStatusColors,
+                        borderColor: finalStatusColors.map(color => color.replace('0.8', '1')),
+                        borderWidth: 2,
+                        hoverOffset: 8
                     }]
                 },
                 options: {
@@ -531,41 +666,99 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15,
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
                         }
-                    }
+                    },
+                    cutout: '40%'
                 }
             });
             
-            // 2. Gráfico de inscripciones por plan de pago
-            const paymentPlanCtx = document.getElementById('paymentPlanChart').getContext('2d');
-            const paymentPlanData = JSON.parse('{!! $chartData["paymentPlanData"] !!}');
+            // 2. Gráfico de inscripciones por medio de pago
+            const paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
+            
+            // Obtener datos reales del controlador
+            const paymentMethodData = JSON.parse('{!! $chartData["paymentMethodData"] !!}');
 
-            // Crear un array de etiquetas y colores que correspondan correctamente a las claves
-            const paymentLabels = [];
-            const paymentColors = [];
+            // Mapear los nombres técnicos a nombres amigables
+            const methodMapping = {
+                'QR': 'QR/DIGITAL',
+                'efectivo': 'EFECTIVO',
+                'deposito': 'DEPÓSITO',
+                'transferencia': 'TRANSFERENCIA',
+                'tarjeta_credito': 'T. CRÉDITO',
+                'tarjeta_debito': 'T. DÉBITO'
+            };
 
-            Object.keys(paymentPlanData).forEach(plan => {
-                if (plan === 'Contado') {
-                    paymentLabels.push('Contado');
-                    paymentColors.push('rgba(59, 130, 246, 0.7)'); // Azul
-                } else if (plan === 'Crédito') {
-                    paymentLabels.push('Crédito');
-                    paymentColors.push('rgba(236, 72, 153, 0.7)'); // Rosa
-                } else {
-                    paymentLabels.push(plan);
-                    paymentColors.push('rgba(156, 163, 175, 0.7)'); // Gris para otros casos
+            // Crear arrays de etiquetas, datos y colores
+            const methodLabels = [];
+            const methodValues = [];
+            const methodColors = [
+                'rgba(34, 197, 94, 0.8)',   // Verde - Efectivo
+                'rgba(59, 130, 246, 0.8)',  // Azul - Transferencia/Depósito
+                'rgba(147, 51, 234, 0.8)',  // Púrpura - QR/Digital
+                'rgba(239, 68, 68, 0.8)',   // Rojo - Tarjeta Crédito
+                'rgba(245, 158, 11, 0.8)',  // Amarillo - Tarjeta Débito
+                'rgba(236, 72, 153, 0.8)'   // Rosa - Otros
+            ];
+
+            let colorIndex = 0;
+            Object.entries(paymentMethodData).forEach(([method, count]) => {
+                const rawMethod = (method || '').trim();
+
+                // Omitir metodos vacios para evitar segmentos sin etiqueta
+                if (rawMethod === '') {
+                    return;
                 }
+
+                const normalizedMethod = rawMethod.toLowerCase();
+
+                // Usar el mapeo si existe, sino usar el nombre original en mayúsculas
+                const friendlyName = methodMapping[rawMethod] || methodMapping[normalizedMethod] || rawMethod.toUpperCase();
+                methodLabels.push(friendlyName);
+                methodValues.push(count);
+                colorIndex++;
             });
 
-            new Chart(paymentPlanCtx, {
-                type: 'pie',
+            // Asegurar que tenemos suficientes colores
+            const finalColors = methodColors.slice(0, methodLabels.length);
+            while (finalColors.length < methodLabels.length) {
+                finalColors.push(`hsla(${Math.random() * 360}, 70%, 60%, 0.8)`);
+            }
+
+            new Chart(paymentMethodCtx, {
+                type: 'doughnut',
                 data: {
-                    labels: paymentLabels,
+                    labels: methodLabels,
                     datasets: [{
-                        data: Object.values(paymentPlanData),
-                        backgroundColor: paymentColors,
-                        borderWidth: 1
+                        data: methodValues,
+                        backgroundColor: finalColors,
+                        borderColor: finalColors.map(color => color.replace('0.8', '1')),
+                        borderWidth: 2,
+                        hoverOffset: 8
                     }]
                 },
                 options: {
@@ -573,26 +766,195 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15,
+                                font: {
+                                    size: 11,
+                                    weight: 'bold'
+                                },
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
+                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                }
+                            }
                         }
-                    }
+                    },
+                    cutout: '40%'
                 }
             });
             
-            // 5. Gráfico de inscripciones por residencia
-            const residenceCtx = document.getElementById('residenceChart').getContext('2d');
+            // 5. Inscripciones por residencia
             const residenceData = JSON.parse('{!! $chartData["residenceData"] !!}');
             
-            // Generar colores dinámicos para cada residencia
-            const residenceColors = generateColors(Object.keys(residenceData).length);
+            // Datos detallados por estado para cada departamento (datos reales del controlador)
+            const residenceDetailData = @json($chartData['residenceDetailData']);
             
-            new Chart(residenceCtx, {
-                type: 'doughnut',
+            const labels = [];
+            const completos = [];
+            const completando = [];
+            const adelantos = [];
+
+            // recorrer los departamentos
+            Object.keys(residenceData).forEach(dept => {
+                const departmentName = (dept || '').trim();
+
+                // Evitar filas vacias en el grafico por departamentos sin nombre
+                if (departmentName === '') {
+                    return;
+                }
+
+                const detail = residenceDetailData[dept] || {
+                    completo: 0,
+                    completando: 0,
+                    adelanto: 0
+                };
+
+                labels.push(departmentName);
+                completos.push(detail.completo);
+                completando.push(detail.completando);
+                adelantos.push(detail.adelanto);
+
+            });
+
+            const ctx = document.getElementById('departamentosChart');
+
+            // Ajustar altura del contenedor segun la cantidad de departamentos
+            const departmentChartContainer = document.getElementById('departmentChartContainer');
+            const departmentMinHeight = 400;
+            const departmentHeightPerItem = 40; // pixels por cada departamento
+            const departmentCalculatedHeight = Math.max(departmentMinHeight, labels.length * departmentHeightPerItem);
+            departmentChartContainer.style.height = departmentCalculatedHeight + 'px';
+
+            new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: Object.keys(residenceData),
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Completos',
+                            data: completos,
+                            backgroundColor: '#22c55e'
+                        },
+                        {
+                            label: 'Completando',
+                            data: completando,
+                            backgroundColor: '#eab308'
+                        },
+                        {
+                            label: 'Adelantos',
+                            data: adelantos,
+                            backgroundColor: '#3b82f6'
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            beginAtZero: true
+                        },
+                        y: {
+                            stacked: true
+                        }
+                    }
+                }
+            });
+            
+            // 6. Gráfico interactivo de inscripciones por género
+            const genderData = @json($chartData['genderData'] ?? '{}');
+            const genderDetailData = @json($chartData['genderDetailData'] ?? []);
+            
+            // Convertir genderData de string JSON a objeto si es necesario
+            let genderDataObj = {};
+            try {
+                genderDataObj = typeof genderData === 'string' ? JSON.parse(genderData) : genderData;
+            } catch (e) {
+                console.log('Error parsing genderData:', e);
+                genderDataObj = {};
+            }
+            
+            // Actualizar datos de género
+            Object.entries(genderDataObj).forEach(([genero, cantidad]) => {
+                if (genero === 'Masculino' || genero === 'masculino' || genero === 'M') {
+                    document.getElementById('male-count').textContent = cantidad;
+                    const detalle = genderDetailData[genero] || { completo: 0, completando: 0, adelanto: 0 };
+                    document.getElementById('male-completo').textContent = detalle.completo;
+                    document.getElementById('male-completando').textContent = detalle.completando;
+                    document.getElementById('male-adelanto').textContent = detalle.adelanto;
+                } else if (genero === 'Femenino' || genero === 'femenino' || genero === 'F') {
+                    document.getElementById('female-count').textContent = cantidad;
+                    const detalle = genderDetailData[genero] || { completo: 0, completando: 0, adelanto: 0 };
+                    document.getElementById('female-completo').textContent = detalle.completo;
+                    document.getElementById('female-completando').textContent = detalle.completando;
+                    document.getElementById('female-adelanto').textContent = detalle.adelanto;
+                }
+            });
+            
+            // 6.1. Gráfico de barras de plan de pago
+            const paymentPlanBarCtx = document.getElementById('paymentPlanBarChart').getContext('2d');
+            const paymentPlanBarData = JSON.parse('{!! $chartData["paymentPlanData"] !!}');
+            
+            // Preparar datos para el gráfico de barras - Unificado
+            const planData = {};
+            
+            Object.entries(paymentPlanBarData).forEach(([plan, cantidad]) => {
+                let label = '';
+                let color = '';
+                
+                if (plan === 'PLAN CONTADO' || plan === 'PLAN CONTADO GESTIÓN 2026') {
+                    label = 'PLAN CONTADO';
+                    color = 'rgba(59, 130, 246, 0.8)'; // Azul
+                } else if (plan === 'PLAN CRÉDITO' || plan === 'PLAN A CRÉDITO GESTIÓN 2026') {
+                    label = 'PLAN CRÉDITO';
+                    color = 'rgba(236, 72, 153, 0.8)'; // Rosa
+                } else {
+                    label = plan.toUpperCase();
+                    color = 'rgba(156, 163, 175, 0.8)'; // Gris
+                }
+                
+                // Si la etiqueta ya existe, sumar cantidad; si no, crear nueva
+                if (planData[label]) {
+                    planData[label].value += cantidad;
+                } else {
+                    planData[label] = { value: cantidad, color: color };
+                }
+            });
+            
+            // Convertir objeto a arrays para Chart.js
+            const planLabels = Object.keys(planData);
+            const planValues = Object.values(planData).map(item => item.value);
+            const planColors = Object.values(planData).map(item => item.color);
+            
+            new Chart(paymentPlanBarCtx, {
+                type: 'bar',
+                data: {
+                    labels: planLabels,
                     datasets: [{
-                        data: Object.values(residenceData),
-                        backgroundColor: residenceColors,
+                        data: planValues,
+                        backgroundColor: planColors,
+                        borderColor: planColors.map(color => color.replace('0.8', '1')),
                         borderWidth: 1
                     }]
                 },
@@ -601,41 +963,46 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
-                            labels: {
-                                boxWidth: 15
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.1)'
                             }
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `${label}: ${value} (${percentage}%)`;
-                                }
+                        x: {
+                            grid: {
+                                display: false
                             }
                         }
                     }
                 }
             });
             
-            // 6. Gráfico de inscripciones por profesión
-            const professionCtx = document.getElementById('professionChart').getContext('2d');
-            const professionData = JSON.parse('{!! $chartData["professionData"] !!}');
-            
-            // Generar colores dinámicos para cada profesión
-            const professionColors = generateColors(Object.keys(professionData).length);
-            
-            new Chart(professionCtx, {
-                type: 'doughnut',
+            // 7. Grafico progresivo de inscripciones (mensual: dias, anual: meses)
+            const progressiveCtx = document.getElementById('progressiveChart').getContext('2d');
+            const progressiveLabels = JSON.parse('{!! $chartData["progressiveLabels"] !!}');
+            const progressiveValues = JSON.parse('{!! $chartData["progressiveData"] !!}');
+            const progressiveGranularity = '{!! $chartData["progressiveGranularity"] !!}';
+
+            new Chart(progressiveCtx, {
+                type: 'line',
                 data: {
-                    labels: Object.keys(professionData),
+                    labels: progressiveLabels,
                     datasets: [{
-                        data: Object.values(professionData),
-                        backgroundColor: professionColors,
-                        borderWidth: 1
+                        label: progressiveGranularity === 'day' ? 'Acumulado por dia' : 'Acumulado por mes',
+                        data: progressiveValues,
+                        borderColor: 'rgba(37, 99, 235, 0.9)',
+                        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+                        borderWidth: 3,
+                        pointRadius: 2,
+                        pointHoverRadius: 5,
+                        fill: true,
+                        tension: 0.25
                     }]
                 },
                 options: {
@@ -643,20 +1010,37 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'right',
-                            labels: {
-                                boxWidth: 15
-                            }
+                            display: false
                         },
                         tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
                             callbacks: {
                                 label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `${label}: ${value} (${percentage}%)`;
+                                    return `Inscripciones acumuladas: ${context.parsed.y}`;
                                 }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxTicksLimit: progressiveGranularity === 'day' ? 10 : 12
                             }
                         }
                     }
@@ -675,7 +1059,7 @@
                         labels: monthlyLabels,
                         datasets: [
                             {
-                                label: 'Total',
+                                label: 'TOTAL',
                                 data: monthlyDatasets['total'],
                                 borderColor: 'rgba(75, 85, 99, 0.7)',
                                 backgroundColor: 'rgba(75, 85, 99, 0.1)',
@@ -684,7 +1068,7 @@
                                 tension: 0.1
                             },
                             {
-                                label: 'Completo',
+                                label: 'COMPLETO',
                                 data: monthlyDatasets['completo'],
                                 borderColor: colors['Completo'],
                                 backgroundColor: 'rgba(34, 197, 94, 0.1)',
@@ -693,7 +1077,7 @@
                                 tension: 0.1
                             },
                             {
-                                label: 'Completando',
+                                label: 'COMPLETANDO',
                                 data: monthlyDatasets['completando'],
                                 borderColor: colors['Completando'],
                                 backgroundColor: 'rgba(234, 179, 8, 0.1)',
@@ -702,7 +1086,7 @@
                                 tension: 0.1
                             },
                             {
-                                label: 'Adelanto',
+                                label: 'ADELANTO',
                                 data: monthlyDatasets['adelanto'],
                                 borderColor: colors['Adelanto'],
                                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -732,7 +1116,7 @@
                         labels: monthlyLabels,
                         datasets: [
                             {
-                                label: 'Total Pagado (Bs)',
+                                label: 'TOTAL PAGADO (BS)',
                                 data: monthlyDatasets['total_paid'],
                                 borderColor: 'rgba(147, 51, 234, 0.7)', // Color morado
                                 backgroundColor: 'rgba(147, 51, 234, 0.1)',

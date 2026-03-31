@@ -45,6 +45,20 @@
                                 <x-text-input id="class_link" class="block mt-1 w-full" type="url" name="class_link" :value="old('class_link', $class->class_link)" />
                                 <x-input-error :messages="$errors->get('class_link')" class="mt-2" />
                             </div>
+
+                            <div class="md:col-span-2 border rounded-lg p-4 bg-blue-50">
+                                <label class="inline-flex items-center gap-2">
+                                    <input type="checkbox" name="create_google_meet" value="1" @checked(old('create_google_meet', $module->shared_google_meet_link ? 1 : 0)) class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" />
+                                    <span class="text-sm font-medium text-gray-800">Usar un solo Google Meet compartido para todo el módulo</span>
+                                </label>
+                                <p class="mt-2 text-xs text-gray-600">Puedes volver a sincronizar para actualizar o regenerar el enlace compartido que usarán todas las clases del módulo.</p>
+
+                                <div class="mt-3">
+                                    <x-input-label for="co_organizers" :value="__('Co-organizadores (correos, separados por coma)')" />
+                                    <textarea id="co_organizers" name="co_organizers" rows="2" class="block mt-1 w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">{{ old('co_organizers', implode(', ', $module->shared_google_meet_co_organizers ?? ($class->google_meet_co_organizers ?? []))) }}</textarea>
+                                    <x-input-error :messages="$errors->get('co_organizers')" class="mt-2" />
+                                </div>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end mt-6">

@@ -22,19 +22,46 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <div class="text-sm text-gray-500">Nombre completo</div>
-                        <div class="font-semibold text-gray-900">{{ $inscription->first_name }} {{ $inscription->paternal_surname }} {{ $inscription->maternal_surname }}</div>
+                        <div class="font-semibold text-gray-900">{{ $inscription->getFullName() }}</div>
                     </div>
                     <div>
                         <div class="text-sm text-gray-500">CI</div>
                         <div class="font-semibold text-gray-900">{{ $inscription->ci }}</div>
                     </div>
                     <div>
-                        <div class="text-sm text-gray-500">Telefono</div>
-                        <div class="font-semibold text-gray-900">{{ $inscription->phone }}</div>
+                        <div class="text-sm text-gray-500">Teléfono</div>
+                        <div class="font-semibold text-gray-900">
+                            @if($inscription->phone)
+                                <a href="https://wa.me/591{{ preg_replace('/[^0-9]/', '', $inscription->phone) }}" 
+                                   target="_blank" 
+                                   class="inline-flex items-center text-green-600 hover:text-green-800 transition-colors duration-200">
+                                    <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                    </svg>
+                                    {{ $inscription->phone }}
+                                </a>
+                            @else
+                                <span class="text-gray-400">No registrado</span>
+                            @endif
+                        </div>
                     </div>
                     <div>
                         <div class="text-sm text-gray-500">Profesión</div>
-                        <div class="font-semibold text-gray-900">{{ $inscription->profession }}</div>
+                        <div class="font-semibold text-gray-900">
+                            @php
+                                $profession = $inscription->profession;
+                                if (is_string($profession)) {
+                                    // Si es un string JSON, decodificarlo
+                                    $professionData = json_decode($profession, true);
+                                    echo $professionData['name'] ?? $profession;
+                                } elseif (is_object($profession) && isset($profession->name)) {
+                                    // Si es un objeto con propiedad name
+                                    echo $profession->name;
+                                } else {
+                                    echo $profession ?? 'No especificada';
+                                }
+                            @endphp
+                        </div>
                     </div>
                     <div>
                         <div class="text-sm text-gray-500">Residencia</div>
@@ -48,14 +75,55 @@
                         <div class="text-sm text-gray-500">Asesor</div>
                         <div class="font-semibold text-gray-900">{{ optional($inscription->creator)->name }}</div>
                     </div>
-                    <div>
-                        <div class="font-semibold text-xs text-indigo-700 mb-1">Estado académico</div>
-                        <select class="academic-status-select rounded-md border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block w-full text-xs" data-inscription="{{ $inscription->id}}">
-                            <option value="Activo" {{ $inscription->academic_status == 'Activo' ? 'selected' : ''}}>Activo</option>
-                            <option value="Retirado" {{ $inscription->academic_status == 'Retirado' ? 'selected' : ''}}>Retirado</option>
-                            <option value="Congelado" {{ $inscription->academic_status == 'Congelado' ? 'selected' : ''}}>Congelado</option>
-                            <option value="Cambio" {{ $inscription->academic_status == 'Cambio' ? 'selected' : ''}}>Cambio</option>
-                        </select>
+                    
+
+                    @php
+                        $inscriptionStatus = strtoupper(trim((string) ($inscription->external_inscription_status ?: '-')));
+                        $academicStatusExternal = strtoupper(trim((string) ($inscription->external_academic_status ?: '-')));
+                        $degreeStatus = strtoupper(trim((string) ($inscription->external_degree_status ?: '-')));
+
+                        $getBadgeClasses = function ($status) {
+                            if ($status === '-' || $status === '') return 'bg-gray-100 text-gray-700';
+                            if (str_contains($status, 'PREINSCRIT')) return 'bg-yellow-100 text-yellow-800';
+                            if (str_contains($status, 'ACTIVO') || str_contains($status, 'VIGENTE') || str_contains($status, 'INSCRITO') || str_contains($status, 'APROB')) return 'bg-green-100 text-green-800';
+                            if (str_contains($status, 'PROCESO') || str_contains($status, 'CURSO') || str_contains($status, 'PENDIENTE')) return 'bg-yellow-100 text-yellow-800';
+                            if (str_contains($status, 'RETIR') || str_contains($status, 'BAJA') || str_contains($status, 'REPROB') || str_contains($status, 'NO')) return 'bg-red-100 text-red-800';
+                            return 'bg-blue-100 text-blue-800';
+                        };
+                    @endphp
+
+                    <div class="md:col-span-2">
+                        <div class="text-sm text-gray-500 mb-2">Estados externos</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Estado Inscripción</p>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $getBadgeClasses($inscriptionStatus) }}">
+                                    {{ $inscription->external_inscription_status ?: '-' }}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Estado Académico</p>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $getBadgeClasses($academicStatusExternal) }}">
+                                    {{ $inscription->external_academic_status ?: '-' }}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Estado Titulación</p>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $getBadgeClasses($degreeStatus) }}">
+                                    {{ $inscription->external_degree_status ?: '-' }}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500 mb-1">Inscrito Universidad</p>
+                                @if(is_null($inscription->external_university_enrolled))
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">-</span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $inscription->external_university_enrolled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        {{ $inscription->external_university_enrolled ? 'Sí' : 'No' }}
+                                    </span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -286,6 +354,36 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal para solicitar observación al desmarcar -->
+    <div id="observation-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">¿Por qué desmarca este campo?</h3>
+                <button id="close-observation-modal" class="text-gray-400 hover:text-gray-500">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-gray-600 mb-2">Está a punto de desmarcar: <strong id="field-being-unmarked"></strong></p>
+                <label for="observation-text" class="block text-sm font-medium text-gray-700 mb-2">
+                    Observación (opcional):
+                </label>
+                <textarea id="observation-text" rows="4" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" placeholder="Explique por qué se desmarca este campo..."></textarea>
+            </div>
+            <div class="flex justify-end space-x-2">
+                <button id="cancel-observation" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-200 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
+                    Cancelar
+                </button>
+                <button id="confirm-observation" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Continuar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -405,80 +503,145 @@
                 hideLoading();
                 showNotification('error', 'Ha ocurrido un error. Por favor, inténtalo de nuevo.');
             }
+
+            // Variables globales para el modal de observación
+            let pendingCheckboxUpdate = null;
+            const observationModal = document.getElementById('observation-modal');
+            const closeObservationModal = document.getElementById('close-observation-modal');
+            const cancelObservation = document.getElementById('cancel-observation');
+            const confirmObservation = document.getElementById('confirm-observation');
+            const observationText = document.getElementById('observation-text');
+            const fieldBeingUnmarked = document.getElementById('field-being-unmarked');
+
+            // Función para mostrar el modal de observación
+            function showObservationModal(checkbox, inscriptionId, field, checklistType) {
+                const fieldNames = {
+                    'has_identity_card': 'Cédula de identidad',
+                    'has_degree_title': 'Título en provisión nacional',
+                    'has_academic_diploma': 'Diploma de grado académico',
+                    'has_birth_certificate': 'Certificado de nacimiento',
+                    'was_added_to_the_group': 'Se añadió al grupo',
+                    'accesses_were_sent': 'Se enviaron accesos',
+                    'mail_was_sent': 'Se envió correo'
+                };
+
+                fieldBeingUnmarked.textContent = fieldNames[field] || field;
+                observationText.value = '';
+                observationModal.classList.remove('hidden');
+                
+                pendingCheckboxUpdate = { checkbox, inscriptionId, field, checklistType };
+            }
+
+            // Cerrar modal de observación
+            function closeObservationModalFn() {
+                if (pendingCheckboxUpdate) {
+                    pendingCheckboxUpdate.checkbox.checked = true; // Revertir cambio
+                    pendingCheckboxUpdate = null;
+                }
+                observationModal.classList.add('hidden');
+            }
+
+            closeObservationModal.addEventListener('click', closeObservationModalFn);
+            cancelObservation.addEventListener('click', closeObservationModalFn);
+
+            // Confirmar observación y proceder
+            confirmObservation.addEventListener('click', function() {
+                if (!pendingCheckboxUpdate) return;
+
+                const observation = observationText.value.trim();
+                const { checkbox, inscriptionId, field, checklistType } = pendingCheckboxUpdate;
+                
+                observationModal.classList.add('hidden');
+                pendingCheckboxUpdate = null;
+
+                // Proceder con la actualización
+                performCheckboxUpdate(inscriptionId, field, false, checklistType, observation);
+            });
+
+            // Función para realizar la actualización del checkbox
+            function performCheckboxUpdate(inscriptionId, field, value, checklistType, observation = null) {
+                showLoading();
+                const formData = new FormData();
+                formData.append('field', field);
+                formData.append('value', value ? 1 : 0);
+                formData.append('_method', 'PATCH');
+                if (observation) {
+                    formData.append('observation', observation);
+                }
+
+                const endpoint = checklistType === 'document' 
+                    ? `/inscriptions/${inscriptionId}/documents` 
+                    : `/inscriptions/${inscriptionId}/access`;
+
+                fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        showNotification('success', data.message);
+                    } else {
+                        // Revertir el cambio en el checkbox
+                        const checkbox = document.querySelector(`[data-field="${field}"]`);
+                        if (checkbox) checkbox.checked = !value;
+                        showNotification('error', data.message || 'Error al actualizar');
+                    }
+                })
+                .catch(error => {
+                    // Revertir el cambio en el checkbox
+                    const checkbox = document.querySelector(`[data-field="${field}"]`);
+                    if (checkbox) checkbox.checked = !value;
+                    handleError(error);
+                });
+            }
+
             // Manejar cambios en checkboxes de documentos
             document.querySelectorAll('.document-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const inscriptionId = this.dataset.inscription;
                     const field = this.dataset.field;
                     const value = this.checked;
-                    showLoading();
-                    const formData = new FormData();
-                    formData.append('field', field);
-                    formData.append('value', value ? 1 : 0);
-                    formData.append('_method', 'PATCH');
-                    fetch(`/inscriptions/${inscriptionId}/documents`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Error en la respuesta del servidor');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        hideLoading();
-                        if (data.success) {
-                            showNotification('success', data.message);
-                        } else {
-                            this.checked = !value; // Revertir el cambio
-                            showNotification('error', data.message || 'Error al actualizar el documento');
-                        }
-                    })
-                    .catch(error => {
-                        this.checked = !value; // Revertir el cambio
-                        handleError(error);
-                    });
+                    
+                    // Si se está desmarcando, mostrar modal de observación
+                    if (!value) {
+                        showObservationModal(this, inscriptionId, field, 'document');
+                        return;
+                    }
+                    
+                    // Si se está marcando, proceder normalmente
+                    performCheckboxUpdate(inscriptionId, field, value, 'document');
                 });
             });
+
             // Manejar cambios en checkboxes de accesos
             document.querySelectorAll('.access-checkbox').forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
                     const inscriptionId = this.dataset.inscription;
                     const field = this.dataset.field;
                     const value = this.checked;
-                    showLoading();
-                    const formData = new FormData();
-                    formData.append('field', field);
-                    formData.append('value', value ? 1 : 0);
-                    formData.append('_method', 'PATCH');
-                    fetch(`/inscriptions/${inscriptionId}/access`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json'
-                        },
-                        body: formData
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        hideLoading();
-                        if (data.success) {
-                            showNotification('success', data.message);
-                        } else {
-                            showNotification('error', data.message || 'Error al actualizar el acceso.');
-                        }
-                    })
-                    .catch(error => {
-                        hideLoading();
-                        showNotification('error', 'Ha ocurrido un error. Por favor, inténtalo de nuevo.');
-                    });
+                    
+                    // Si se está desmarcando, mostrar modal de observación
+                    if (!value) {
+                        showObservationModal(this, inscriptionId, field, 'access');
+                        return;
+                    }
+                    
+                    // Si se está marcando, proceder normalmente
+                    performCheckboxUpdate(inscriptionId, field, value, 'access');
                 });
             });
+
             // Manejar cambios en el select de estado académico
             document.querySelectorAll('.academic-status-select').forEach(select =>{
                 select.addEventListener('change', function(){

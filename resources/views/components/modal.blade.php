@@ -14,6 +14,7 @@ $maxWidth = [
 <div
     x-data="{ show: false }"
     x-on:close.stop="show = false"
+    x-on:close-modal.window="$event.detail == '{{ $id }}' ? show = false : null"
     x-on:keydown.escape.window="show = false"
     x-show="show"
     id="{{ $id }}"

@@ -12,6 +12,12 @@
         <p class="text-gray-600">
             <span class="font-semibold">Módulo:</span> {{ $module->name }}
         </p>
+        <p class="text-gray-600">
+            <span class="font-semibold">Docente:</span> {{ $module->teacher ? $module->teacher->full_name : 'No asignado' }}
+        </p>
+        <p class="text-gray-600">
+            <span class="font-semibold">Encargado de Monitoreo:</span> {{ $module->monitor ? $module->monitor->name : 'No asignado' }}
+        </p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -23,12 +29,32 @@
             <p><span class="font-medium">Duración:</span> 
                 {{ \Carbon\Carbon::parse($class->start_time)->diffInMinutes(\Carbon\Carbon::parse($class->end_time)) }} minutos
             </p>
-            @if($class->class_link)
+            @php($sharedClassLink = $module->shared_google_meet_link ?: $class->class_link)
+            @if($sharedClassLink)
             <p class="mt-2">
                 <span class="font-medium">Enlace de la clase:</span> 
-                <a href="{{ $class->class_link }}" target="_blank" class="text-blue-600 hover:underline">
-                    {{ $class->class_link }}
+                <a href="{{ $sharedClassLink }}" target="_blank" class="text-blue-600 hover:underline">
+                    {{ $sharedClassLink }}
                 </a>
+            </p>
+            @endif
+            @php($sharedMeetLink = $module->shared_google_meet_link ?: $class->google_meet_link)
+            @if($sharedMeetLink)
+            <p class="mt-2">
+                <span class="font-medium">Google Meet compartido del módulo:</span>
+                <a href="{{ $sharedMeetLink }}" target="_blank" class="text-blue-600 hover:underline">
+                    {{ $sharedMeetLink }}
+                </a>
+            </p>
+            @endif
+            @if($class->google_synced_at)
+            <p class="mt-2 text-green-700 text-sm">
+                Sincronizado con Google: {{ $class->google_synced_at->format('d/m/Y H:i') }}
+            </p>
+            @endif
+            @if($class->google_sync_error)
+            <p class="mt-2 text-red-700 text-sm">
+                Error de sincronización Google: {{ $class->google_sync_error }}
             </p>
             @endif
         </div>

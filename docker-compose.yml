@@ -1,82 +1,215 @@
-version: '3.8'
-
 services:
   app:
-    image: centralizador-app
-      # context: .
-      # dockerfile: Dockerfile
-    container_name: laravel_app
+    image: centtest:latest
+    container_name: centtest_app
     restart: unless-stopped
-    working_dir: /var/www
     volumes:
-      - ./:/var/www
-      - ./storage:/var/www/storage
+      - static-files:/var/www/public
     networks:
-      - laravel
+      - centtest
     depends_on:
-      - db
-  vite-dev:
-    image: centralizador-app
-      # context: .
-      # dockerfile: Dockerfile
-    container_name: laravel_vite
-    command: npm run dev
-    ports:
-      - "5173:5173"
-    volumes:
-      - ./:/var/www
-    networks:
-      - laravel
+      db:
+        condition: service_healthy
+    environment:
+      - APP_KEY=base64:n112/LJQl6KrZH/8BuhVM14I5iCWQ8lrHcmNhUCFU+M=
+      - APP_URL=http://localhost:8001
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-laravel_db}
+      - DB_USERNAME=${DB_USERNAME:-laravel_user}
+      - DB_PASSWORD=${DB_PASSWORD:-laravel_password}
+      # Base de datos externa
+      - DB_EXTERNAL_HOST=${DB_EXTERNAL_HOST}
+      - DB_EXTERNAL_PORT=${DB_EXTERNAL_PORT:-3306}
+      - DB_EXTERNAL_DATABASE=${DB_EXTERNAL_DATABASE}
+      - DB_EXTERNAL_USERNAME=${DB_EXTERNAL_USERNAME}
+      - DB_EXTERNAL_PASSWORD=${DB_EXTERNAL_PASSWORD}
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - ASSET_URL=http://localhost:8001
+      - MIX_ASSET_URL=http://localhost:8001
+      - VITE_DEV_SERVER_URL=
 
   webserver:
     image: nginx:alpine
-    container_name: laravel_webserver
+    container_name: centtest_webserver
     restart: unless-stopped
     ports:
-      - "8000:80"
+      - "${APP_PORT:-8001}:80"
     volumes:
-      - ./:/var/www
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      # Configuración de nginx
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static-files:/var/www/public
     networks:
-      - laravel
+      - centtest
     depends_on:
       - app
 
   db:
     image: mysql:8.0
-    container_name: laravel_db
+    container_name: centtest_db
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: laravel_db
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_PASSWORD: laravel_password
-      MYSQL_USER: laravel_user
+      MYSQL_DATABASE: ${DB_DATABASE:-laravel_db}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-laravel_password}
+      MYSQL_USER: ${DB_USERNAME:-laravel_user}
     volumes:
       - dbdata:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d:ro
     ports:
-      - "3307:3306"
+      - "3310:3306"
     networks:
-      - laravel
+      - centtest
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: centtest_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - centtest
+    command: redis-server --appendonly yes
+    profiles:
+      - cache
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: laravel_phpmyadmin
+    container_name: centtest_phpmyadmin
     restart: unless-stopped
     environment:
       PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: root_password
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USERNAME:-laravel_user}
+      PMA_PASSWORD: ${DB_PASSWORD:-laravel_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
     ports:
-      - "8080:80"
+      - "${PMA_PORT:-8081}:80"
     networks:
-      - laravel
+      - centtest
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    profiles:
+      - admin
+
+  # Para desarrollo - con hot reload
+  vite-dev:
+    image: centtest:latest
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile.dev
+    container_name: centtest_vite
+    command: npm run dev -- --host 0.0.0.0
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    volumes:
+      - ./resources:/var/www/resources:ro
+      - ./public:/var/www/public
+    networks:
+      - centtest
+    environment:
+      - NODE_ENV=development
+    profiles:
+      - dev
+
+  queue-worker:
+    image: centtest:latest
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    #   target: production
+    container_name: centtest_queue
+    restart: unless-stopped
+    command: php artisan queue:work --verbose --tries=3 --timeout=90
+    networks:
+      - centtest
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-laravel_db}
+      - DB_USERNAME=${DB_USERNAME:-laravel_user}
+      - DB_PASSWORD=${DB_PASSWORD:-laravel_password}
+    profiles:
+      - queue
+
+  scheduler:
+    image: centtest:latest
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    #   target: production
+    container_name: centtest_scheduler
+    restart: unless-stopped
+    command: |
+      sh -c '
+        echo "Iniciando scheduler (esperando 10s para que BD esté lista)..."
+        sleep 10
+        echo "BD lista. Ejecutando scheduler..."
+        while true; do
+          php artisan schedule:run --verbose
+          sleep 60
+        done
+      '
+    networks:
+      - centtest
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_started
+    volumes:
+      - ./app:/var/www/app:ro
+      - ./bootstrap:/var/www/bootstrap:ro
+      - ./config:/var/www/config:ro
+      - ./routes:/var/www/routes:ro
+      - ./vendor:/var/www/vendor:ro
+      - ./artisan:/var/www/artisan:ro
+      - ./storage/logs:/var/www/storage/logs
+    environment:
+      - APP_KEY=base64:n112/LJQl6KrZH/8BuhVM14I5iCWQ8lrHcmNhUCFU+M=
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-laravel_db}
+      - DB_USERNAME=${DB_USERNAME:-laravel_user}
+      - DB_PASSWORD=${DB_PASSWORD:-laravel_password}
+      # Base de datos externa para sincronizaciones
+      - DB_EXTERNAL_HOST=${DB_EXTERNAL_HOST}
+      - DB_EXTERNAL_PORT=${DB_EXTERNAL_PORT:-3306}
+      - DB_EXTERNAL_DATABASE=${DB_EXTERNAL_DATABASE}
+      - DB_EXTERNAL_USERNAME=${DB_EXTERNAL_USERNAME}
+      - DB_EXTERNAL_PASSWORD=${DB_EXTERNAL_PASSWORD}
 
 networks:
-  laravel:
+  centtest:
     driver: bridge
+    name: centtest_network
 
 volumes:
   dbdata:
     driver: local
-
+    name: centtest_dbdata
+  redis_data:
+    driver: local
+    name: centtest_redis_data
+  static-files:
+    driver: local
+    name: centtest_static_files
+    

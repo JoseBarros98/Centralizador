@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Routing\Controller;
 
 class ReceiptController extends Controller
@@ -37,21 +38,55 @@ class ReceiptController extends Controller
             'receipt_file' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
-        if ($request->hasFile('receipt_file')) {
-            $file = $request->file('receipt_file');
-            $path = $file->store('receipts', 'public');
+        try {
+            if ($request->hasFile('receipt_file')) {
+                $file = $request->file('receipt_file');
+                
+                // Crear estructura jerárquica en Google Drive
+                $googleDriveService = new \App\Services\GoogleDriveService();
+                $programName = optional($inscription->program)->name ?? 'Sin Programa';
+                $studentName = trim(($inscription->first_name ?? '') . ' ' . ($inscription->paternal_surname ?? ''));
+                if (empty($studentName) && !empty($inscription->full_name)) {
+                    $studentName = trim($inscription->full_name);
+                }
+                if (empty($studentName)) {
+                    $studentName = 'Sin Nombre - ' . ($inscription->code ?? $inscription->id);
+                }
+                
+                // Subir archivo DIRECTAMENTE a Google Drive - SIN fallback local
+                $folderId = $googleDriveService->createHierarchicalFolder('Inscripciones', $programName, $studentName);
+                
+                $driveFileResult = $googleDriveService->uploadFile(
+                    $file->getRealPath(),
+                    $file->getClientOriginalName(),
+                    $file->getClientMimeType(),
+                    'Recibo de pago',
+                    $folderId
+                );
 
-            $receipt = new Receipt();
-            $receipt->inscription_id = $inscription->id;
-            $receipt->file_path = $path;
-            $receipt->created_by = Auth::user()->id;
-            $receipt->save();
+                $receipt = new Receipt([
+                    'inscription_id' => $inscription->id,
+                    'file_path' => '', // String vacío - NO se guarda localmente
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_type' => $file->getClientMimeType(),
+                    'file_size' => $driveFileResult['size'] ?? 0,
+                    'google_drive_id' => $driveFileResult['id'],
+                    'google_drive_link' => $driveFileResult['webViewLink'] ?? '',
+                    'stored_in_drive' => true,
+                    'created_by' => Auth::user()->id,
+                ]);
+                
+                $receipt->save();
 
-            return redirect()->route('inscriptions.show', $inscription)
-                ->with('success', 'Recibo subido correctamente.');
+                return redirect()->route('inscriptions.show', $inscription)
+                    ->with('success', 'Recibo subido correctamente.');
+            }
+
+            return back()->with('error', 'Error: No se recibió ningún archivo.');
+        } catch (\Exception $e) {
+            Log::error('Error al subir recibo: ' . $e->getMessage());
+            return back()->with('error', 'Error al subir el archivo: ' . $e->getMessage());
         }
-
-        return back()->with('error', 'Error al subir el archivo.');
     }
 
     /**
@@ -72,34 +107,29 @@ class ReceiptController extends Controller
      */
     public function serveFile(Receipt $receipt)
     {
-        // // Verificar si el usuario tiene permiso para ver inscripciones
-        // if (!Auth::user()->hasPermissionTo('inscription.view')) {
-        //     abort(403, 'No tiene permiso para ver este archivo');
-        // }
-
-        // Verificar si el archivo existe
-        if (!Storage::disk('public')->exists($receipt->file_path)) {
-            abort(404, 'Archivo no encontrado');
+        try {
+            if ($receipt->stored_in_drive && $receipt->google_drive_id) {
+                $googleDriveService = new \App\Services\GoogleDriveService();
+                $fileContent = $googleDriveService->downloadFile($receipt->google_drive_id);
+                
+                $headers = [
+                    'Content-Type' => $receipt->file_type,
+                    'Content-Disposition' => 'inline; filename="' . $receipt->file_name . '"',
+                ];
+                
+                return response($fileContent, 200, $headers);
+            } else {
+                Log::error('Recibo no disponible en Drive', [
+                    'receipt_id' => $receipt->id,
+                    'stored_in_drive' => $receipt->stored_in_drive,
+                    'google_drive_id' => $receipt->google_drive_id
+                ]);
+                abort(404, 'Archivo no encontrado en Google Drive');
+            }
+        } catch (\Exception $e) {
+            Log::error('Error al servir recibo: ' . $e->getMessage());
+            abort(500, 'Error al servir archivo: ' . $e->getMessage());
         }
-
-        // Obtener el archivo
-        $file = Storage::disk('public')->get($receipt->file_path);
-        
-        // Obtener el tipo MIME basado en la extensión del archivo
-        $extension = pathinfo($receipt->file_path, PATHINFO_EXTENSION);
-        $mimeTypes = [
-            'pdf' => 'application/pdf',
-            'jpg' => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'png' => 'image/png',
-        ];
-        $type = $mimeTypes[$extension] ?? 'application/octet-stream';
-
-        // Devolver la respuesta con el archivo
-        return Response::make($file, 200, [
-            'Content-Type' => $type,
-            'Content-Disposition' => 'inline; filename="' . basename($receipt->file_path) . '"',
-        ]);
     }
 
     /**
@@ -111,14 +141,28 @@ class ReceiptController extends Controller
             abort(404);
         }
 
-        // Delete the file from storage
-        if (Storage::disk('public')->exists($receipt->file_path)) {
-            Storage::disk('public')->delete($receipt->file_path);
+        try {
+            // Eliminar archivo SOLO de Google Drive
+            if ($receipt->stored_in_drive && $receipt->google_drive_id) {
+                $googleDriveService = new \App\Services\GoogleDriveService();
+                $googleDriveService->deleteFile($receipt->google_drive_id);
+            } else {
+                Log::warning('Recibo no tiene ID de Google Drive', [
+                    'receipt_id' => $receipt->id,
+                    'stored_in_drive' => $receipt->stored_in_drive,
+                    'google_drive_id' => $receipt->google_drive_id
+                ]);
+            }
+
+            $receipt->delete();
+
+            return redirect()->route('inscriptions.show', $inscription)
+                ->with('success', 'Recibo eliminado correctamente.');
+                
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar recibo: ' . $e->getMessage());
+            return redirect()->back()
+                ->withErrors(['error' => 'Error al eliminar el recibo: ' . $e->getMessage()]);
         }
-
-        $receipt->delete();
-
-        return redirect()->route('inscriptions.show', $inscription)
-            ->with('success', 'Recibo eliminado correctamente.');
     }
 }

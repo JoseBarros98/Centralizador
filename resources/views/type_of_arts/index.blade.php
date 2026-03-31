@@ -15,6 +15,20 @@
         </div>
     </x-slot>
 
+<style>
+/* Estilos para badges de estado */
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    display: inline-flex;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    border-radius: 9999px;
+}
+.status-active { background-color: #dcfce7; color: #166534; }
+.status-inactive { background-color: #fecaca; color: #991b1b; }
+</style>
+
     <div >
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             @if (session('success'))
@@ -25,9 +39,35 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
+                    <!-- Formulario de búsqueda -->
+                    <div class="mb-4">
+                        <form method="GET" action="{{ route('type_of_arts.index') }}" class="flex gap-2 max-w-lg">
+                            <input type="text" name="search" value="{{ request('search') }}" 
+                                   placeholder="Buscar por nombre o descripción..." 
+                                   class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                Buscar
+                            </button>
+                            @if(request('search'))
+                                <a href="{{ route('type_of_arts.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-400 focus:bg-gray-400 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                                    Limpiar
+                                </a>
+                            @endif
+                        </form>
+                    </div>
+
                     @if($typeOfArts->isEmpty())
                         <div class="text-center py-4">
-                            <p class="text-gray-500">No hay tipos de arte registrados.</p>
+                            <p class="text-gray-500">
+                                @if(request('search'))
+                                    No se encontraron tipos de arte que coincidan con "{{ request('search') }}".
+                                @else
+                                    No hay tipos de arte registrados.
+                                @endif
+                            </p>
                         </div>
                     @else
                         <div class="overflow-x-auto">
@@ -68,7 +108,7 @@
                                                 </div>
                                             </td> --}}
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $type->active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                                <span class="status-badge {{ $type->active ? 'status-active' : 'status-inactive' }}">
                                                     {{ $type->active ? 'Activo' : 'Inactivo' }}
                                                 </span>
                                             </td>
@@ -110,9 +150,12 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mt-4">
-                            {{ $typeOfArts->links() }}
-                        </div>
+                        <!-- Paginación con parámetros de búsqueda -->
+                        @if($typeOfArts->hasPages())
+                            <div class="mt-4">
+                                {{ $typeOfArts->appends(request()->except('page'))->links() }}
+                            </div>
+                        @endif
                     @endif
                 </div>
             </div>

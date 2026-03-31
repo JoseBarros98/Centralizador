@@ -6,28 +6,45 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Module extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'program_id',
         'name',
-        'description',
+        'start_date',
+        'finalization_date',
+        'status',
+        'teacher_name',
         'teacher_id',
         'monitor_id',
-        'class_count',
-        'active',
         'recovery_start_date',
         'recovery_end_date',
         'recovery_notes',
+        'teacher_rating',
+        'order',
+        'shared_google_meet_link',
+        'shared_google_meet_space_name',
+        'shared_google_meet_meeting_code',
+        'shared_google_meet_co_organizers',
+        'shared_google_meet_synced_at',
+        'shared_google_meet_sync_error',
     ];
 
     protected $casts = [
-        'active' => 'boolean',
         'recovery_start_date' => 'date',
         'recovery_end_date' => 'date',
+        'start_date' => 'date',
+        'finalization_date' => 'date',
+        'program_id' => 'integer',
+        'teacher_id' => 'integer',
+        'monitor_id' => 'integer',
+        'teacher_rating' => 'integer',
+        'shared_google_meet_co_organizers' => 'array',
+        'shared_google_meet_synced_at' => 'datetime',
     ];
 
     public function program(): BelongsTo
@@ -101,5 +118,10 @@ class Module extends Model
                 $query->where('module_id', $this->id);
             });
         })->get();
+    }
+
+    public function paymentRequest()
+    {
+        return $this->hasMany(PaymentRequest::class);
     }
 }

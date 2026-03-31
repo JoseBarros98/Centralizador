@@ -18,22 +18,6 @@ class UserSeeder extends Seeder
         ]);
         $admin->assignRole('admin');
 
-        // Crear usuario operador
-        $operator = User::create([
-            'name' => 'Operador',
-            'email' => 'operador@sistema.com',
-            'password' => Hash::make('password'),
-        ]);
-        $operator->assignRole('operator');
-
-        // Crear usuario visualizador
-        $viewer = User::create([
-            'name' => 'Visualizador',
-            'email' => 'visualizador@sistema.com',
-            'password' => Hash::make('password'),
-        ]);
-        $viewer->assignRole('viewer');
-
         // Crear usuario marketing
         $marketing = User::create([
             'name' => 'Marketing',
@@ -57,5 +41,13 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
         $design->assignRole('design');
+
+        // Crear usuario accountant
+        $accountant = User::create([
+            'name' => 'Contador',
+            'email' => 'accountant@sistema.com',
+            'password' => Hash::make('password'),
+        ]);
+        $accountant->assignRole('accountant');
     }
 }

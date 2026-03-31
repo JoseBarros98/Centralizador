@@ -193,7 +193,7 @@
                 <div class="mb-4">
                     <label for="file" class="block text-sm font-medium text-gray-700">Archivo</label>
                     <input type="file" name="file" id="file" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md" required>
-                    <p class="text-xs text-gray-500 mt-1">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, MP4, ZIP, RAR. Tamaño máximo: 20MB.</p>
+                    <p class="text-xs text-gray-500 mt-1">Formatos permitidos: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, JPG, JPEG, PNG, GIF, MP4, ZIP, RAR. Tamaño máximo: 5MB.</p>
                 </div>
                 
                 <div class="mb-4">

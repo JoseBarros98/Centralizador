@@ -28,20 +28,11 @@
                             @enderror
                         </div>
 
-                        <div class="mb-4">
-                            <div class="flex items-center">
-                                <label for="active" class="inline-flex items-center">
-                                    <input id="active" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" name="active" value="1" {{ old('active') ? 'checked' : 'checked' }}>
-                                    <span class="ml-2 text-sm text-gray-600">{{ __('Activo') }}</span>
-                                </label>
-                            </div>
-                            @error('active')
-                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                            @enderror
-                        </div>
+                        <input type="hidden" id="active" name="active" value="1">
 
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700">Archivos</label>
+                            <p class="text-xs text-gray-500 mt-1">Tipos de documentos permitidos: PDF, JPG, JPEG, PNG. Peso máximo: 5MB.</p>
                             <div id="file-container">
                                 <div class="file-group mb-2">
                                     <div class="flex items-center space-x-2">

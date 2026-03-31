@@ -18,6 +18,22 @@
         </div>
     </x-slot>
 
+<style>
+/* Estilos para iconos de estado en summary */
+.attendance-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 9999px;
+}
+.icon-license { background-color: #dbeafe; color: #1e40af; }
+.icon-present { background-color: #dcfce7; color: #166534; }
+.icon-late { background-color: #fef3c7; color: #92400e; }
+.icon-absent { background-color: #fecaca; color: #991b1b; }
+</style>
+
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -90,28 +106,37 @@
                                             </td>
                                             @foreach($classes as $class)
                                                 <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
-                                                    @if(isset($row['classes'][$class->id]['status']))
-                                                        @if($row['classes'][$class->id]['status'] === 'present')
-                                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-100 text-green-800" title="{{ __('Asistencia completa') }} ({{ $row['classes'][$class->id]['duration'] }} min)">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                                                </svg>
-                                                            </span>
-                                                        @elseif($row['classes'][$class->id]['status'] === 'late')
-                                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 text-yellow-800" title="{{ __('Asistencia parcial') }} ({{ $row['classes'][$class->id]['duration'] }} min)">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                </svg>
-                                                            </span>
-                                                        @elseif($row['classes'][$class->id]['status'] === 'absent')
-                                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-800" title="{{ __('Ausente') }} ({{ $row['classes'][$class->id]['duration'] }} min < 30 min)">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                                </svg>
-                                                            </span>
-                                                        @endif
+                                                    @if(isset($row['classes'][$class->id]['has_license']) && $row['classes'][$class->id]['has_license'])
+                                                        <span class="attendance-icon icon-license" title="{{ __('Licencia/Permiso') }}: {{ $row['classes'][$class->id]['license_type'] ?? 'Permiso' }}">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                            </svg>
+                                                        </span>
+                                                    @elseif(isset($row['classes'][$class->id]['status']))
+                                                        <?php
+                                                            $iconClass = 'icon-absent';
+                                                            $title = __('Ausente');
+                                                            $icon = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+                                                            
+                                                            if ($row['classes'][$class->id]['status'] === 'present') {
+                                                                $iconClass = 'icon-present';
+                                                                $title = __('Asistencia completa') . ' (' . $row['classes'][$class->id]['duration'] . ' min)';
+                                                                $icon = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />';
+                                                            } elseif ($row['classes'][$class->id]['status'] === 'late') {
+                                                                $iconClass = 'icon-late';
+                                                                $title = __('Asistencia parcial') . ' (' . $row['classes'][$class->id]['duration'] . ' min)';
+                                                                $icon = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />';
+                                                            } elseif ($row['classes'][$class->id]['status'] === 'absent') {
+                                                                $title .= ' (' . $row['classes'][$class->id]['duration'] . ' min < 30 min)';
+                                                            }
+                                                        ?>
+                                                        <span class="attendance-icon {{ $iconClass }}" title="{{ $title }}">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                {!! $icon !!}
+                                                            </svg>
+                                                        </span>
                                                     @else
-                                                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-100 text-red-800" title="{{ __('No asistió') }}">
+                                                        <span class="attendance-icon icon-absent" title="{{ __('No asistió') }}">
                                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                                             </svg>

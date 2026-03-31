@@ -11,6 +11,8 @@ class GradeFollowup extends Model
 
     protected $fillable = [
         'grade_id',
+        'status',
+        'creator_id',
         'observations',
         'has_recovery',
         'recovery_start_date',
@@ -29,6 +31,14 @@ class GradeFollowup extends Model
     public function grade()
     {
         return $this->belongsTo(Grade::class);
+    }
+
+    /**
+     * Obtener el usuario creador del seguimiento.
+     */
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'creator_id');
     }
 
     /**
@@ -55,5 +65,39 @@ class GradeFollowup extends Model
     {
         return $this->hasMany(FollowupContact::class, 'grade_followups_id')
             ->where('type', 'message');
+    }
+
+    /**
+     * Verificar si el seguimiento está cerrado.
+     */
+    public function isClosed()
+    {
+        return $this->status === 'closed';
+    }
+
+    /**
+     * Verificar si el seguimiento está abierto.
+     */
+    public function isOpen()
+    {
+        return $this->status === 'open';
+    }
+
+    /**
+     * Cerrar el seguimiento.
+     */
+    public function close()
+    {
+        $this->status = 'closed';
+        return $this->save();
+    }
+
+    /**
+     * Abrir el seguimiento.
+     */
+    public function open()
+    {
+        $this->status = 'open';
+        return $this->save();
     }
 }

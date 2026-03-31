@@ -45,8 +45,8 @@
                                     <option value="EN CURSO" {{ request('status') == 'EN CURSO' ? 'selected' : '' }}>En Curso</option>
                                     <option value="COMPLETO" {{ request('status') == 'COMPLETO' ? 'selected' : '' }}>Completo</option>
                                     <option value="RETRASADO" {{ request('status') == 'RETRASADO' ? 'selected' : '' }}>Retrasado</option>
-                                    <option value="ESPERANDO APROBACIÓN" {{ request('status') == 'ESPERANDO APROBACIÓN' ? 'selected' : '' }}>Esperando Aprobación</option>
-                                    <option value="ESPERANDO INFORMACIÓN" {{ request('status') == 'ESPERANDO INFORMACIÓN' ? 'selected' : '' }}>Esperando Información</option>
+                                    <option value="ESPERANDO APROBACION" {{ request('status') == 'ESPERANDO APROBACION' ? 'selected' : '' }}>Esperando Aprobación</option>
+                                    <option value="ESPERANDO INFORMACION" {{ request('status') == 'ESPERANDO INFORMACION' ? 'selected' : '' }}>Esperando Información</option>
                                     <option value="CANCELADO" {{ request('status') == 'CANCELADO' ? 'selected' : '' }}>Cancelado</option>
                                     <option value="EN PAUSA" {{ request('status') == 'EN PAUSA' ? 'selected' : '' }}>En Pausa</option>
                                 </select>
@@ -187,8 +187,8 @@
                                                     'EN CURSO' => 'bg-blue-100 text-blue-800',
                                                     'COMPLETO' => 'bg-green-100 text-green-800',
                                                     'RETRASADO' => 'bg-red-100 text-red-800',
-                                                    'ESPERANDO APROBACIÓN' => 'bg-yellow-100 text-yellow-800',
-                                                    'ESPERANDO INFORMACIÓN' => 'bg-purple-100 text-purple-800',
+                                                    'ESPERANDO APROBACION' => 'bg-yellow-100 text-yellow-800',
+                                                    'ESPERANDO INFORMACION' => 'bg-purple-100 text-purple-800',
                                                     'CANCELADO' => 'bg-red-100 text-red-800',
                                                     'EN PAUSA' => 'bg-orange-100 text-orange-800',
                                                 ];
