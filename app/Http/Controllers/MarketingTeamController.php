@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use App\Models\MarketingTeam;
 use App\Models\MarketingTeamMember;
 use App\Models\Inscription;
@@ -76,12 +77,36 @@ class MarketingTeamController extends Controller
         $teamInscriptionsQuery = Inscription::with(['creator', 'programs'])
             ->whereIn('created_by', $memberIds);
 
-        if ($selectedYear !== 'all') {
-            $teamInscriptionsQuery->whereYear('inscription_date', (int) $selectedYear);
-        }
+        if ($selectedMonth !== 'all' && $selectedYear !== 'all') {
+            $monthStart = Carbon::createFromDate((int) $selectedYear, (int) $selectedMonth, 1)->startOfMonth();
+            $monthEnd = $monthStart->copy()->endOfMonth();
 
-        if ($selectedMonth !== 'all') {
-            $teamInscriptionsQuery->whereMonth('inscription_date', (int) $selectedMonth);
+            $teamInscriptionsQuery->where(function ($query) use ($monthStart, $monthEnd) {
+                $query->whereBetween('inscription_date', [$monthStart, $monthEnd])
+                    ->orWhereHas('paymentHistory', function ($subQuery) use ($monthStart, $monthEnd) {
+                        $subQuery->whereBetween('status_date', [$monthStart, $monthEnd]);
+                    });
+            });
+        } elseif ($selectedYear !== 'all') {
+            $yearStart = Carbon::createFromDate((int) $selectedYear, 1, 1)->startOfYear();
+            $yearEnd = $yearStart->copy()->endOfYear();
+
+            $teamInscriptionsQuery->where(function ($query) use ($yearStart, $yearEnd) {
+                $query->whereBetween('inscription_date', [$yearStart, $yearEnd])
+                    ->orWhereHas('paymentHistory', function ($subQuery) use ($yearStart, $yearEnd) {
+                        $subQuery->whereBetween('status_date', [$yearStart, $yearEnd]);
+                    });
+            });
+        } elseif ($selectedMonth !== 'all') {
+            $monthStart = Carbon::createFromDate((int) now()->year, (int) $selectedMonth, 1)->startOfMonth();
+            $monthEnd = $monthStart->copy()->endOfMonth();
+
+            $teamInscriptionsQuery->where(function ($query) use ($monthStart, $monthEnd) {
+                $query->whereBetween('inscription_date', [$monthStart, $monthEnd])
+                    ->orWhereHas('paymentHistory', function ($subQuery) use ($monthStart, $monthEnd) {
+                        $subQuery->whereBetween('status_date', [$monthStart, $monthEnd]);
+                    });
+            });
         }
 
         if (in_array($selectedStatus, ['Completo', 'Completando', 'Adelanto'], true)) {
@@ -103,6 +128,14 @@ class MarketingTeamController extends Controller
             ->orderByDesc('id')
             ->paginate(15)
             ->withQueryString();
+
+        // Mantener la misma lógica visual del index de inscripciones para estado/monto por mes.
+        if ($selectedMonth !== 'all' && $selectedYear !== 'all') {
+            foreach ($teamInscriptions as $inscription) {
+                $inscription->display_month = (int) $selectedMonth;
+                $inscription->display_year = (int) $selectedYear;
+            }
+        }
 
         $availableUsers = User::whereDoesntHave('marketingTeamMemberships', function ($query) use ($team) {
             $query->where('team_id', $team->id)->where('active', true);

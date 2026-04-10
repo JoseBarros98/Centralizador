@@ -324,7 +324,7 @@
                                             </td> --}}
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 @php
-                                                    $paymentStatus = $inscription->local_payment_status ?? $inscription->status;
+                                                    $paymentStatus = $inscription->display_payment_status ?? ($inscription->local_payment_status ?? $inscription->status);
                                                 @endphp
 
                                                 @if($paymentStatus == 'Completo')
@@ -394,7 +394,7 @@
                                                 {{ number_format((float) ($inscription->first_installment ?? 0), 2) }} Bs
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                {{ number_format((float) ($inscription->total_paid ?? 0), 2) }} Bs
+                                                {{ number_format((float) ($inscription->display_total_paid ?? 0), 2) }} Bs
                                             </td>
                                         </tr>
                                     @empty

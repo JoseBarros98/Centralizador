@@ -247,26 +247,31 @@
                                         {{-- Documentos --}}
                                         @php
                                             $docs = [
-                                                'CI'   => $inscription->has_identity_card,
-                                                'Tít.' => $inscription->has_degree_title,
-                                                'Dipl' => $inscription->has_academic_diploma,
-                                                'Nac.' => $inscription->has_birth_certificate,
-                                                'Comp' => $inscription->documents->where('document_type', 'compromiso')->isNotEmpty(),
-                                                'Cong' => $inscription->documents->where('document_type', 'congelamiento')->isNotEmpty(),
+                                                ['short' => 'CI', 'full' => 'Cédula de Identidad', 'has' => $inscription->has_identity_card],
+                                                ['short' => 'Tít.', 'full' => 'Título Profesional', 'has' => $inscription->has_degree_title],
+                                                ['short' => 'Dipl', 'full' => 'Diploma Académico', 'has' => $inscription->has_academic_diploma],
+                                                ['short' => 'Nac.', 'full' => 'Certificado de Nacimiento', 'has' => $inscription->has_birth_certificate],
+                                                ['short' => 'Comp', 'full' => 'Carta de Compromiso', 'has' => $inscription->documents->where('document_type', 'compromiso')->isNotEmpty()],
+                                                ['short' => 'Cong', 'full' => 'Carta de Congelamiento', 'has' => $inscription->documents->where('document_type', 'congelamiento')->isNotEmpty()],
                                             ];
-                                            $allDocs = collect($docs)->every(fn($v) => $v);
+                                            $allDocs = collect($docs)->every(fn($doc) => $doc['has']);
                                         @endphp
                                         <td class="px-6 py-4 text-sm">
                                             @if($allDocs)
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
                                                     <svg class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                                     Completos
                                                 </span>
                                             @else
-                                                <div class="flex flex-wrap gap-1">
-                                                    @foreach($docs as $label => $has)
-                                                        <span title="{{ $label }}" class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium {{ $has ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                                                            {{ $label }}
+                                                <div class="flex flex-wrap gap-2 max-w-xs">
+                                                    @foreach($docs as $doc)
+                                                        <span
+                                                            title="{{ $doc['full'] }}"
+                                                            aria-label="{{ $doc['full'] }}"
+                                                            class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold leading-none border shadow-sm whitespace-nowrap {{ $doc['has'] ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200' }}"
+                                                        >
+                                                            <span class="inline-block h-1.5 w-1.5 rounded-full {{ $doc['has'] ? 'bg-green-500' : 'bg-red-500' }}"></span>
+                                                            {{ $doc['short'] }}
                                                         </span>
                                                     @endforeach
                                                 </div>
