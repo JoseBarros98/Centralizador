@@ -104,4 +104,19 @@ class ManagementIncomeController extends Controller
 
         return response()->json(['items' => $items]);
     }
+
+    public function renameItem(Request $request): JsonResponse
+    {
+        $request->validate([
+            'old_item' => 'required|string|max:255',
+            'new_item' => 'required|string|max:255|different:old_item',
+            'gestion'  => 'required|integer|between:2000,2100',
+        ]);
+
+        ManagementIncome::where('item', $request->old_item)
+            ->where('gestion', $request->gestion)
+            ->update(['item' => $request->new_item]);
+
+        return response()->json(['success' => true]);
+    }
 }

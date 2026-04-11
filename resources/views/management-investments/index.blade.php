@@ -8,6 +8,7 @@ window._invConfig = {
     gestion:    {{ $gestion }},
     upsertUrl:  "{{ route('management-investments.cell') }}",
     destroyUrl: "{{ route('management-investments.destroyItem') }}",
+    renameUrl:  "{{ route('management-investments.renameItem') }}",
     itemsUrl:   "{{ route('management-investments.items') }}"
 };
 </script>
@@ -133,7 +134,41 @@ window._invConfig = {
 
                                 <td class="sticky left-0 z-10 bg-white px-4 py-2 font-medium text-gray-900 border-r border-gray-100"
                                     :class="editingCell?.item === item ? '!bg-indigo-50' : ''">
-                                    <span x-text="item"></span>
+                                    <template x-if="renamingItem !== item">
+                                        <div style="display:flex;align-items:center;gap:6px;">
+                                            <span x-text="item"></span>
+                                            <button @click="startRename(item)"
+                                                    title="Renombrar item"
+                                                    style="flex-shrink:0;background:none;border:none;padding:2px;cursor:pointer;color:#9ca3af;line-height:0;"
+                                                    onmouseover="this.style.color='#2563eb'" onmouseout="this.style.color='#9ca3af'">
+                                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                    <template x-if="renamingItem === item">
+                                        <div class="flex items-center gap-1">
+                                            <input :id="'rename-input-' + item"
+                                                   type="text"
+                                                   x-model="renameValue"
+                                                   @keydown.enter.prevent="saveRename()"
+                                                   @keydown.escape.prevent="cancelRename()"
+                                                   class="px-2 py-1 border border-blue-400 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-36">
+                                            <button @click="saveRename()" :disabled="renaming"
+                                                    class="text-blue-600 hover:text-blue-800 disabled:opacity-50" title="Guardar nombre">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            </button>
+                                            <button @click="cancelRename()" :disabled="renaming"
+                                                    class="text-gray-400 hover:text-gray-600 disabled:opacity-50" title="Cancelar">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </template>
                                 </td>
 
                                 <template x-for="mes in [1,2,3,4,5,6,7,8,9,10,11,12]" :key="mes">
@@ -302,6 +337,10 @@ function investmentGrid() {
 
         tooltip: null,
 
+        renamingItem: null,
+        renameValue:  '',
+        renaming:     false,
+
         searchQuery: '',
         newItemName: '',
         addingItem:  false,
@@ -438,6 +477,57 @@ function investmentGrid() {
                 }
             } finally {
                 this.saving = false;
+            }
+        },
+
+        startRename(item) {
+            this.renamingItem = item;
+            this.renameValue  = item;
+            this.$nextTick(() => {
+                const el = document.getElementById('rename-input-' + item);
+                if (el) { el.focus(); el.select(); }
+            });
+        },
+
+        cancelRename() {
+            this.renamingItem = null;
+            this.renameValue  = '';
+        },
+
+        async saveRename() {
+            const oldItem = this.renamingItem;
+            const newItem = this.renameValue.trim();
+            if (!newItem || newItem === oldItem) { this.cancelRename(); return; }
+            if (this.items.includes(newItem)) {
+                alert('Ya existe un item con ese nombre.');
+                return;
+            }
+            this.renaming = true;
+            try {
+                const res = await fetch(cfg.renameUrl, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept':       'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ old_item: oldItem, new_item: newItem, gestion: this.gestion }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const newGrid = {};
+                    for (const [k, v] of Object.entries(this.grid)) {
+                        newGrid[k === oldItem ? newItem : k] = v;
+                    }
+                    this.grid  = newGrid;
+                    this.items = this.items.map(i => i === oldItem ? newItem : i).sort((a, b) => a.localeCompare(b, 'es'));
+                    if (this.editingCell?.item === oldItem) {
+                        this.editingCell = { ...this.editingCell, item: newItem };
+                    }
+                    this.cancelRename();
+                }
+            } finally {
+                this.renaming = false;
             }
         },
 

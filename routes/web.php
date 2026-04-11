@@ -333,18 +333,21 @@ Route::middleware('auth')->group(function () {
   Route::get('management-incomes',        [ManagementIncomeController::class, 'index'])->name('management-incomes.index');
   Route::get('management-incomes/items',  [ManagementIncomeController::class, 'getItemsForYear'])->name('management-incomes.items');
   Route::post('management-incomes/cell',  [ManagementIncomeController::class, 'upsertCell'])->name('management-incomes.cell');
+  Route::patch('management-incomes/item', [ManagementIncomeController::class, 'renameItem'])->name('management-incomes.renameItem');
   Route::delete('management-incomes/item',[ManagementIncomeController::class, 'destroyItem'])->name('management-incomes.destroyItem');
 
   // Rutas para inversiones por gestion
   Route::get('management-investments',        [ManagementInvestmentController::class, 'index'])->name('management-investments.index');
   Route::get('management-investments/items',  [ManagementInvestmentController::class, 'getItemsForYear'])->name('management-investments.items');
   Route::post('management-investments/cell',  [ManagementInvestmentController::class, 'upsertCell'])->name('management-investments.cell');
+  Route::patch('management-investments/item', [ManagementInvestmentController::class, 'renameItem'])->name('management-investments.renameItem');
   Route::delete('management-investments/item',[ManagementInvestmentController::class, 'destroyItem'])->name('management-investments.destroyItem');
 
   // Rutas para egresos por gestion
   Route::get('management-expenses',        [ManagementExpenseController::class, 'index'])->name('management-expenses.index');
   Route::get('management-expenses/items',  [ManagementExpenseController::class, 'getItemsForYear'])->name('management-expenses.items');
   Route::post('management-expenses/cell',  [ManagementExpenseController::class, 'upsertCell'])->name('management-expenses.cell');
+  Route::patch('management-expenses/item', [ManagementExpenseController::class, 'renameItem'])->name('management-expenses.renameItem');
   Route::delete('management-expenses/item',[ManagementExpenseController::class, 'destroyItem'])->name('management-expenses.destroyItem');
 
   // Rutas para vinculación de asesores
