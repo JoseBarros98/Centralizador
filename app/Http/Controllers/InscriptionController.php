@@ -48,7 +48,7 @@ class InscriptionController extends Controller
             }
 
             return $next($request);
-        })->only(['edit', 'update', 'updateDocuments', 'uploadCommitmentLetter', 'deleteCommitmentLetter', 'updateDocumentObservations']);
+        })->only(['edit', 'update', 'updatePaymentHistory', 'destroyPaymentHistory', 'updateDocuments', 'uploadCommitmentLetter', 'deleteCommitmentLetter', 'updateDocumentObservations']);
         $this->middleware(['permission:inscription.delete'])->only(['destroy']);
     }
 
@@ -82,6 +82,50 @@ class InscriptionController extends Controller
 
         return $externalSystemUserId !== null
             && (int) $inscription->created_by === $externalSystemUserId;
+    }
+
+    private function ensurePaymentHistoryBelongsToInscription(Inscription $inscription, InscriptionPaymentHistory $history): void
+    {
+        if ((int) $history->inscription_id !== (int) $inscription->id) {
+            abort(403, 'El registro de historial no pertenece a esta inscripción.');
+        }
+    }
+
+    private function rebuildPaymentHistoryTransitions(Inscription $inscription): void
+    {
+        $historyItems = $inscription->paymentHistory()
+            ->orderBy('status_date', 'ASC')
+            ->orderBy('id', 'ASC')
+            ->get();
+
+        $previousStatus = null;
+
+        foreach ($historyItems as $item) {
+            $item->old_status = $previousStatus;
+            $item->save();
+            $previousStatus = $item->new_status;
+        }
+    }
+
+    private function syncInscriptionPaymentSnapshotFromHistory(Inscription $inscription): void
+    {
+        $latestChange = $inscription->paymentHistory()
+            ->orderBy('status_date', 'DESC')
+            ->orderBy('id', 'DESC')
+            ->first();
+
+        if (!$latestChange) {
+            $inscription->local_payment_status = 'Pendiente';
+            $inscription->total_paid = 0;
+            $inscription->updated_by = Auth::id();
+            $inscription->save();
+            return;
+        }
+
+        $inscription->local_payment_status = $latestChange->new_status;
+        $inscription->total_paid = $latestChange->amount_paid ?? 0;
+        $inscription->updated_by = Auth::id();
+        $inscription->save();
     }
 
     /**
@@ -692,7 +736,7 @@ class InscriptionController extends Controller
         $this->authorizeInscriptionAccess($inscription, 'view');
         
         // Cargar los recibos, documentos, historial de pagos y relaciones relacionadas
-        $inscription->load('receipts', 'documents', 'paymentHistory', 'university', 'profession', 'programs', 'creator', 'updater');
+        $inscription->load('receipts', 'documents', 'paymentHistory.changedBy', 'university', 'profession', 'programs', 'creator', 'updater');
         
         return view('inscriptions.show', compact('inscription'));
     }
@@ -989,6 +1033,50 @@ class InscriptionController extends Controller
         
         return redirect()->route('inscriptions.index')
             ->with('success', 'Inscripción actualizada correctamente.');
+    }
+
+    public function updatePaymentHistory(Request $request, Inscription $inscription, InscriptionPaymentHistory $history)
+    {
+        $this->authorizeInscriptionAccess($inscription, 'edit');
+        $this->ensurePaymentHistoryBelongsToInscription($inscription, $history);
+
+        $validated = $request->validate([
+            'new_status' => 'required|in:Pendiente,Adelanto,Completando,Completo',
+            'amount_paid' => 'required|numeric|min:0',
+            'status_date' => 'required|date',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        DB::transaction(function () use ($inscription, $history, $validated) {
+            $history->new_status = $validated['new_status'];
+            $history->amount_paid = $validated['amount_paid'];
+            $history->status_date = $validated['status_date'];
+            $history->notes = $validated['notes'] ?? $history->notes;
+            $history->changed_by = Auth::id();
+            $history->save();
+
+            $this->rebuildPaymentHistoryTransitions($inscription);
+            $this->syncInscriptionPaymentSnapshotFromHistory($inscription);
+        });
+
+        return redirect()->route('inscriptions.show', $inscription)
+            ->with('success', 'Cambio de estado actualizado correctamente.');
+    }
+
+    public function destroyPaymentHistory(Inscription $inscription, InscriptionPaymentHistory $history)
+    {
+        $this->authorizeInscriptionAccess($inscription, 'edit');
+        $this->ensurePaymentHistoryBelongsToInscription($inscription, $history);
+
+        DB::transaction(function () use ($inscription, $history) {
+            $history->delete();
+
+            $this->rebuildPaymentHistoryTransitions($inscription);
+            $this->syncInscriptionPaymentSnapshotFromHistory($inscription);
+        });
+
+        return redirect()->route('inscriptions.show', $inscription)
+            ->with('success', 'Cambio de estado eliminado correctamente.');
     }
 
     public function destroy(Inscription $inscription)

@@ -104,6 +104,8 @@ Route::middleware('auth')->group(function () {
   // Rutas para inscripciones
   Route::resource('inscriptions', InscriptionController::class);
   Route::post('/inscriptions/sync', [InscriptionController::class, 'sync'])->name('inscriptions.sync');
+  Route::patch('/inscriptions/{inscription}/payment-history/{history}', [InscriptionController::class, 'updatePaymentHistory'])->name('inscriptions.payment-history.update');
+  Route::delete('/inscriptions/{inscription}/payment-history/{history}', [InscriptionController::class, 'destroyPaymentHistory'])->name('inscriptions.payment-history.destroy');
 
   // Rutas para actualizar documentos de inscripciones
   Route::patch('/inscriptions/{inscription}/documents', [InscriptionController::class, 'updateDocuments'])->name('inscriptions.update-documents');

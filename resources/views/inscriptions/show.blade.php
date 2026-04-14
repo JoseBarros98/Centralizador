@@ -331,6 +331,7 @@
                                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nuevo Estado</th>
                                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto Pagado</th>
                                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cambió por</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                             </tr>
                                         </thead>
                                         <tbody class="divide-y divide-gray-200">
@@ -373,6 +374,46 @@
                                                         {{ $history->changedBy->name }}
                                                     @else
                                                         <span class="text-gray-400">Sistema</span>
+                                                    @endif
+                                                </td>
+                                                <td class="px-6 py-4 text-sm text-gray-900">
+                                                    @if($canEditInscription)
+                                                        <div class="flex flex-col gap-2">
+                                                            <details>
+                                                                <summary class="cursor-pointer text-indigo-600 hover:text-indigo-800 text-xs font-semibold uppercase tracking-wider">Editar</summary>
+                                                                <form method="POST" action="{{ route('inscriptions.payment-history.update', ['inscription' => $inscription->id, 'history' => $history->id]) }}" class="mt-2 p-3 border border-gray-200 rounded-md bg-gray-50">
+                                                                    @csrf
+                                                                    @method('PATCH')
+
+                                                                    <div class="grid grid-cols-1 gap-2">
+                                                                        <select name="new_status" class="rounded-md border-gray-300 text-sm" required>
+                                                                            <option value="Pendiente" {{ $history->new_status === 'Pendiente' ? 'selected' : '' }}>Pendiente</option>
+                                                                            <option value="Adelanto" {{ $history->new_status === 'Adelanto' ? 'selected' : '' }}>Adelanto</option>
+                                                                            <option value="Completando" {{ $history->new_status === 'Completando' ? 'selected' : '' }}>Completando</option>
+                                                                            <option value="Completo" {{ $history->new_status === 'Completo' ? 'selected' : '' }}>Completo</option>
+                                                                        </select>
+
+                                                                        <input type="date" name="status_date" value="{{ optional($history->status_date)->format('Y-m-d') }}" class="rounded-md border-gray-300 text-sm" required>
+                                                                        <input type="number" step="0.01" min="0" name="amount_paid" value="{{ $history->amount_paid ?? 0 }}" class="rounded-md border-gray-300 text-sm" required>
+                                                                        <input type="text" name="notes" value="{{ $history->notes }}" class="rounded-md border-gray-300 text-sm" placeholder="Notas (opcional)">
+                                                                    </div>
+
+                                                                    <button type="submit" class="mt-2 inline-flex items-center px-3 py-1 bg-indigo-600 text-white text-xs font-semibold uppercase tracking-wider rounded-md hover:bg-indigo-700">
+                                                                        Guardar
+                                                                    </button>
+                                                                </form>
+                                                            </details>
+
+                                                            <form method="POST" action="{{ route('inscriptions.payment-history.destroy', ['inscription' => $inscription->id, 'history' => $history->id]) }}" onsubmit="return confirm('¿Eliminar este cambio de estado? Esta acción no se puede deshacer.');">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="inline-flex items-center px-3 py-1 bg-red-600 text-white text-xs font-semibold uppercase tracking-wider rounded-md hover:bg-red-700">
+                                                                    Eliminar
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    @else
+                                                        <span class="text-gray-400">-</span>
                                                     @endif
                                                 </td>
                                             </tr>
