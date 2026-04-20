@@ -236,6 +236,12 @@
                                 <dt class="text-sm font-medium text-gray-500">Total Pagado</dt>
                                 <dd class="mt-1 text-sm text-gray-900">{{ number_format($inscription->total_paid, 2) }} Bs</dd>
                             </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Saldo a pagar</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    {{ number_format(($inscription->first_installment + $inscription->enrollment_fee) - $inscription->total_paid, 2) }} Bs
+                                </dd>
+                            </div>
                         </dl>
                     </div>
 

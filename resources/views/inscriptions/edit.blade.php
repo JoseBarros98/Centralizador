@@ -360,6 +360,11 @@
                                     <x-input id="total_paid" class="block mt-1 w-full" type="number" step="0.01" name="total_paid" :value="old('total_paid', $inscription->total_paid)" required />
                                     @error('total_paid')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                                 </div>
+                                <div>
+                                    <x-label for="balance_to_pay" :value="__('Saldo a pagar (Bs)')" />
+                                    <x-input id="balance_to_pay" class="block mt-1 w-full bg-gray-100" type="number" step="0.01" readonly :value="old('balance_to_pay', ($inscription->enrollment_fee + $inscription->first_installment) - $inscription->total_paid)" />
+                                    <p class="text-xs text-gray-500 mt-1">Campo calculado (Total por pagar - Total Pagado)</p>
+                                </div>
                             </div>
                         </div>
 
@@ -596,16 +601,27 @@
         const enrollmentFeeInput = document.getElementById('enrollment_fee');
         const firstInstallmentInput = document.getElementById('first_installment');
         const totalToPayInput = document.getElementById('total_to_pay');
+        const totalPaidInput = document.getElementById('total_paid');
+        const balanceToPayInput = document.getElementById('balance_to_pay');
         
         function calculateTotalToPay() {
             const enrollmentFee = parseFloat(enrollmentFeeInput.value) || 0;
             const firstInstallment = parseFloat(firstInstallmentInput.value) || 0;
             totalToPayInput.value = (enrollmentFee + firstInstallment).toFixed(2);
+            calculateBalanceToPay();
+        }
+
+        function calculateBalanceToPay() {
+            const totalToPay = parseFloat(totalToPayInput.value) || 0;
+            const totalPaid = parseFloat(totalPaidInput.value) || 0;
+            balanceToPayInput.value = (totalToPay - totalPaid).toFixed(2);
         }
         
         calculateTotalToPay();
+        calculateBalanceToPay();
         enrollmentFeeInput.addEventListener('input', calculateTotalToPay);
         firstInstallmentInput.addEventListener('input', calculateTotalToPay);
+        totalPaidInput.addEventListener('input', calculateBalanceToPay);
 
         // Gestión de archivos
         const fileContainer = document.getElementById('file-container');

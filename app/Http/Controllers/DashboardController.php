@@ -114,17 +114,22 @@ class DashboardController extends Controller
         $previousMonthTotalPaid = 0;
         
         foreach ($previousMonthInscriptions as $inscription) {
+            $resolvedStatus = $this->resolvePaymentStatusForPeriod($inscription, $previousMonthStart, $previousMonthEnd);
+
+            if ($resolvedStatus === 'Completo') {
+                $previousMonthCompleto++;
+            } elseif ($resolvedStatus === 'Completando') {
+                $previousMonthCompletando++;
+            } elseif ($resolvedStatus === 'Adelanto') {
+                $previousMonthAdelanto++;
+            }
+
             $lastChangeThisMonth = $inscription->paymentHistory()
                 ->whereBetween('status_date', [$previousMonthStart->toDateString(), $previousMonthEnd->toDateString()])
                 ->orderBy('status_date', 'DESC')
                 ->first();
-            
+
             if ($lastChangeThisMonth) {
-                $status = $lastChangeThisMonth->new_status;
-                if ($status === 'Completo') $previousMonthCompleto++;
-                elseif ($status === 'Completando') $previousMonthCompletando++;
-                elseif ($status === 'Adelanto') $previousMonthAdelanto++;
-                
                 $previousMonthTotalPaid += $lastChangeThisMonth->amount_paid;
             }
         }
@@ -141,17 +146,22 @@ class DashboardController extends Controller
         $currentMonthTotalPaid = 0;
         
         foreach ($inscriptions as $inscription) {
+            $resolvedStatus = $this->resolvePaymentStatusForPeriod($inscription, $startDate, $endDate);
+
+            if ($resolvedStatus === 'Completo') {
+                $currentMonthCompleto++;
+            } elseif ($resolvedStatus === 'Completando') {
+                $currentMonthCompletando++;
+            } elseif ($resolvedStatus === 'Adelanto') {
+                $currentMonthAdelanto++;
+            }
+
             $lastChangeThisMonth = $inscription->paymentHistory()
                 ->whereBetween('status_date', [$startDate->toDateString(), $endDate->toDateString()])
                 ->orderBy('status_date', 'DESC')
                 ->first();
-            
+
             if ($lastChangeThisMonth) {
-                $status = $lastChangeThisMonth->new_status;
-                if ($status === 'Completo') $currentMonthCompleto++;
-                elseif ($status === 'Completando') $currentMonthCompletando++;
-                elseif ($status === 'Adelanto') $currentMonthAdelanto++;
-                
                 $currentMonthTotalPaid += $lastChangeThisMonth->amount_paid;
             }
         }
@@ -222,16 +232,14 @@ class DashboardController extends Controller
                 $adelanto = 0;
                 
                 foreach ($items as $item) {
-                    $lastChangeThisMonth = $item->paymentHistory()
-                        ->whereBetween('status_date', [$startDate->toDateString(), $endDate->toDateString()])
-                        ->orderBy('status_date', 'DESC')
-                        ->first();
-                    
-                    if ($lastChangeThisMonth) {
-                        $status = $lastChangeThisMonth->new_status;
-                        if ($status === 'Completo') $completo++;
-                        elseif ($status === 'Completando') $completando++;
-                        elseif ($status === 'Adelanto') $adelanto++;
+                    $status = $this->resolvePaymentStatusForPeriod($item, $startDate, $endDate);
+
+                    if ($status === 'Completo') {
+                        $completo++;
+                    } elseif ($status === 'Completando') {
+                        $completando++;
+                    } elseif ($status === 'Adelanto') {
+                        $adelanto++;
                     }
                 }
                 
@@ -523,6 +531,7 @@ class DashboardController extends Controller
             }
             
             $processedInscription = clone $inscription;
+            $processedInscription->status = $this->getEffectivePaymentStatus($inscription);
             
             // Para determinar consolidación, buscar si hay cambios de estado en el historial de pagos
             // Si tiene tanto Adelanto como Completando en el año, marcar como Completo
@@ -564,10 +573,15 @@ class DashboardController extends Controller
         $previousYearInscriptions = $previousYearInscriptionsQuery->get();
 
         // Calcular estadísticas del año anterior
-        $previousYearTotal = $previousYearInscriptions->count();
-        $previousYearCompleto = $previousYearInscriptions->where('status', 'Completo')->count();
-        $previousYearCompletando = $previousYearInscriptions->where('status', 'Completando')->count();
-        $previousYearAdelanto = $previousYearInscriptions->where('status', 'Adelanto')->count();
+        $previousYearInscriptionsWithEffectiveStatus = $previousYearInscriptions->map(function ($inscription) {
+            $inscription->status = $this->getEffectivePaymentStatus($inscription);
+            return $inscription;
+        });
+
+        $previousYearTotal = $previousYearInscriptionsWithEffectiveStatus->count();
+        $previousYearCompleto = $previousYearInscriptionsWithEffectiveStatus->where('status', 'Completo')->count();
+        $previousYearCompletando = $previousYearInscriptionsWithEffectiveStatus->where('status', 'Completando')->count();
+        $previousYearAdelanto = $previousYearInscriptionsWithEffectiveStatus->where('status', 'Adelanto')->count();
         
         // Calcular total pagado del año anterior - sumar todos los cambios de estado
         $previousYearTotalPaid = 0;
@@ -994,28 +1008,52 @@ class DashboardController extends Controller
     {
         $count = 0;
         foreach ($inscriptions as $inscription) {
-            $lastChangeThisMonth = $inscription->paymentHistory()
-                ->whereBetween('status_date', [$startDate->toDateString(), $endDate->toDateString()])
-                ->orderBy('status_date', 'DESC')
-                ->first();
-            
-            if ($lastChangeThisMonth && $lastChangeThisMonth->new_status === $status) {
-                $count++;
-                continue;
-            }
+            $resolvedStatus = $this->resolvePaymentStatusForPeriod($inscription, $startDate, $endDate);
 
-            // Si no hubo cambio en el mes pero la inscripcion se registro en ese periodo,
-            // usar su estado actual para no dejarla fuera de los graficos por estado.
-            if (
-                !$lastChangeThisMonth
-                && $inscription->inscription_date
-                && Carbon::parse($inscription->inscription_date)->between($startDate, $endDate)
-                && $inscription->status === $status
-            ) {
+            if ($resolvedStatus === $status) {
                 $count++;
             }
         }
         return $count;
+    }
+
+    private function resolvePaymentStatusForPeriod($inscription, $startDate, $endDate)
+    {
+        $lastChangeThisPeriod = $inscription->paymentHistory()
+            ->whereBetween('status_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->orderBy('status_date', 'DESC')
+            ->first();
+
+        if ($lastChangeThisPeriod) {
+            return $this->normalizePaymentStatus($lastChangeThisPeriod->new_status);
+        }
+
+        if (
+            $inscription->inscription_date
+            && Carbon::parse($inscription->inscription_date)->between($startDate, $endDate)
+        ) {
+            return $this->getEffectivePaymentStatus($inscription);
+        }
+
+        return null;
+    }
+
+    private function getEffectivePaymentStatus($inscription)
+    {
+        return $this->normalizePaymentStatus($inscription->local_payment_status ?? $inscription->status);
+    }
+
+    private function normalizePaymentStatus($status)
+    {
+        $normalized = trim((string) $status);
+
+        return match ($normalized) {
+            'Completo' => 'Completo',
+            'Completando' => 'Completando',
+            'Adelanto' => 'Adelanto',
+            'Pendiente' => 'Pendiente',
+            default => null,
+        };
     }
 
     private function getActiveMarketingTeamName($inscription)
