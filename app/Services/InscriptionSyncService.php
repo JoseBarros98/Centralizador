@@ -101,19 +101,26 @@ class InscriptionSyncService
 
     /**
      * Sincronizar una inscripción individual
+     * 
+     * IMPORTANTE: Busca por external_id + external_program_id para permitir que un estudiante
+     * tenga múltiples inscripciones con diferentes asesores en diferentes programas
      */
     protected function syncInscription($extInscription)
     {
-        // Buscar si ya existe la inscripción por external_id
-        $inscription = Inscription::where('external_id', $extInscription->id_estudiante)->first();
-
         // Mapear profesión
         $professionId = $this->mapProfession($extInscription->profesion_estudiante);
         
         // Mapear programa usando el id_programa externo
         $programId = $this->mapProgram($extInscription->id_programa);
+        $externalProgramId = $extInscription->id_programa ?? null;
 
-        // Datos mapeados desde la DB externa (sin program_id, se manejará con la tabla pivot)
+        // PASO 1: Buscar por external_id + external_program_id (combinación)
+        // Esto permite que el mismo estudiante tenga múltiples inscripciones en diferentes programas
+        $inscription = Inscription::where('external_id', $extInscription->id_estudiante)
+                                  ->where('external_program_id', $externalProgramId)
+                                  ->first();
+
+        // Datos mapeados desde la DB externa
         $data = [
             'external_id' => $extInscription->id_estudiante,
             'code' => $extInscription->code ?? Inscription::generateCode(
@@ -127,7 +134,7 @@ class InscriptionSyncService
             'email' => $extInscription->email_estudiante,
             'profession_id' => $professionId,
             'inscription_date' => $extInscription->fecha_inscripcion,
-            'payment_plan' => $extInscription->plan_pago, // Ya es string, se guarda tal cual
+            'payment_plan' => $extInscription->plan_pago,
             
             // Estados de la DB externa
             'external_inscription_status' => $extInscription->estado_inscripcion_estudiante,
@@ -140,8 +147,8 @@ class InscriptionSyncService
             'external_advisor_id' => $extInscription->idasesor,
             'external_advisor_name' => $extInscription->nombre_completo_asesor ?? null,
             
-            // ID del programa externo (ahora viene directamente de la DB externa)
-            'external_program_id' => $extInscription->id_programa ?? null,
+            // ID del programa externo
+            'external_program_id' => $externalProgramId,
             
             // Control de sincronización
             'is_synced' => true,
@@ -149,39 +156,68 @@ class InscriptionSyncService
         ];
 
         if ($inscription) {
-            // Actualizar inscripción existente
-            // Solo actualizamos los campos sincronizados, no los campos locales
+            // PASO 2: Si ya existe inscripción para este programa, ACTUALIZAR pero PRESERVAR created_by
+            // Solo actualizamos los campos sincronizados de la BD externa
+            // PRESERVAMOS el asesor original (created_by) para no perder histórico
+            $createdByOriginal = $inscription->created_by;
+            
             $inscription->update($data);
+            
+            // Restaurar el asesor original si es diferente
+            if ($createdByOriginal !== $inscription->created_by) {
+                $inscription->created_by = $createdByOriginal;
+                $inscription->save();
+                
+                Log::info("Sincronización preservó asesor original", [
+                    'inscription_id' => $inscription->id,
+                    'external_id' => $extInscription->id_estudiante,
+                    'program_id' => $externalProgramId,
+                    'advisor_name' => $extInscription->nombre_completo_asesor
+                ]);
+            }
             
             // Sincronizar la relación con el programa usando la tabla pivot
             if ($programId) {
-                // Si ya está asociado a este programa, no hacer nada
-                // Si no está asociado, agregarlo
                 if (!$inscription->programs()->where('program_id', $programId)->exists()) {
                     $inscription->programs()->attach($programId);
                 }
             }
+            
+            Log::info("Inscripción sincronizada (existente)", [
+                'inscription_id' => $inscription->id,
+                'student' => $extInscription->nombre_completo_estudiante,
+                'program' => $externalProgramId
+            ]);
         } else {
-            // Verificar si existe una inscripción con el mismo email (para evitar duplicados)
+            // PASO 3: Si NO existe, crear nueva inscripción
+            // Esta es una NUEVA inscripción del estudiante a un NUEVO programa
+            
+            // Verificar si existe una inscripción con el mismo email+CI para este programa
             if ($extInscription->email_estudiante) {
                 $existingByEmail = Inscription::where('email', $extInscription->email_estudiante)
                     ->where('ci', $extInscription->nro_ci_estudiante)
+                    ->where('external_program_id', $externalProgramId)
                     ->first();
                 
                 if ($existingByEmail) {
-                    // Si existe con el mismo email y CI, actualizar su external_id y datos
+                    // Actualizar con external_id y preservar created_by
+                    $createdByOriginal = $existingByEmail->created_by;
                     $existingByEmail->update($data);
+                    $existingByEmail->created_by = $createdByOriginal;
+                    $existingByEmail->save();
+                    
                     return $existingByEmail;
                 }
             }
             
-            // Crear nueva inscripción
-            // Asignar el usuario "Sistema Externo" como creador
-            $data['created_by'] = $this->externalSystemUser->id;
+            // Asignar el nuevo asesor como creador
+            // Si viene del sistema externo, usar sistema.externo; si no, usar el asesor del registro
+            $newAdvisor = $this->findOrCreateAdvisor($extInscription);
+            $data['created_by'] = $newAdvisor ? $newAdvisor->id : $this->externalSystemUser->id;
             
             // Inicializar campos locales con valores por defecto
-            $data['status'] = 'Completando'; // Estado por defecto (para compatibilidad)
-            $data['local_payment_status'] = 'Pendiente'; // Estado de pago local por defecto
+            $data['status'] = 'Completando';
+            $data['local_payment_status'] = 'Pendiente';
             
             $inscription = Inscription::create($data);
             
@@ -189,9 +225,33 @@ class InscriptionSyncService
             if ($programId) {
                 $inscription->programs()->attach($programId);
             }
+            
+            Log::info("Nueva inscripción creada para estudiante en programa", [
+                'inscription_id' => $inscription->id,
+                'student' => $extInscription->nombre_completo_estudiante,
+                'external_program_id' => $externalProgramId,
+                'advisor' => $extInscription->nombre_completo_asesor
+            ]);
         }
 
         return $inscription;
+    }
+
+    /**
+     * Buscar o crear usuario asesor por nombre desde la BD externa
+     * No modifica el sistema si no encuentra, solo retorna null
+     */
+    protected function findOrCreateAdvisor($extInscription)
+    {
+        if (!$extInscription->nombre_completo_asesor) {
+            return null;
+        }
+
+        // Intentar encontrar usuario por nombre
+        $advisor = User::where('name', $extInscription->nombre_completo_asesor)
+                      ->first();
+
+        return $advisor;
     }
     
     /**
