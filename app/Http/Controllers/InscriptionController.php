@@ -193,31 +193,27 @@ class InscriptionController extends Controller
             }
             
             // Filtros de fecha
-            if ($request->has('month') && $request->month != 'all' && $request->has('year') && $request->year != 'all') {
-                $monthStart = Carbon::createFromDate($request->year, $request->month, 1)->startOfMonth();
-                $monthEnd = $monthStart->copy()->endOfMonth();
-                $query->where(function ($q) use ($monthStart, $monthEnd) {
-                    $q->whereBetween('inscription_date', [$monthStart, $monthEnd])
-                      ->orWhereHas('paymentHistory', function ($subQ) use ($monthStart, $monthEnd) {
-                          $subQ->whereBetween('status_date', [$monthStart, $monthEnd]);
-                      });
-                });
-            } elseif ($request->has('year') && $request->year != 'all') {
-                $yearStart = Carbon::createFromDate($request->year, 1, 1)->startOfYear();
-                $yearEnd = $yearStart->copy()->endOfYear();
-                $query->where(function ($q) use ($yearStart, $yearEnd) {
-                    $q->whereBetween('inscription_date', [$yearStart, $yearEnd])
-                      ->orWhereHas('paymentHistory', function ($subQ) use ($yearStart, $yearEnd) {
-                          $subQ->whereBetween('status_date', [$yearStart, $yearEnd]);
-                      });
-                });
-            } elseif ($request->has('month') && $request->month != 'all') {
-                $monthStart = Carbon::createFromDate(Carbon::now()->year, $request->month, 1)->startOfMonth();
-                $monthEnd = $monthStart->copy()->endOfMonth();
-                $query->where(function ($q) use ($monthStart, $monthEnd) {
-                    $q->whereBetween('inscription_date', [$monthStart, $monthEnd])
-                      ->orWhereHas('paymentHistory', function ($subQ) use ($monthStart, $monthEnd) {
-                          $subQ->whereBetween('status_date', [$monthStart, $monthEnd]);
+            $hasDateFrom = $request->has('date_from') && $request->date_from != '';
+            $hasDateTo = $request->has('date_to') && $request->date_to != '';
+            
+            if ($hasDateFrom || $hasDateTo) {
+                // Filtro por rango de fechas
+                $dateFrom = $hasDateFrom ? Carbon::createFromFormat('Y-m-d', $request->date_from)->startOfDay() : Carbon::now()->startOfMonth();
+                $dateTo = $hasDateTo ? Carbon::createFromFormat('Y-m-d', $request->date_to)->endOfDay() : Carbon::now()->endOfMonth();
+                
+                // Si solo hay fecha inicial, usar hasta el final del mes
+                if ($hasDateFrom && !$hasDateTo) {
+                    $dateTo = $dateFrom->copy()->endOfMonth();
+                }
+                // Si solo hay fecha final, usar desde el inicio del mes
+                elseif (!$hasDateFrom && $hasDateTo) {
+                    $dateFrom = $dateTo->copy()->startOfMonth();
+                }
+                
+                $query->where(function ($q) use ($dateFrom, $dateTo) {
+                    $q->whereBetween('inscription_date', [$dateFrom, $dateTo])
+                      ->orWhereHas('paymentHistory', function ($subQ) use ($dateFrom, $dateTo) {
+                          $subQ->whereBetween('status_date', [$dateFrom, $dateTo]);
                       });
                 });
             } else {

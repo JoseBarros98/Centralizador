@@ -44,38 +44,22 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
                             <div>
-                                <x-label for="month" :value="__('Mes')" />
-                                <select id="month" name="month" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
-                                    <option value="all" {{ request('month') == 'all' ? 'selected' : '' }}>Todos los meses</option>
-                                    @php
-                                        // Establecer la localización en español para Carbon
-                                        \Carbon\Carbon::setLocale('es');
-                                    @endphp
-                                    @for ($i = 1; $i <= 12; $i++)
-                                        <option value="{{ $i }}" {{ request('month', date('n')) == $i && request('month') != 'all' ? 'selected' : '' }}>
-                                            {{ ucfirst(\Carbon\Carbon::createFromDate(null, $i, 1)->translatedFormat('F')) }}
-                                        </option>
-                                    @endfor
-                                </select>
+                                <x-label for="date_from" :value="__('Desde')" />
+                                <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}" 
+                                    class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
                             </div>
                             
                             <div>
-                                <x-label for="year" :value="__('Año')" />
-                                <select id="year" name="year" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
-                                    <option value="all" {{ request('year') == 'all' ? 'selected' : '' }}>Todos los años</option>
-                                    @for ($i = date('Y'); $i >= date('Y') - 5; $i--)
-                                        <option value="{{ $i }}" {{ request('year', date('Y')) == $i && request('year') != 'all' ? 'selected' : '' }}>
-                                            {{ $i }}
-                                        </option>
-                                    @endfor
-                                </select>
+                                <x-label for="date_to" :value="__('Hasta')" />
+                                <input type="date" id="date_to" name="date_to" value="{{ request('date_to') }}" 
+                                    class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
                             </div>
                             
                             <div>
                                 <x-label for="status" :value="__('Estado')" />
-                                <select id="status" name="status" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
+                                <select id="status" name="status" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
                                     <option value="">Todos</option>
                                     <option value="Completo" {{ request('local_payment_status') == 'Completo' ? 'selected' : '' }}>Completo</option>
                                     <option value="Completando" {{ request('local_payment_status') == 'Completando' ? 'selected' : '' }}>Completando</option>
@@ -85,7 +69,7 @@
                             
                             <div>
                                 <x-label for="program_id" :value="__('Programa')" />
-                                <select id="program_id" name="program_id" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
+                                <select id="program_id" name="program_id" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
                                     <option value="">Todos</option>
                                     @foreach($programs as $id => $name)
                                         <option value="{{ $id }}" {{ request('program_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
@@ -93,10 +77,9 @@
                                 </select>
                             </div>
                             
-                            <!-- Filtro por usuario que creó la inscripción -->
                             <div>
                                 <x-label for="created_by" :value="__('Asesor')" />
-                                <select id="created_by" name="created_by" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
+                                <select id="created_by" name="created_by" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
                                     <option value="">Todos</option>
                                     @foreach($creators as $id => $name)
                                         <option value="{{ $id }}" {{ request('created_by') == $id ? 'selected' : '' }}>{{ $name }}</option>
@@ -115,6 +98,29 @@
                     <form id="sync-inscriptions-form" method="POST" action="{{ route('inscriptions.sync') }}" class="hidden">
                         @csrf
                     </form>
+                    
+                    <script>
+                        // Validar que la fecha inicial sea menor a la final
+                        const dateFromInput = document.getElementById('date_from');
+                        const dateToInput = document.getElementById('date_to');
+                        
+                        function validateDates() {
+                            if (dateFromInput.value && dateToInput.value) {
+                                if (new Date(dateFromInput.value) > new Date(dateToInput.value)) {
+                                    dateToInput.value = dateFromInput.value;
+                                }
+                            }
+                        }
+                        
+                        dateFromInput.addEventListener('change', validateDates);
+                        dateToInput.addEventListener('change', () => {
+                            if (dateFromInput.value && dateToInput.value) {
+                                if (new Date(dateToInput.value) < new Date(dateFromInput.value)) {
+                                    dateFromInput.value = dateToInput.value;
+                                }
+                            }
+                        });
+                    </script>
                 </div>
             </div>
             
