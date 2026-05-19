@@ -20,12 +20,39 @@ class ArtRequestController extends Controller
     {
         $this->middleware('permission:content.view')->only(['index', 'show']);
         $this->middleware('permission:content.create')->only(['create', 'store']);
-        $this->middleware('permission:content.edit')->only(['edit', 'update']);
-        $this->middleware('permission:content.delete')->only(['destroy']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('content.edit') || $user->can('content.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['edit', 'update']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('content.delete') || $user->can('content.delete_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['destroy']);
 
         $this->middleware('permission:content.manage_files')->only(['addFile', 'deleteFile']);
         $this->middleware('permission:content.view')->only(['serveFile', 'downloadFile']);
         $this->middleware('permission:content.toggle_active')->only(['toggleActive']);
+    }
+
+    private function authorizeArtRequestAccess(ArtRequest $artRequest, string $ability): void
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+
+        $isOwner = (int) $artRequest->created_by === (int) $user->id;
+
+        if ($ability === 'edit' && $user->can('content.edit')) return;
+        if ($ability === 'edit' && $user->can('content.edit_own') && $isOwner) return;
+        if ($ability === 'delete' && $user->can('content.delete')) return;
+        if ($ability === 'delete' && $user->can('content.delete_own') && $isOwner) return;
+
+        abort(403, 'Solo puedes ' . ($ability === 'edit' ? 'editar' : 'eliminar') . ' solicitudes de arte que tú creaste.');
     }
 
     /**
@@ -219,6 +246,7 @@ class ArtRequestController extends Controller
      */
     public function edit(ArtRequest $artRequest)
     {
+        $this->authorizeArtRequestAccess($artRequest, 'edit');
         $artRequest->load('files');
         
         $designers = User::whereHas('roles', function($q) {
@@ -235,6 +263,8 @@ class ArtRequestController extends Controller
      */
     public function update(Request $request, ArtRequest $artRequest)
     {
+        $this->authorizeArtRequestAccess($artRequest, 'edit');
+
         $request->validate([
             'request_date' => 'required|date',
             'delivery_date' => 'required|date|after_or_equal:request_date',
@@ -343,6 +373,8 @@ class ArtRequestController extends Controller
      */
     public function destroy(ArtRequest $artRequest)
     {
+        $this->authorizeArtRequestAccess($artRequest, 'delete');
+
         try {
             // Eliminar archivos SOLO de Google Drive
             $googleDriveService = new GoogleDriveService();

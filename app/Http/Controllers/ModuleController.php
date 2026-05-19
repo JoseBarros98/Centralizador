@@ -17,7 +17,7 @@ class ModuleController extends Controller
         $this->middleware(['permission:program.create'])->only(['create', 'store']);
         $this->middleware(['permission:program.edit'])->only(['edit', 'update', 'updateStatus']);
         $this->middleware(['permission:program.delete'])->only(['destroy']);
-        $this->middleware(['role:admin|academico'])->only(['updateStatus']);
+        // updateStatus ya está cubierto por permission:program.edit arriba
     }
 
     /**

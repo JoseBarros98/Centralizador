@@ -5,17 +5,22 @@
         </h2>
     </x-slot>
 
+    @php
+        $isArtRequestOwner = auth()->id() === (int) $artRequest->created_by;
+        $canEditArtRequest   = auth()->user() && (auth()->user()->can('content.edit')   || (auth()->user()->can('content.edit_own')   && $isArtRequestOwner));
+        $canDeleteArtRequest = auth()->user() && (auth()->user()->can('content.delete') || (auth()->user()->can('content.delete_own') && $isArtRequestOwner));
+    @endphp
     <div >
         <div class="w-full sm:px-6 lg:px-8">
             <div class="flex items-center justify-end gap-2 mb-4">
-                @role(['admin', 'marketing', 'academic'])
+                @if($canEditArtRequest)
                 <a href="{{ route('art_requests.edit', $artRequest) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                     Editar
                 </a>
-                @endrole
+                @endif
                 <a href="{{ route('art_requests.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 active:bg-gray-500 focus:outline-none focus:border-gray-500 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
@@ -215,7 +220,7 @@
                         @endif
 
                         <!-- Agregar Archivo -->
-                        @hasanyrole(['admin','design'])
+                        @can('content.manage_files')
                         <div class="p-6 bg-gray-50 border-t border-gray-200">
                             <form action="{{ route('art_requests.files.add', $artRequest) }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                                 @csrf
@@ -241,7 +246,7 @@
                                 </div>
                             </form>
                         </div>
-                        @endhasanyrole
+                        @endcan
                     </div>
 
                     <!-- Historial de Modificaciones -->
@@ -273,7 +278,7 @@
                 <!-- Sidebar -->
                 <div class="space-y-6">
                     <!-- Cambiar Estado -->
-                    @hasanyrole(['admin','design'])
+                    @can('content.toggle_active')
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 bg-white border-b border-gray-200">
                             <h3 class="text-lg font-medium text-gray-900">Cambiar Estado</h3>
@@ -318,7 +323,7 @@
                             </form>
                         </div>
                     </div>
-                    @endhasanyrole
+                    @endcan
 
 
                     <!-- Información del Solicitante -->
@@ -363,7 +368,7 @@
                             @endif
 
                             <!-- Fechas -->
-                            @role('admin')
+                            @can('system.view_logs')
                             <div>
                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Fechas</h4>
                                 <div class="space-y-2 text-sm">
@@ -377,21 +382,24 @@
                                     </div>
                                 </div>
                             </div>
-                            @endrole
+                            @endcan
                         </div>
                     </div>
 
                     <!-- Acciones -->
-                    @hasanyrole(['admin', 'marketing', 'academic'])
+                    @if($canEditArtRequest || $canDeleteArtRequest)
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 bg-white">
                             <div class="flex flex-col space-y-3">
+                                @if($canEditArtRequest)
                                 <a href="{{ route('art_requests.edit', $artRequest) }}" class="w-full inline-flex justify-center items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:border-indigo-800 focus:ring ring-indigo-300 disabled:opacity-25 transition ease-in-out duration-150">
                                     <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                     </svg>
                                     Editar Solicitud
                                 </a>
+                                @endif
+                                @if($canDeleteArtRequest)
                                 <form action="{{ route('art_requests.destroy', $artRequest) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar esta solicitud?')">
                                     @csrf
                                     @method('DELETE')
@@ -402,10 +410,11 @@
                                         Eliminar Solicitud
                                     </button>
                                 </form>
+                                @endif
                             </div>
                         </div>
                     </div>
-                    @endhasanyrole
+                    @endif
                 </div>
             </div>
         </div>

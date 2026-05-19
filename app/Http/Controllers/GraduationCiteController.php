@@ -15,8 +15,20 @@ class GraduationCiteController extends Controller
     {
         $this->middleware('permission:graduation_cite.view')->only(['index', 'show']);
         $this->middleware('permission:graduation_cite.create')->only(['create', 'store']);
-        $this->middleware('permission:graduation_cite.edit')->only(['edit', 'update']);
-        $this->middleware('permission:graduation_cite.delete')->only(['destroy']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('graduation_cite.edit') || $user->can('graduation_cite.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['edit', 'update']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('graduation_cite.delete') || $user->can('graduation_cite.delete_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['destroy']);
     }
 
     public function index(Request $request)
@@ -88,6 +100,7 @@ class GraduationCiteController extends Controller
 
     public function edit(GraduationCite $graduationCite)
     {
+        $this->authorizeAccess($graduationCite, 'edit');
         $graduationCite->load('participants.programs');
 
         return view('graduation-cites.edit', compact('graduationCite'));
@@ -95,6 +108,7 @@ class GraduationCiteController extends Controller
 
     public function update(Request $request, GraduationCite $graduationCite)
     {
+        $this->authorizeAccess($graduationCite, 'edit');
         $validated = $this->validateRequest($request, $graduationCite);
         $participantIds = array_unique($validated['participant_ids']);
         $participantCount = count($participantIds);
@@ -119,6 +133,7 @@ class GraduationCiteController extends Controller
 
     public function destroy(GraduationCite $graduationCite)
     {
+        $this->authorizeAccess($graduationCite, 'delete');
         $graduationCite->delete();
 
         return redirect()
@@ -223,5 +238,17 @@ class GraduationCiteController extends Controller
         }
 
         $graduationCite->participants()->sync($syncData);
+    }
+
+    private function authorizeAccess(GraduationCite $graduationCite, string $ability): void
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        $isOwner = (int) $graduationCite->created_by === (int) $user->id;
+        if ($ability === 'edit'   && $user->can('graduation_cite.edit'))               return;
+        if ($ability === 'edit'   && $user->can('graduation_cite.edit_own')   && $isOwner) return;
+        if ($ability === 'delete' && $user->can('graduation_cite.delete'))             return;
+        if ($ability === 'delete' && $user->can('graduation_cite.delete_own') && $isOwner) return;
+        abort(403, 'Solo puedes ' . ($ability === 'edit' ? 'editar' : 'eliminar') . ' CITEs que tú creaste.');
     }
 }

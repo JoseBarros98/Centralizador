@@ -1,5 +1,5 @@
 @section('header-title', 'Dashboard')
-@can('dashboard.view')
+@can('dashboard.marketing')
     
 
 <x-app-layout>

@@ -8,7 +8,7 @@
     <div >
         <div class="w-full sm:px-6 lg:px-8">
             <div class="flex items-center justify-end gap-2 mb-4">
-                @can('content.edit')
+                @can('content_pillar.edit')
                 <a href="{{ route('content-pillars.edit', $contentPillar) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -71,7 +71,7 @@
                 <div class="p-6 bg-white border-b border-gray-200">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-lg font-medium text-gray-900">Archivos</h3>
-                        @can('content.edit')
+                        @can('content_pillar.edit')
                         <button id="upload-button" class="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -149,7 +149,7 @@
                                                         </svg>
                                                     </a>
                                                     
-                                                    @can('content.edit')
+                                                    @can('content_pillar.edit')
                                                     <form action="{{ route('content-pillars.files.delete', $file) }}" method="POST" class="inline-block">
                                                         @csrf
                                                         @method('DELETE')

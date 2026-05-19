@@ -7,7 +7,7 @@
 
     <div>
         @php
-            $canManageMembers = auth()->check() && (auth()->user()->hasRole('admin') || (int) auth()->id() === (int) $team->leader_id);
+            $canManageMembers = auth()->check() && (auth()->user()->can('marketing.edit') || (int) auth()->id() === (int) $team->leader_id);
         @endphp
 
         <div class="w-full sm:px-6 lg:px-8">

@@ -28,7 +28,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InscriptionController extends Controller
 {
-    protected $googleDriveService;
+    protected GoogleDriveService $googleDriveService;
     private ?int $externalSystemUserId = null;
 
     public function __construct(GoogleDriveService $googleDriveService)
@@ -61,7 +61,9 @@ class InscriptionController extends Controller
     private function canEditInscriptions(?User $user): bool
     {
         return $user !== null
-            && ($user->hasPermissionTo('inscription.edit') || $user->leadsActiveMarketingTeam());
+            && ($user->hasPermissionTo('inscription.edit')
+                || $user->hasPermissionTo('inscription.edit_own')
+                || $user->leadsActiveMarketingTeam());
     }
 
     private function getExternalSystemUserId(): ?int
@@ -129,50 +131,46 @@ class InscriptionController extends Controller
     }
 
     /**
-     * Verificar si el usuario tiene permiso para modificar la inscripción
-     * Los asesores (marketing) solo pueden modificar sus propias inscripciones
+     * Verificar si el usuario tiene permiso para ver/editar/eliminar la inscripción.
+     * Permisos "all": inscription.view / inscription.edit / inscription.delete
+     * Permisos "own": inscription.edit_own / inscription.delete_own (solo sus propias)
      */
     private function authorizeInscriptionAccess(Inscription $inscription, string $ability = 'view')
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
-        $abilityPermissions = [
-            'view' => 'inscription.view',
-            'edit' => 'inscription.edit',
-            'delete' => 'inscription.delete',
-        ];
-
-        if (!$user) {
+        if (!$user instanceof \App\Models\User) {
             abort(403, 'No tienes permiso para acceder a esta inscripción.');
         }
 
-        if ($user->hasRole(['admin', 'academic'])) {
-            return;
-        }
+        $isOwner = (int) $inscription->created_by === (int) $user->id;
 
-        if ($this->isExternalUnassignedInscription($inscription) && $user->leadsActiveMarketingTeam()) {
-            return;
-        }
+        // Permisos globales (cualquier inscripción)
+        if ($ability === 'view' && $user->hasPermissionTo('inscription.view')) return;
+        if ($ability === 'edit' && $user->hasPermissionTo('inscription.edit')) return;
+        if ($ability === 'delete' && $user->hasPermissionTo('inscription.delete')) return;
 
-        if ($user->hasRole('marketing') && $inscription->created_by === $user->id) {
-            return;
-        }
+        // Permisos propietario (solo sus propias inscripciones)
+        if ($ability === 'edit' && $user->hasPermissionTo('inscription.edit_own') && $isOwner) return;
+        if ($ability === 'delete' && $user->hasPermissionTo('inscription.delete_own') && $isOwner) return;
 
-        if (!$user->hasRole('marketing')
-            && isset($abilityPermissions[$ability])
-            && $user->hasPermissionTo($abilityPermissions[$ability])) {
-            return;
-        }
+        // Ver también se permite si puede editar sus propias (necesita ver para editar)
+        if ($ability === 'view' && $user->hasPermissionTo('inscription.edit_own') && $isOwner) return;
+
+        // Líder de equipo puede acceder a inscripciones externas no asignadas
+        if ($this->isExternalUnassignedInscription($inscription) && $user->leadsActiveMarketingTeam()) return;
 
         abort(403, 'No tienes permiso para acceder a esta inscripción.');
     }
 
     public function index(Request $request)
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
         $externalSystemUserId = $this->getExternalSystemUserId();
-        $isMarketingAdvisor = $user->hasRole('marketing') && !$user->hasRole(['admin', 'academic']);
+        // Usuario que solo puede ver/editar sus propias inscripciones (sin acceso global)
+        $isMarketingAdvisor = $user->hasPermissionTo('inscription.edit_own')
+            && !$user->hasPermissionTo('inscription.view')
+            && !$user->hasPermissionTo('inscription.edit');
         $isTeamLeader = $user->leadsActiveMarketingTeam();
         
         // Función auxiliar para construir la query con los filtros comunes (sin estado)
@@ -235,9 +233,9 @@ class InscriptionController extends Controller
                 });
             }
             
-            // Filtro por usuario
+            // Filtro por usuario (solo usuarios con acceso global pueden filtrar por creador)
             if ($request->has('created_by') && $request->created_by != '') {
-                if (!$user->hasRole('marketing') || $user->hasRole(['admin', 'academic'])) {
+                if (!$isMarketingAdvisor) {
                     $query->where('created_by', $request->created_by);
                 }
             }
@@ -1322,7 +1320,7 @@ class InscriptionController extends Controller
         }
     }
 
-    public function deleteCommitmentLetter(Inscription $inscription, $documentId)
+    public function deleteCommitmentLetter(Inscription $inscription, int|string $documentId)
     {
         // Verificar autorización
         $this->authorizeInscriptionAccess($inscription, 'edit');
@@ -1371,7 +1369,7 @@ class InscriptionController extends Controller
         }
     }
 
-    public function serveCommitmentLetter(Inscription $inscription, $documentId)
+    public function serveCommitmentLetter(Inscription $inscription, int|string $documentId)
     {
         $document = $inscription->documents()->where('id', $documentId)->first();
         if (!$document) {
@@ -1661,7 +1659,7 @@ class InscriptionController extends Controller
             ->with('success', 'Archivo(s) subido(s) correctamente.');
     }
 
-    private function uploadToGoogleDrive($file, Inscription $inscription)
+    private function uploadToGoogleDrive(\Illuminate\Http\UploadedFile $file, Inscription $inscription)
     {
         // Crear estructura jerárquica: Inscripciones -> Programa -> Estudiante
         $programName = optional($inscription->program)->name ?? 'Sin Programa';
@@ -1689,7 +1687,7 @@ class InscriptionController extends Controller
         return $driveFile;
     }
 
-    private function getOrCreateHierarchicalFolder($mainCategory, $subfolder, $tertiaryFolder = null)
+    private function getOrCreateHierarchicalFolder(string $mainCategory, string $subfolder, ?string $tertiaryFolder = null)
     {
         return $this->googleDriveService->createHierarchicalFolder($mainCategory, $subfolder, $tertiaryFolder);
     }

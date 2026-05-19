@@ -100,7 +100,7 @@
                             <nav :class="sidebarCollapsed ? 'nav-icon-only px-1' : 'px-2'" class="space-y-0.5">
                                 
                                 <!-- Dashboards - Desplegable -->
-                                @can('dashboard.view')
+                                @if(auth()->user()->can('dashboard.marketing') || auth()->user()->can('dashboard.academic') || auth()->user()->can('dashboard.accounting') || auth()->user()->can('dashboard.design'))
                                 <div x-data="{ open: {{ request()->routeIs('dashboard*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Dashboards" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -114,7 +114,7 @@
                                     
                                     <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-1 space-y-1">
                                         <!-- Dashboard Principal -->
-                                        @hasanyrole('admin|marketing')
+                                        @can('dashboard.marketing')
                                         <a href="{{ route('dashboard') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('dashboard') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"/>
@@ -122,10 +122,10 @@
                                             </svg>
                                             Marketing
                                         </a>
-                                        @endhasanyrole
+                                        @endcan
 
                                         <!-- Dashboard Académico -->
-                                        @hasanyrole('admin|academic|academico')
+                                        @can('dashboard.academic')
                                         <a href="{{ route('dashboard.academic') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard.academic') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('dashboard.academic') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
@@ -133,10 +133,10 @@
                                             </svg>
                                             Académico
                                         </a>
-                                        @endhasanyrole
+                                        @endcan
 
                                         <!-- Dashboard Contable -->
-                                        @hasanyrole('admin|accountant')
+                                        @can('dashboard.accounting')
                                         <a href="{{ route('dashboard.accounting') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('dashboard.accounting') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('dashboard.accounting') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -151,25 +151,24 @@
                                             </svg>
                                             Ingresos/Egresos
                                         </a>
-                                        @endhasanyrole
+                                        @endcan
 
                                         <!-- Dashboard Solicitudes de Arte -->
-                                        @hasanyrole('admin|design')
+                                        @can('dashboard.design')
                                         <a href="{{ route('art_requests.dashboard') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('art_requests.dashboard') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('art_requests.dashboard') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7h.01m3.486 1.513h.01m-6.978 0h.01M6.99 12H7m9 4h2.706a1.957 1.957 0 0 0 1.883-1.325A9 9 0 1 0 3.043 12.89 9.1 9.1 0 0 0 8.2 20.1a8.62 8.62 0 0 0 3.769.9 2.013 2.013 0 0 0 2.03-2v-.857A2.036 2.036 0 0 1 16 16Z"/>
                                             </svg>
-                                            
                                             Diseño
                                         </a>
-                                        @endhasanyrole
-                                        
+                                        @endcan
+
                                     </div>
                                 </div>
-                                @endcan
+                                @endif
 
                                 <!-- Marketing - Desplegable -->
-                                @if(auth()->user()->can('inscription.view') || auth()->user()->hasAnyRole(['admin','marketing']))
+                                @if(auth()->user()->can('inscription.view') || auth()->user()->can('marketing.manage_teams'))
                                 <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Marketing" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -193,20 +192,20 @@
                                         @endcan
 
                                         <!-- Equipos -->
-                                        @hasanyrole(['admin','marketing'])
+                                        @can('marketing.manage_teams')
                                         <a href="{{ route('marketing-teams.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('marketing-teams.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('marketing-teams.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                             </svg>
                                             Equipos
                                         </a>
-                                        @endhasanyrole
+                                        @endcan
                                     </div>
                                 </div>
                                 @endif
 
                                 <!-- Académico - Desplegable -->
-                                @if(auth()->user()->can('program.view') || auth()->user()->hasAnyRole(['admin','academic']))
+                                @if(auth()->user()->can('program.view') || auth()->user()->can('calendar.view') || auth()->user()->can('teacher.view'))
                                 <div x-data="{ open: {{ request()->routeIs('programs.*') || request()->routeIs('calendar.*') || request()->routeIs('teachers.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Académico" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -231,7 +230,7 @@
                                         @endcan
 
                                         <!-- Calendario -->
-                                        @can('program.view')
+                                        @can('calendar.view')
                                         <a href="{{ route('calendar.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('calendar.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('calendar.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -241,14 +240,14 @@
                                         @endcan
 
                                         <!-- Docentes -->
-                                        @role(['admin','academic'])
+                                        @can('teacher.view')
                                         <a href="{{ route('teachers.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('teachers.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('teachers.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2a1 1 0 001 1h14a1 1 0 001-1v-2c0-2.66-5.33-4-8-4z" />
                                             </svg>
                                             Docentes
                                         </a>
-                                        @endrole
+                                        @endcan
 
                                         <!-- Universidades -->
                                         @role(['admin'])
@@ -274,7 +273,7 @@
                                 @endif
 
                                 <!-- Diseño - Desplegable -->
-                                @if(auth()->user()->can('content_pillar.view') || auth()->user()->can('type_of_art.view') || true)
+                                @if(auth()->user()->can('content_pillar.view') || auth()->user()->can('type_of_art.view') || auth()->user()->can('content.view'))
                                 <div x-data="{ open: {{ request()->routeIs('content-pillars.*') || request()->routeIs('type-of-arts.*') || request()->routeIs('type_of_arts.*') || request()->routeIs('art-requests.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Diseño" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,18 +307,20 @@
                                         @endcan
 
                                         <!-- Solicitud de Artes -->
+                                        @can('content.view')
                                         <a href="{{ route('art_requests.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('art-requests.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('art-requests.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             Solicitud de Artes
                                         </a>
+                                        @endcan
                                     </div>
                                 </div>
                                 @endif
 
                                 <!-- Contabilidad - Desplegable -->
-                                @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view') || auth()->user()->hasAnyRole(['admin','accountant']))
+                                @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view'))
                                 <div x-data="{ open: {{ request()->routeIs('payment_requests.*') || request()->routeIs('graduation-cites.*') || request()->routeIs('program-allocation.*') || request()->routeIs('management-incomes.*') || request()->routeIs('management-investments.*') || request()->routeIs('management-expenses.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Contabilidad" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -361,6 +362,7 @@
                                         </a>
                                         @endcan
 
+                                        @can('program_allocation.view')
                                         <a href="{{ route('management-incomes.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('management-incomes.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('management-incomes.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -381,6 +383,7 @@
                                             </svg>
                                             Inversiones a Otras Sedes por Gestión
                                         </a>
+                                        @endcan
                                     </div>
                                 </div>
                                 @endif
@@ -492,7 +495,7 @@
                     <div class="flex-1 overflow-y-auto py-3">
                         <nav class="px-2 space-y-0.5">
                             <!-- Dashboards - Desplegable -->
-                            @can('dashboard.view')
+                            @if(auth()->user()->can('dashboard.marketing') || auth()->user()->can('dashboard.academic') || auth()->user()->can('dashboard.accounting') || auth()->user()->can('dashboard.design'))
                             <div x-data="{ open: {{ request()->routeIs('dashboard*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -506,7 +509,7 @@
                                 
                                 <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-1 space-y-1">
                                     <!-- Dashboard Principal -->
-                                    @hasanyrole('admin|marketing')
+                                    @can('dashboard.marketing')
                                     <a href="{{ route('dashboard') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('dashboard') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('dashboard') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6.025A7.5 7.5 0 1 0 17.975 14H10V6.025Z"/>
@@ -514,10 +517,10 @@
                                         </svg>
                                         Marketing
                                     </a>
-                                    @endhasanyrole
+                                    @endcan
 
                                     <!-- Dashboard Académico -->
-                                    @hasanyrole('admin|academic|academico')
+                                    @can('dashboard.academic')
                                     <a href="{{ route('dashboard.academic') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('dashboard.academic') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('dashboard.academic') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z" />
@@ -525,15 +528,15 @@
                                         </svg>
                                         Académico
                                     </a>
-                                    @endhasanyrole
+                                    @endcan
 
                                     <!-- Dashboard Contable -->
-                                    @hasanyrole('admin|accountant')
+                                    @can('dashboard.accounting')
                                     <a href="{{ route('dashboard.accounting') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('dashboard.accounting') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('dashboard.accounting') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                         </svg>
-                                            
+
                                     </a>
 
                                     <a href="{{ route('dashboard.income-expense') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('dashboard.income-expense') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
@@ -543,23 +546,23 @@
                                         </svg>
                                         Ingresos/Egresos
                                     </a>
-                                    @endhasanyrole
+                                    @endcan
 
                                     <!-- Dashboard Solicitudes de Arte -->
-                                    @hasanyrole('admin|design')
+                                    @can('dashboard.design')
                                     <a href="{{ route('art_requests.dashboard') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('art_requests.dashboard') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('art_requests.dashboard') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.5a2 2 0 00-1 .267V5a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2z" />
                                         </svg>
                                         Diseño
                                     </a>
-                                    @endhasanyrole
+                                    @endcan
                                 </div>
                             </div>
-                            @endcan
+                            @endif
 
                             <!-- Martketing - Desplegable -->
-                            @if(auth()->user()->can('inscription.view') || auth()->user()->hasAnyRole(['admin','marketing']))
+                            @if(auth()->user()->can('inscription.view') || auth()->user()->can('marketing.manage_teams'))
                             <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -583,20 +586,20 @@
                                     @endcan
 
                                     <!-- Equipos -->
-                                    @hasanyrole(['admin','marketing'])
+                                    @can('marketing.manage_teams')
                                     <a href="{{ route('marketing-teams.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('marketing-teams.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('marketing-teams.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                         </svg>
                                         Equipos
                                     </a>
-                                    @endhasanyrole
+                                    @endcan
                                 </div>
                             </div>
                             @endif
 
                             <!-- Académico - Desplegable -->
-                            @if(auth()->user()->can('program.view') || auth()->user()->hasAnyRole(['admin','academic']))
+                            @if(auth()->user()->can('program.view') || auth()->user()->can('calendar.view') || auth()->user()->can('teacher.view'))
                             <div x-data="{ open: {{ request()->routeIs('programs.*') || request()->routeIs('calendar.*') || request()->routeIs('teachers.*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -621,7 +624,7 @@
                                     @endcan
 
                                     <!-- Calendario -->
-                                    @can('program.view')
+                                    @can('calendar.view')
                                     <a href="{{ route('calendar.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('calendar.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('calendar.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -631,17 +634,17 @@
                                     @endcan
 
                                     <!-- Docentes -->
-                                    @role(['admin','academic'])
+                                    @can('teacher.view')
                                     <a href="{{ route('teachers.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('teachers.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('teachers.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2a1 1 0 001 1h14a1 1 0 001-1v-2c0-2.66-5.33-4-8-4z" />
                                         </svg>
                                         Docentes
                                     </a>
-                                    @endrole
+                                    @endcan
 
                                     <!-- Universidades -->
-                                    @role(['admin','academic'])
+                                    @role(['admin'])
                                     <a href="{{ route('universities.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('universities.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('universities.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 4h12M6 4v16M6 4H5m13 0v16m0-16h1m-1 16H6m12 0h1M6 20H5M9 7h1v1H9V7Zm5 0h1v1h-1V7Zm-5 4h1v1H9v-1Zm5 0h1v1h-1v-1Zm-3 4h2a1 1 0 0 1 1 1v4h-4v-4a1 1 0 0 1 1-1Z"/>
@@ -651,7 +654,7 @@
                                     @endrole
 
                                     <!-- Profesiones -->
-                                        @role(['admin','academic'])
+                                        @role(['admin'])
                                         <a href="{{ route('professions.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('professions.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-4 h-5 w-5 {{ request()->routeIs('professions.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M9 8h10M9 12h10M9 16h10M4.99 8H5m-.02 4h.01m0 4H5"/>
@@ -664,7 +667,7 @@
                             @endif
 
                             <!-- Diseño - Desplegable -->
-                            @if(auth()->user()->can('content_pillar.view') || auth()->user()->can('type_of_art.view') || true)
+                            @if(auth()->user()->can('content_pillar.view') || auth()->user()->can('type_of_art.view') || auth()->user()->can('content.view'))
                             <div x-data="{ open: {{ request()->routeIs('content-pillars.*') || request()->routeIs('type-of-arts.*') || request()->routeIs('type_of_arts.*') || request()->routeIs('art-requests.*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -698,18 +701,20 @@
                                     @endcan
 
                                     <!-- Solicitud de Artes -->
+                                    @can('content.view')
                                     <a href="{{ route('art_requests.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('art-requests.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('art-requests.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                         Solicitud de Artes
                                     </a>
+                                    @endcan
                                 </div>
                             </div>
                             @endif
 
                             <!-- Contabilidad - Desplegable -->
-                                @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view') || auth()->user()->hasAnyRole(['admin','accountant']))
+                                @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view'))
                                 <div x-data="{ open: {{ request()->routeIs('payment_requests.*') || request()->routeIs('graduation-cites.*') || request()->routeIs('program-allocation.*') || request()->routeIs('management-incomes.*') || request()->routeIs('management-investments.*') || request()->routeIs('management-expenses.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -751,6 +756,7 @@
                                         </a>
                                         @endcan
 
+                                        @can('program_allocation.view')
                                         <a href="{{ route('management-incomes.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('management-incomes.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('management-incomes.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -771,6 +777,7 @@
                                             </svg>
                                             Inversiones a Otras Sedes por Gestión
                                         </a>
+                                        @endcan
                                     </div>
                                 </div>
                                 @endif

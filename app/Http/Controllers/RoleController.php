@@ -105,6 +105,8 @@ class RoleController extends Controller
             'content_pillar'     => 'Pilar de Contenido',
             'type_of_art'        => 'Tipo de Arte',
             'program'            => 'Programas',
+            'calendar'           => 'Calendario',
+            'teacher'            => 'Docentes',
             'user'               => 'Usuarios',
             'role'               => 'Roles',
             'marketing'          => 'Marketing',
@@ -130,6 +132,12 @@ class RoleController extends Controller
             'request_teacher_payments' => 'Solicitar Pagos Docentes',
             'view_logs'                => 'Ver Logs',
             'sync'                     => 'Sincronizar',
+            'marketing'                => 'Dashboard Marketing',
+            'academic'                 => 'Dashboard Académico',
+            'accounting'               => 'Dashboard Contabilidad',
+            'design'                   => 'Dashboard Diseño',
+            'edit_own'                 => 'Editar (solo propios)',
+            'delete_own'               => 'Eliminar (solo propios)',
         ];
 
         $grouped = [];

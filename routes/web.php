@@ -41,16 +41,24 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', function () {
-  return redirect()->route('dashboard');
-});
+    if (!auth()->check()) {
+        return redirect()->route('login');
+    }
+    $user = auth()->user();
+    if ($user->can('dashboard.marketing')) return redirect()->route('dashboard');
+    if ($user->can('dashboard.academic')) return redirect()->route('dashboard.academic');
+    if ($user->can('dashboard.accounting')) return redirect()->route('dashboard.accounting');
+    if ($user->can('dashboard.design')) return redirect()->route('art_requests.dashboard');
+    return redirect()->route('profile.edit');
+})->middleware('auth');
 
 Route::middleware('auth')->group(function () {
-  Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('role:admin|marketing|academic|academico|accountant|design');
-  Route::get('/dashboard/academic', [AcademicDashboardController::class, 'index'])->name('dashboard.academic')->middleware('role:admin|academico|academic');
-  Route::get('/dashboard/academic/area/{area}', [AcademicDashboardController::class, 'getAreaData'])->name('dashboard.academic.area')->middleware('role:admin|academico|academic');
-  Route::get('/dashboard/academic/stats', [AcademicDashboardController::class, 'getDetailedStats'])->name('dashboard.academic.stats')->middleware('role:admin|academico|academic');
-  Route::get('/dashboard/accounting', [AccountingDashboardController::class, 'index'])->name('dashboard.accounting')->middleware('role:admin|accountant');
-  Route::get('/dashboard/income-expense', [IncomeExpenseDashboardController::class, 'index'])->name('dashboard.income-expense')->middleware('role:admin|accountant');
+  Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard')->middleware('permission:dashboard.marketing');
+  Route::get('/dashboard/academic', [AcademicDashboardController::class, 'index'])->name('dashboard.academic')->middleware('permission:dashboard.academic');
+  Route::get('/dashboard/academic/area/{area}', [AcademicDashboardController::class, 'getAreaData'])->name('dashboard.academic.area')->middleware('permission:dashboard.academic');
+  Route::get('/dashboard/academic/stats', [AcademicDashboardController::class, 'getDetailedStats'])->name('dashboard.academic.stats')->middleware('permission:dashboard.academic');
+  Route::get('/dashboard/accounting', [AccountingDashboardController::class, 'index'])->name('dashboard.accounting')->middleware('permission:dashboard.accounting');
+  Route::get('/dashboard/income-expense', [IncomeExpenseDashboardController::class, 'index'])->name('dashboard.income-expense')->middleware('permission:dashboard.accounting');
 
   Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
   Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -238,7 +246,7 @@ Route::middleware('auth')->group(function () {
   Route::patch('/type_of_arts/{typeOfArt}/toggle-active', [TypeOfArtController::class, 'toggleActive'])->name('type_of_arts.toggle-active');
 
   // Art Requests
-  Route::get('art-requests-dashboard', [ArtRequestDashboardController::class, 'index'])->name('art_requests.dashboard')->middleware('role:admin|design');
+  Route::get('art-requests-dashboard', [ArtRequestDashboardController::class, 'index'])->name('art_requests.dashboard')->middleware('permission:dashboard.design');
   Route::resource('art_requests', ArtRequestController::class);
   Route::post('art-requests/{artRequest}/files', [ArtRequestController::class, 'addFile'])->name('art_requests.files.add')->middleware('large_upload');
   Route::delete('art-request-files/{file}', [ArtRequestController::class, 'deleteFile'])->name('art_requests.files.destroy');

@@ -16,29 +16,11 @@ class DashboardController extends Controller
 
     public function __construct()
     {
-        $this->middleware('permission:dashboard.view');
+        $this->middleware('permission:dashboard.marketing');
     }
     public function index(Request $request)
     {
         $user = $request->user();
-
-        // Solo admin y marketing pueden ver este dashboard principal.
-        // Los demás roles se redirigen a su dashboard específico.
-        if (!$user->hasRole('admin') && !$user->hasRole('marketing')) {
-            if ($user->hasAnyRole(['academic', 'academico'])) {
-                return redirect()->route('dashboard.academic');
-            }
-
-            if ($user->hasRole('accountant')) {
-                return redirect()->route('dashboard.accounting');
-            }
-
-            if ($user->hasRole('design')) {
-                return redirect()->route('art_requests.dashboard');
-            }
-
-            abort(403, 'User does not have the right roles.');
-        }
 
         // Configurar Carbon para usar español
         Carbon::setLocale('es');

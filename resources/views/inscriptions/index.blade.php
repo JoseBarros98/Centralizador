@@ -189,11 +189,10 @@
                                                 @php
                                                     $canEditInscription = $currentUser
                                                         && (
-                                                            $currentUser->hasRole('admin')
-                                                            || $currentUser->id === $inscription->created_by
+                                                            $currentUser->can('inscription.edit')
+                                                            || ($currentUser->can('inscription.edit_own') && $currentUser->id === $inscription->created_by)
                                                             || ($isTeamLeader && optional($inscription->creator)->email === 'sistema.externo@centtest.local')
-                                                        )
-                                                        && ($currentUser->can('inscription.edit') || $isTeamLeader);
+                                                        );
                                                 @endphp
 
                                                 @if($canEditInscription)

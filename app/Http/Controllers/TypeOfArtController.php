@@ -15,10 +15,22 @@ class TypeOfArtController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(['permission:content.view'])->only(['index', 'show']);
-        $this->middleware(['permission:content.create'])->only(['create', 'store']);
-        $this->middleware(['permission:content.edit'])->only(['edit', 'update']);
-        $this->middleware(['permission:content.delete'])->only(['destroy']);
+        $this->middleware(['permission:type_of_art.view'])->only(['index', 'show']);
+        $this->middleware(['permission:type_of_art.create'])->only(['create', 'store']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('type_of_art.edit') || $user->can('type_of_art.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['edit', 'update']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('type_of_art.delete') || $user->can('type_of_art.delete_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['destroy']);
     }
 
     /**
@@ -127,6 +139,7 @@ class TypeOfArtController extends Controller
      */
     public function edit(TypeOfArt $typeOfArt)
     {
+        $this->authorizeAccess($typeOfArt, 'edit');
         $typeOfArt->load('files');
         
         return view('type_of_arts.edit', compact('typeOfArt'));
@@ -137,6 +150,8 @@ class TypeOfArtController extends Controller
      */
     public function update(Request $request, TypeOfArt $typeOfArt)
     {
+        $this->authorizeAccess($typeOfArt, 'edit');
+
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -212,6 +227,8 @@ class TypeOfArtController extends Controller
      */
     public function destroy(TypeOfArt $typeOfArt)
     {
+        $this->authorizeAccess($typeOfArt, 'delete');
+
         try {
             // Eliminar archivos de Google Drive
             $googleDriveService = new GoogleDriveService();
@@ -410,5 +427,17 @@ class TypeOfArtController extends Controller
         $typeOfArt->save();
         return redirect()->route('type_of_arts.show', $typeOfArt)
             ->with('success', 'Estado del tipo de arte actualizado correctamente.');
+    }
+
+    private function authorizeAccess(TypeOfArt $typeOfArt, string $ability): void
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        $isOwner = (int) $typeOfArt->created_by === (int) $user->id;
+        if ($ability === 'edit'   && $user->can('type_of_art.edit'))               return;
+        if ($ability === 'edit'   && $user->can('type_of_art.edit_own')   && $isOwner) return;
+        if ($ability === 'delete' && $user->can('type_of_art.delete'))             return;
+        if ($ability === 'delete' && $user->can('type_of_art.delete_own') && $isOwner) return;
+        abort(403, 'Solo puedes ' . ($ability === 'edit' ? 'editar' : 'eliminar') . ' tipos de arte que tú creaste.');
     }
 }

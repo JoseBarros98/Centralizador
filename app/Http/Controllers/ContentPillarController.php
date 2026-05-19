@@ -19,8 +19,20 @@ class ContentPillarController extends Controller
         $this->googleDriveService = $googleDriveService;
         $this->middleware('permission:content_pillar.view')->only(['index', 'show']);
         $this->middleware('permission:content_pillar.create')->only(['create', 'store']);
-        $this->middleware('permission:content_pillar.edit')->only(['edit', 'update']);
-        $this->middleware('permission:content_pillar.delete')->only(['destroy']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('content_pillar.edit') || $user->can('content_pillar.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['edit', 'update']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('content_pillar.delete') || $user->can('content_pillar.delete_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['destroy']);
         $this->middleware('permission:content_pillar.manage_files')->only(['uploadFile', 'deleteFile']);
         $this->middleware('permission:content_pillar.view')->only(['serveFile', 'downloadFile']);
         $this->middleware('permission:content_pillar.toggle_active')->only(['toggleActive']);
@@ -121,6 +133,7 @@ class ContentPillarController extends Controller
      */
     public function edit(ContentPillar $contentPillar)
     {
+        $this->authorizeAccess($contentPillar, 'edit');
         $contentPillar->load('files');
         
         return view('content_pillars.edit', compact('contentPillar'));
@@ -131,6 +144,8 @@ class ContentPillarController extends Controller
      */
     public function update(Request $request, ContentPillar $contentPillar)
     {
+        $this->authorizeAccess($contentPillar, 'edit');
+
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -199,6 +214,8 @@ class ContentPillarController extends Controller
      */
     public function destroy(ContentPillar $contentPillar)
     {
+        $this->authorizeAccess($contentPillar, 'delete');
+
         try {
             // Eliminar archivos SOLO de Google Drive
             foreach ($contentPillar->files as $file) {
@@ -381,5 +398,17 @@ class ContentPillarController extends Controller
             // Si todo falla, usar null para subir a la raíz
             return null;
         }
+    }
+
+    private function authorizeAccess(ContentPillar $contentPillar, string $ability): void
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        $isOwner = (int) $contentPillar->created_by === (int) $user->id;
+        if ($ability === 'edit'   && $user->can('content_pillar.edit'))               return;
+        if ($ability === 'edit'   && $user->can('content_pillar.edit_own')   && $isOwner) return;
+        if ($ability === 'delete' && $user->can('content_pillar.delete'))             return;
+        if ($ability === 'delete' && $user->can('content_pillar.delete_own') && $isOwner) return;
+        abort(403, 'Solo puedes ' . ($ability === 'edit' ? 'editar' : 'eliminar') . ' pilares de contenido que tú creaste.');
     }
 }

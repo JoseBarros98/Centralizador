@@ -15,13 +15,25 @@ use Illuminate\Routing\Controller;
 
 class TeacherController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware(['permission:teacher.view'])->only(['index', 'show']);
-    //     $this->middleware(['permission:teacher.create'])->only(['create','store']);
-    //     $this->middleware(['permission:teacher.edit'])->only(['edit', 'update']);
-    //     $this->middleware(['teacher:teacher.delete'])->only(['destroy']);
-    // }
+    public function __construct()
+    {
+        $this->middleware(['permission:teacher.view'])->only(['index', 'show']);
+        $this->middleware(['permission:teacher.create'])->only(['create', 'store']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('teacher.edit') || $user->can('teacher.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['edit', 'update']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('teacher.delete') || $user->can('teacher.delete_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['destroy']);
+    }
 
     public function index( Request $request)
     {
@@ -208,6 +220,7 @@ class TeacherController extends Controller
 
     public function edit(Teacher $teacher)
     {
+        $this->authorizeAccess($teacher, 'edit');
         $teacher->load('files');
 
         return view('teachers.edit', compact('teacher'));
@@ -215,6 +228,7 @@ class TeacherController extends Controller
 
     public function update(Request $request, Teacher $teacher)
     {
+        $this->authorizeAccess($teacher, 'edit');
         $degrees = ['Lic.', 'Ing.', 'Dr.', 'M.Sc.', 'Ph.D.', 'M.Sc. Ing.', 'M.Sc. Lic.', 'M.Sc. Dr.', 'Ph.D. Ing.', 'Ph.D. Lic.'];
         try{
             $validated = $request->validate([
@@ -300,6 +314,8 @@ class TeacherController extends Controller
 
     public function destroy(Teacher $teacher)
     {
+        $this->authorizeAccess($teacher, 'delete');
+
         try {
             // Eliminar archivos de Google Drive
             $googleDriveService = new GoogleDriveService();
@@ -566,5 +582,17 @@ class TeacherController extends Controller
         ->get();
 
         return response()->json($teachers);
+    }
+
+    private function authorizeAccess(Teacher $teacher, string $ability): void
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        $isOwner = (int) $teacher->created_by === (int) $user->id;
+        if ($ability === 'edit'   && $user->can('teacher.edit'))               return;
+        if ($ability === 'edit'   && $user->can('teacher.edit_own')   && $isOwner) return;
+        if ($ability === 'delete' && $user->can('teacher.delete'))             return;
+        if ($ability === 'delete' && $user->can('teacher.delete_own') && $isOwner) return;
+        abort(403, 'Solo puedes ' . ($ability === 'edit' ? 'editar' : 'eliminar') . ' docentes que tú registraste.');
     }
 }

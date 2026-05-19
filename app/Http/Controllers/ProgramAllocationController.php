@@ -18,8 +18,20 @@ class ProgramAllocationController extends Controller
     {
         $this->middleware('permission:program_allocation.view')->only(['index']);
         $this->middleware('permission:program_allocation.create')->only(['store']);
-        $this->middleware('permission:program_allocation.edit')->only(['updateField']);
-        $this->middleware('permission:program_allocation.delete')->only(['destroy']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('program_allocation.edit') || $user->can('program_allocation.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['updateField']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('program_allocation.delete') || $user->can('program_allocation.delete_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['destroy']);
     }
 
     /**
@@ -201,6 +213,8 @@ class ProgramAllocationController extends Controller
      */
     public function updateField(Request $request, ProgramAllocation $allocation): JsonResponse
     {
+        $this->authorizeAccess($allocation, 'edit');
+
         $validated = $request->validate([
             'field' => 'required|string|in:cobro_titulacion,asignacion_programa,responsable_cartera,fecha_pago,monto_al_5,monto_al_10,monto_al_15,monto_al_20,monto_al_25,monto_al_30',
             'value' => 'nullable',
@@ -282,6 +296,8 @@ class ProgramAllocationController extends Controller
     {
         $allocation = ProgramAllocation::findOrFail($id);
 
+        $this->authorizeAccess($allocation, 'delete');
+
         $allocation->delete();
 
         return response()->json([
@@ -346,6 +362,18 @@ class ProgramAllocationController extends Controller
             'created' => $createdCount,
             'skipped' => $skippedCount
         ]);
+    }
+
+    private function authorizeAccess(ProgramAllocation $allocation, string $ability): void
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        $isOwner = (int) $allocation->created_by === (int) $user->id;
+        if ($ability === 'edit'   && $user->can('program_allocation.edit'))               return;
+        if ($ability === 'edit'   && $user->can('program_allocation.edit_own')   && $isOwner) return;
+        if ($ability === 'delete' && $user->can('program_allocation.delete'))             return;
+        if ($ability === 'delete' && $user->can('program_allocation.delete_own') && $isOwner) return;
+        abort(403, 'Solo puedes ' . ($ability === 'edit' ? 'editar' : 'eliminar') . ' asignaciones que tú creaste.');
     }
 }
 

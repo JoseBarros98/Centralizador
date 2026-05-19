@@ -13,7 +13,7 @@ class CalendarController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:program.view');
+        $this->middleware('permission:calendar.view');
     }
 
     public function index()
@@ -24,9 +24,7 @@ class CalendarController extends Controller
     public function getEvents()
     {
         $user = Auth::user();
-        $canViewAllModules = $user && method_exists($user, 'hasAnyRole')
-            ? $user->hasAnyRole(['admin', 'academic', 'academico'])
-            : false;
+        $canViewAllModules = $user && $user->can('calendar.view');
 
         $classes = ModuleClass::with([
             'module',

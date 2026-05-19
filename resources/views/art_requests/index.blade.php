@@ -227,9 +227,8 @@
                                                     </svg>
                                                     <span class="sr-only">Ver</span>
                                                 </a>
-                                                @role(['admin', 'marketing', 'academic'])
-                                                @can('content.edit')
-                                                <a href="{{ route('art_requests.edit', $request) }}" 
+                                                @if(auth()->user() && (auth()->user()->can('content.edit') || (auth()->user()->can('content.edit_own') && auth()->id() === (int) $request->created_by)))
+                                                <a href="{{ route('art_requests.edit', $request) }}"
                                                    class="text-yellow-600 hover:text-yellow-900"
                                                    title="Editar solicitud">
                                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -237,9 +236,9 @@
                                                     </svg>
                                                     <span class="sr-only">Editar</span>
                                                 </a>
-                                                @endcan
-                                                
-                                                @can('content.delete')
+                                                @endif
+
+                                                @if(auth()->user() && (auth()->user()->can('content.delete') || (auth()->user()->can('content.delete_own') && auth()->id() === (int) $request->created_by)))
                                                 <form method="POST" action="{{ route('art_requests.destroy', $request) }}" class="inline" onsubmit="return confirm('¿Estás seguro de eliminar esta solicitud?');">
                                                     @csrf
                                                     @method('DELETE')
@@ -252,8 +251,7 @@
                                                         <span class="sr-only">Eliminar</span>
                                                     </button>
                                                 </form>
-                                                @endcan
-                                                @endrole
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>

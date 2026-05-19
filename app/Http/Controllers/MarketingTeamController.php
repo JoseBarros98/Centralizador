@@ -198,7 +198,7 @@ class MarketingTeamController extends Controller
     public function addMember(Request $request, MarketingTeam $marketingTeam): RedirectResponse
     {
         $currentUser = Auth::user();
-        $isAdmin = $currentUser && $currentUser->hasRole('admin');
+        $isAdmin = $currentUser && $currentUser->can('marketing.edit');
 
         if (!$isAdmin && (int) Auth::id() !== (int) $marketingTeam->leader_id) {
             return redirect()->back()->with('error', 'Solo el administrador o el líder del equipo puede gestionar miembros.');
@@ -245,7 +245,7 @@ class MarketingTeamController extends Controller
     public function deactivateMember(MarketingTeam $marketingTeam, User $user): RedirectResponse
     {
         $currentUser = Auth::user();
-        $isAdmin = $currentUser && $currentUser->hasRole('admin');
+        $isAdmin = $currentUser && $currentUser->can('marketing.edit');
 
         if (!$isAdmin && (int) Auth::id() !== (int) $marketingTeam->leader_id) {
             return redirect()->back()->with('error', 'Solo el administrador o el líder del equipo puede gestionar miembros.');

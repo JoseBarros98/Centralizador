@@ -12,11 +12,10 @@
                 $isTeamLeader = $currentUser && $currentUser->leadsActiveMarketingTeam();
                 $canEditInscription = $currentUser
                     && (
-                        $currentUser->hasRole('admin')
-                        || $currentUser->id === $inscription->created_by
+                        $currentUser->can('inscription.edit')
+                        || ($currentUser->can('inscription.edit_own') && $currentUser->id === $inscription->created_by)
                         || ($isTeamLeader && optional($inscription->creator)->email === 'sistema.externo@centtest.local')
-                    )
-                    && ($currentUser->can('inscription.edit') || $isTeamLeader);
+                    );
             @endphp
 
             @if($canEditInscription)
@@ -441,7 +440,7 @@
                     @endif
 
                     <!-- INFORMACIÓN DEL SISTEMA -->
-                    @role('admin')
+                    @can('system.view_logs')
                     <div>
                         <h3 class="text-lg font-semibold text-indigo-700 mb-4">Información del Sistema</h3>
                         <dl class="grid grid-cols-1 md:grid-cols-3 gap-x-4 gap-y-6 border-t border-gray-200 pt-4">
@@ -465,7 +464,7 @@
                             @endif
                         </dl>
                     </div>
-                    @endrole
+                    @endcan
                 </div>
             </div>
         </div>

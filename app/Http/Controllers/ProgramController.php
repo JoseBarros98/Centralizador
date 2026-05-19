@@ -15,10 +15,20 @@ class ProgramController extends Controller
     {
         $this->middleware(['permission:program.view'])->only(['index', 'show']);
         $this->middleware(['permission:program.create'])->only(['create', 'store']);
-        $this->middleware(['permission:program.edit'])->only(['edit', 'update']);
-        $this->middleware(['permission:program.delete'])->only(['destroy']);
-        // Middleware específico para cambio de estado - solo admin y academico
-        $this->middleware(['role:admin|academico'])->only(['updateState']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('program.edit') || $user->can('program.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['edit', 'update', 'updateState']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('program.delete') || $user->can('program.delete_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['destroy']);
     }
 
     public function index(Request $request)

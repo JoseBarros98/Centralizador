@@ -20,8 +20,20 @@ class PaymentRequestController extends Controller
     {
         $this->middleware('permission:payment_request.view')->only(['index', 'show']);
         $this->middleware('permission:payment_request.create')->only(['create', 'store']);
-        $this->middleware('permission:payment_request.edit')->only(['edit', 'update']);
-        $this->middleware('permission:payment_request.delete')->only(['destroy']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('payment_request.edit') || $user->can('payment_request.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['edit', 'update']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('payment_request.delete') || $user->can('payment_request.delete_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['destroy']);
     }
 
     // Mostrar todas las solicitudes de pago
@@ -336,6 +348,8 @@ class PaymentRequestController extends Controller
         $paymentRequest = PaymentRequest::with('module.program', 'module.teacher')
                                         ->findOrFail($id);
 
+        $this->authorizeAccess($paymentRequest, 'edit');
+
         if ($paymentRequest->status !== 'Pendiente') {
             return back()->with('error', 'Solo se pueden editar solicitudes en estado pendiente');
         }
@@ -346,7 +360,9 @@ class PaymentRequestController extends Controller
     public function update(Request $request, $id)
     {
         $paymentRequest = PaymentRequest::findOrFail($id);
-        
+
+        $this->authorizeAccess($paymentRequest, 'edit');
+
         // Verificar que esté en estado pendiente
         if ($paymentRequest->status !== 'Pendiente') {
             return back()->with('error', 'Solo se pueden editar solicitudes en estado pendiente');
@@ -484,7 +500,9 @@ class PaymentRequestController extends Controller
     public function destroy($id)
     {
         $paymentRequest = PaymentRequest::findOrFail($id);
-        
+
+        $this->authorizeAccess($paymentRequest, 'delete');
+
         // Solo se puede eliminar si está pendiente
         if ($paymentRequest->status !== 'Pendiente') {
             return back()->with('error', 'Solo se pueden eliminar solicitudes en estado pendiente');
@@ -594,5 +612,17 @@ class PaymentRequestController extends Controller
             ),
             $fileName
         );
+    }
+
+    private function authorizeAccess(PaymentRequest $paymentRequest, string $ability): void
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        $isOwner = (int) $paymentRequest->created_by === (int) $user->id;
+        if ($ability === 'edit'   && $user->can('payment_request.edit'))               return;
+        if ($ability === 'edit'   && $user->can('payment_request.edit_own')   && $isOwner) return;
+        if ($ability === 'delete' && $user->can('payment_request.delete'))             return;
+        if ($ability === 'delete' && $user->can('payment_request.delete_own') && $isOwner) return;
+        abort(403, 'Solo puedes ' . ($ability === 'edit' ? 'editar' : 'eliminar') . ' solicitudes de pago que tú creaste.');
     }
 }

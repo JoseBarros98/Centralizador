@@ -112,7 +112,7 @@
                             </div>
 
                             
-                            @role(['admin', 'academic'])
+                            @can('program.edit')
                             <h3 class="text-lg font-medium text-gray-900 mt-8 mb-4">Recuperatorio</h3>
                             <div class="border-t border-gray-200 pt-4">
                                 @if($module->hasRecoveryScheduled())
@@ -149,14 +149,14 @@
                                     </div>
                                 @endif
                             </div>
-                            @endrole
+                            @endcan
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Acciones rápidas -->
-            @role(['admin', 'academic'])
+            @can('program.edit')
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Acciones Rápidas</h3>
@@ -208,7 +208,7 @@
                     </div>
                 </div>
             </div>
-            @endrole
+            @endcan
 
             <!-- Clases -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -271,10 +271,10 @@
                                 <tr>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enlace</th>
-                                    @role(['academic', 'admin'])
+                                    @can('program.view_attendance')
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asistencia</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                                    @endrole
+                                    @endcan
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -289,7 +289,7 @@
                                                 <span class="text-gray-500">{{ __('No disponible') }}</span>
                                             @endif
                                         </td>
-                                        @role(['academic', 'admin'])
+                                        @can('program.view_attendance')
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             @if($class->attendances->count() > 0)
                                                 <a href="{{ route('attendances.show', [$program->id, $module->id, $class->id]) }}" class="text-green-600 hover:text-green-900 flex items-center">
@@ -324,7 +324,7 @@
                                                 </form>
                                             </div>
                                         </td>
-                                        @endrole
+                                        @endcan
                                     </tr>
                                 @empty
                                     <tr>

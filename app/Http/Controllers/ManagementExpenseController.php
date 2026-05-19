@@ -12,7 +12,7 @@ class ManagementExpenseController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('role:admin|accountant');
+        $this->middleware('permission:program_allocation.view');
     }
 
     public function index(Request $request): View
