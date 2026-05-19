@@ -30,6 +30,7 @@ use App\Http\Controllers\ArtRequestDashboardController;
 use App\Http\Controllers\ArtRequestModificationController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\MarketingTeamController;
+use App\Http\Controllers\MarketingContactController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\ProfessionController;
 use App\Http\Controllers\PaymentRequestController;
@@ -274,6 +275,13 @@ Route::middleware('auth')->group(function () {
   Route::get('/teachers/files/{file}/download', [TeacherController::class, 'downloadFile'])->name('teachers.files.download');
 
   // Rutas para el módulo de equipos de marketing
+  Route::get('marketing-contacts/search-programs', [MarketingContactController::class, 'searchPrograms'])->name('marketing-contacts.search-programs');
+  Route::resource('marketing-contacts', MarketingContactController::class);
+  Route::post('marketing-contacts/{marketingContact}/responses', [MarketingContactController::class, 'storeResponse'])->name('marketing-contacts.responses.store');
+  Route::delete('marketing-contacts/{marketingContact}/responses/{response}', [MarketingContactController::class, 'destroyResponse'])->name('marketing-contacts.responses.destroy');
+  Route::post('marketing-contacts/{marketingContact}/calls', [MarketingContactController::class, 'storeCall'])->name('marketing-contacts.calls.store');
+  Route::delete('marketing-contacts/{marketingContact}/calls/{call}', [MarketingContactController::class, 'destroyCall'])->name('marketing-contacts.calls.destroy');
+
   Route::resource('marketing-teams', MarketingTeamController::class);
   Route::patch('/marketing-teams/{marketingTeam}/deactivate', [MarketingTeamController::class, 'deactivate'])->name('marketing-teams.deactivate');
   Route::post('/marketing-teams/{marketingTeam}/members', [MarketingTeamController::class, 'addMember'])->name('marketing-teams.add-member');

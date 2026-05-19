@@ -113,6 +113,7 @@ class RoleController extends Controller
             'payment_request'    => 'Solicitudes de Pago',
             'graduation_cite'    => 'Titulación',
             'program_allocation' => 'Asignación de Programas',
+            'marketing_contact'  => 'Contactos Marketing',
             'system'             => 'Sistema',
         ];
 
@@ -138,6 +139,7 @@ class RoleController extends Controller
             'design'                   => 'Dashboard Diseño',
             'edit_own'                 => 'Editar (solo propios)',
             'delete_own'               => 'Eliminar (solo propios)',
+            'view_team'                => 'Ver equipo',
         ];
 
         $grouped = [];

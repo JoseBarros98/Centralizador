@@ -54,6 +54,11 @@ class RoleSeeder extends Seeder
 
             'role.view', 'role.create', 'role.edit', 'role.delete',
 
+            'marketing_contact.view', 'marketing_contact.view_team',
+            'marketing_contact.create',
+            'marketing_contact.edit', 'marketing_contact.edit_own',
+            'marketing_contact.delete', 'marketing_contact.delete_own',
+
             'system.view_logs'
         ];
 
@@ -76,6 +81,8 @@ class RoleSeeder extends Seeder
             'content.view', 'content.create', 'content.edit_own', 'content.delete_own',
             'marketing.view', 'marketing.create', 'marketing.edit', 'marketing.delete',
             'marketing.manage_teams', 'marketing.manage_goals', 'marketing.view_reports',
+            'marketing_contact.view_team', 'marketing_contact.create',
+            'marketing_contact.edit_own', 'marketing_contact.delete_own',
         ]);
 
         // Designer

@@ -168,8 +168,8 @@
                                 @endif
 
                                 <!-- Marketing - Desplegable -->
-                                @if(auth()->user()->can('inscription.view') || auth()->user()->can('marketing.manage_teams'))
-                                <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') ? 'true' : 'false' }} }">
+                                @if(auth()->user()->can('inscription.view') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing_contact.view'))
+                                <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') || request()->routeIs('marketing-contacts.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Marketing" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.891 15.107 15.11 8.89m-5.183-.52h.01m3.089 7.254h.01M14.08 3.902a2.849 2.849 0 0 0 2.176.902 2.845 2.845 0 0 1 2.94 2.94 2.849 2.849 0 0 0 .901 2.176 2.847 2.847 0 0 1 0 4.16 2.848 2.848 0 0 0-.901 2.175 2.843 2.843 0 0 1-2.94 2.94 2.848 2.848 0 0 0-2.176.902 2.847 2.847 0 0 1-4.16 0 2.85 2.85 0 0 0-2.176-.902 2.845 2.845 0 0 1-2.94-2.94 2.848 2.848 0 0 0-.901-2.176 2.848 2.848 0 0 1 0-4.16 2.849 2.849 0 0 0 .901-2.176 2.845 2.845 0 0 1 2.941-2.94 2.849 2.849 0 0 0 2.176-.901 2.847 2.847 0 0 1 4.159 0Z"/>
@@ -188,6 +188,16 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                             </svg>
                                             Inscripciones
+                                        </a>
+                                        @endcan
+
+                                        <!-- Contactos -->
+                                        @can('marketing_contact.view')
+                                        <a href="{{ route('marketing-contacts.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('marketing-contacts.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('marketing-contacts.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                            </svg>
+                                            Contactos
                                         </a>
                                         @endcan
 
@@ -562,8 +572,8 @@
                             @endif
 
                             <!-- Martketing - Desplegable -->
-                            @if(auth()->user()->can('inscription.view') || auth()->user()->can('marketing.manage_teams'))
-                            <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') ? 'true' : 'false' }} }">
+                            @if(auth()->user()->can('inscription.view') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing_contact.view'))
+                            <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') || request()->routeIs('marketing-contacts.*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.891 15.107 15.11 8.89m-5.183-.52h.01m3.089 7.254h.01M14.08 3.902a2.849 2.849 0 0 0 2.176.902 2.845 2.845 0 0 1 2.94 2.94 2.849 2.849 0 0 0 .901 2.176 2.847 2.847 0 0 1 0 4.16 2.848 2.848 0 0 0-.901 2.175 2.843 2.843 0 0 1-2.94 2.94 2.848 2.848 0 0 0-2.176.902 2.847 2.847 0 0 1-4.16 0 2.85 2.85 0 0 0-2.176-.902 2.845 2.845 0 0 1-2.94-2.94 2.848 2.848 0 0 0-.901-2.176 2.848 2.848 0 0 1 0-4.16 2.849 2.849 0 0 0 .901-2.176 2.845 2.845 0 0 1 2.941-2.94 2.849 2.849 0 0 0 2.176-.901 2.847 2.847 0 0 1 4.159 0Z"/>
@@ -582,6 +592,16 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                         </svg>
                                         Inscripciones
+                                    </a>
+                                    @endcan
+
+                                    <!-- Contactos -->
+                                    @can('marketing_contact.view')
+                                    <a href="{{ route('marketing-contacts.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('marketing-contacts.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                                        <svg class="mr-4 h-5 w-5 {{ request()->routeIs('marketing-contacts.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                        </svg>
+                                        Contactos
                                     </a>
                                     @endcan
 
