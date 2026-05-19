@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\RoleController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AcademicDashboardController;
@@ -58,6 +59,9 @@ Route::middleware('auth')->group(function () {
   // Rutas para usuarios
   Route::resource('users', UserController::class);
   Route::patch('/users/{user}/toggle-active', [UserController::class, 'toggleActive'])->name('users.toggle-active');
+
+  // Rutas para roles
+  Route::resource('roles', RoleController::class);
 
   // Rutas para programas
   Route::resource('programs', ProgramController::class);

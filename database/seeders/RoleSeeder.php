@@ -46,7 +46,9 @@ class RoleSeeder extends Seeder
             'graduation_cite.view', 'graduation_cite.create', 'graduation_cite.edit', 'graduation_cite.delete',
 
             'program_allocation.view', 'program_allocation.create', 'program_allocation.edit', 'program_allocation.delete',
-            
+
+            'role.view', 'role.create', 'role.edit', 'role.delete',
+
             'system.view_logs'
         ];
 
