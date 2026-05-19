@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leading-tight">
             {{ __('Editar Módulo') }} - {{ $program->name }}
@@ -6,7 +6,7 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             <!-- Alerta informativa -->
             <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
                 <div class="flex">

@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leading-tight">
             {{ __('Sincronización de Datos') }}
@@ -6,7 +6,7 @@
     </x-slot>
 
     <div >
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             <!-- Próxima Sincronización -->
             <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg p-6 mb-6">
                 <div class="flex items-center justify-between">

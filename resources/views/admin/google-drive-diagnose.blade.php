@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <style>
@@ -17,7 +17,7 @@
 </style>
 
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
+    <div class="w-full">
         <div class="bg-white rounded-lg shadow-md overflow-hidden">
             <div class="bg-blue-600 text-white px-6 py-4">
                 <h1 class="text-2xl font-bold flex items-center">

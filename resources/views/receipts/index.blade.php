@@ -1,10 +1,10 @@
-<x-app-layout>
+﻿<x-app-layout>
     @section('header-title', 'Historial de Recibos')
     
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div>
+        <div class="w-full sm:px-6 lg:px-8">
             <!-- Botones de acción -->
-            <div class="mb-6 flex justify-between">
+            <div class="mb-6 flex flex-wrap gap-3 justify-between">
                 <div>
                     <a href="{{ route('inscriptions.show', $inscription) }}" class="inline-flex items-center px-4 py-2 bg-gray-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 active:bg-gray-800 focus:outline-none focus:border-gray-800 focus:ring ring-gray-300 disabled:opacity-25 transition ease-in-out duration-150">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">

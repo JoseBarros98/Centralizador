@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leading-tight">
             {{ __('Vinculación de Asesores') }}
@@ -6,10 +6,10 @@
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             
             <!-- Estadísticas -->
-            <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <div class="flex items-center">

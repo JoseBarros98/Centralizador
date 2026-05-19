@@ -1,10 +1,13 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Historial de Seguimientos de Documentos') }}
-            </h2>
-            <div class="flex space-x-2">
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ __('Historial de Seguimientos de Documentos') }}
+        </h2>
+    </x-slot>
+
+    <div>
+        <div class="w-full sm:px-6 lg:px-8">
+            <div class="flex items-center justify-end gap-2 mb-4">
                 <a href="{{ route('document_followups.show', ['program' => $program->id, 'inscription' => $inscription->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" />
@@ -18,11 +21,6 @@
                     Volver al Programa
                 </a>
             </div>
-        </div>
-    </x-slot>
-
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Información del Participante -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">

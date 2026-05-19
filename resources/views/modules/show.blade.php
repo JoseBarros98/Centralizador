@@ -1,10 +1,13 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Detalles del Módulo') }}
-            </h2>
-            <div class="flex space-x-2">
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ __('Detalles del Módulo') }}
+        </h2>
+    </x-slot>
+
+    <div >
+        <div class="w-full sm:px-6 lg:px-8">
+            <div class="flex items-center justify-end gap-2 mb-4">
                 @can('program.edit')
                 <a href="{{ route('programs.modules.edit', ['program' => $program->id, 'module' => $module->id]) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 active:bg-yellow-800 focus:outline-none focus:border-yellow-800 focus:ring ring-yellow-300 disabled:opacity-25 transition ease-in-out duration-150">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -20,11 +23,6 @@
                     Volver al Programa
                 </a>
             </div>
-        </div>
-    </x-slot>
-
-    <div >
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">

@@ -1,21 +1,19 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                Detalle del CITE de Titulación
-            </h2>
-            <div class="flex items-center gap-2">
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            Detalle del CITE de Titulación
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="w-full sm:px-6 lg:px-8 space-y-6">
+            <div class="flex items-center justify-end gap-2 mb-4">
                 @can('graduation_cite.edit')
                     <a href="{{ route('graduation-cites.edit', $graduationCite) }}" class="inline-flex items-center px-4 py-2 bg-white text-indigo-700 text-xs font-semibold uppercase tracking-widest rounded-md shadow-sm hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-900">
                         Editar
                     </a>
                 @endcan
             </div>
-        </div>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 border-b border-gray-200 grid grid-cols-1 md:grid-cols-4 gap-6">

@@ -1,11 +1,14 @@
-{{-- filepath: d:\VS_Code_Docs\centralizador\resources\views\teachers\show.blade.php --}}
+﻿{{-- filepath: d:\VS_Code_Docs\centralizador\resources\views\teachers\show.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Docente: ') . $teacher->academic_degree . ' ' . $teacher->full_name }}
-            </h2>
-            <div class="flex space-x-2">
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ __('Docente: ') . $teacher->academic_degree . ' ' . $teacher->full_name }}
+        </h2>
+    </x-slot>
+
+    <div>
+        <div class="w-full sm:px-6 lg:px-8">
+            <div class="flex items-center justify-end gap-2 mb-4">
                 {{-- @can('teacher.edit') --}}
                 <a href="{{ route('teachers.edit', $teacher) }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,11 +25,6 @@
                     {{ __('Volver') }}
                 </a>
             </div>
-        </div>
-    </x-slot>
-
-    <div>
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Badge de origen del docente -->
             @if($teacher->is_external)
                 <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6 rounded-r-lg">

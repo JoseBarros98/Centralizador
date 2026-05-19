@@ -1,11 +1,11 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leaing-tight">
             {{ __('Crear Docente') }}
         </h2>
     </x-slot>
     <div>
-        <div class="max-w-1xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
 

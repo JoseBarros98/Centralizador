@@ -1,4 +1,4 @@
-<thead class="bg-gray-50">
+<thead class="bg-slate-50 border-b border-slate-200">
     <tr>
         {{ $slot }}
     </tr>

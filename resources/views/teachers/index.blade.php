@@ -1,9 +1,12 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semiblod text-xl text-white leading-tight">
-                {{__('Docentes')}}
-            </h2>
+        <h2 class="font-semiblod text-xl text-white leading-tight">
+            {{__('Docentes')}}
+        </h2>
+    </x-slot>
+
+    <div>
+        <div class="flex items-center justify-end gap-2 mb-4">
             {{-- @can('teacher.create') --}}
             <a href="{{ route('teachers.create')}}" class="inline-flex items-center px-4 py-2 bg-blue-600 bordes-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                 <svg xmls="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -13,9 +16,6 @@
             </a>
             {{-- @endcan --}}
         </div>
-    </x-slot>
-
-    <div>
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
             <div class="p-6 bg-white border-b border-gray-200">
                 <form method="GET" action="{{ route('teachers.index')}}">
@@ -36,7 +36,7 @@
                 </form>
             </div>
         </div>
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             @if (session('success'))
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">{{ session('success') }}</span>

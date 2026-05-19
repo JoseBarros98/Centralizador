@@ -1,14 +1,12 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Inscripciones') }}
-            </h2>
-        </div>
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ __('Inscripciones') }}
+        </h2>
     </x-slot>
 
     <div >
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             @php
                 $currentUser = auth()->user();
                 $isTeamLeader = $currentUser && $currentUser->leadsActiveMarketingTeam();
@@ -44,7 +42,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                             <div>
                                 <x-label for="date_from" :value="__('Desde')" />
                                 <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}" 

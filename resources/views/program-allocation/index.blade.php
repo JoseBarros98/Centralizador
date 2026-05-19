@@ -94,7 +94,7 @@
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Filtros</h3>
             <form method="GET">
                 <!-- Fila 1 de Filtros -->
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                     <!-- Búsqueda Programa -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Buscar Programa</label>
@@ -156,7 +156,7 @@
                 </div>
 
                 <!-- Fila 2 de Filtros -->
-                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 mb-4">
                     <!-- Filtro Gestión (Año de Asignación) -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Año de Asignación</label>
@@ -170,7 +170,7 @@
                 </div>
 
                 <!-- Fila de Botones -->
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                     <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 font-medium">
                         Filtrar
                     </button>
@@ -222,7 +222,7 @@
             <div class="mb-6 bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <form id="add-allocation-form" class="w-full">
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-end">
                         <div class="relative md:col-span-2">
                             <label for="program-search" class="block text-sm font-semibold text-gray-700 mb-2">Selecciona un Programa:</label>
                             <input type="text" id="program-search" placeholder="Buscar programa..." 

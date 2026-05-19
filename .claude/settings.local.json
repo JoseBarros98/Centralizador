@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\" -Force)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\\\\layouts\\\\\" -Filter \"*.blade.php\" -Recurse | Select-Object -ExpandProperty FullName)",
+      "Bash(xargs grep -l \"<a \\\\|<button\\\\|x-primary-button\\\\|x-secondary-button\")"
+    ]
+  }
+}

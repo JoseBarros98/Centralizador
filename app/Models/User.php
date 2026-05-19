@@ -56,8 +56,8 @@ class User extends Authenticatable
     public function marketingTeams(): BelongsToMany
     {
         return $this->belongsToMany(MarketingTeam::class, 'marketing_team_members', 'user_id', 'team_id')
-                   ->withPivot(['active', 'joined_at', 'left_at'])
-                   ->withTimestamps();
+                ->withPivot(['active', 'joined_at', 'left_at'])
+                ->withTimestamps();
     }
 
     public function updatedInscriptions()

@@ -1,10 +1,13 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Editar Solicitud de Arte') }}
-            </h2>
-            <div class="flex space-x-2">
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ __('Editar Solicitud de Arte') }}
+        </h2>
+    </x-slot>
+
+    <div >
+        <div class="w-full sm:px-6 lg:px-8">
+            <div class="flex items-center justify-end gap-2 mb-4">
                 <a href="{{ route('art_requests.show', $artRequest) }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-800 focus:outline-none focus:border-blue-800 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -19,11 +22,6 @@
                     Volver
                 </a>
             </div>
-        </div>
-    </x-slot>
-
-    <div >
-        <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
             <form action="{{ route('art_requests.update', $artRequest) }}" method="POST">
                 @csrf
                 @method('PUT')

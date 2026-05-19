@@ -1,10 +1,17 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ $team->name }}
-            </h2>
-            <div class="flex space-x-2">
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ $team->name }}
+        </h2>
+    </x-slot>
+
+    <div>
+        @php
+            $canManageMembers = auth()->check() && (auth()->user()->hasRole('admin') || (int) auth()->id() === (int) $team->leader_id);
+        @endphp
+
+        <div class="w-full sm:px-6 lg:px-8">
+            <div class="flex items-center justify-end gap-2 mb-4">
                 @can('marketing.edit')
                 <a href="{{ route('marketing-teams.edit', $team) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-yellow-700 focus:bg-yellow-700 active:bg-yellow-900 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition ease-in-out duration-150">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -14,15 +21,6 @@
                 </a>
                 @endcan
             </div>
-        </div>
-    </x-slot>
-
-    <div>
-        @php
-            $canManageMembers = auth()->check() && (auth()->user()->hasRole('admin') || (int) auth()->id() === (int) $team->leader_id);
-        @endphp
-
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <!-- Breadcrumb -->
             <div class="mb-6">
                 <nav class="flex" aria-label="Breadcrumb">
@@ -222,7 +220,7 @@
         </div>
 
         {{-- Tabla de inscripciones de los miembros del equipo --}}
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
                 <div class="lg:col-span-1">
                     <x-card>
@@ -233,7 +231,7 @@
                                     <span class="text-sm text-gray-500">Total: {{ $teamInscriptions->total() }}</span>
                                 </div>
 
-                                <form method="GET" action="{{ route('marketing-teams.show', $team) }}" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+                                <form method="GET" action="{{ route('marketing-teams.show', $team) }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
                                     <div>
                                         <label for="year" class="block text-xs font-medium text-gray-500 uppercase tracking-wider">Gestión</label>
                                         <select id="year" name="year" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">

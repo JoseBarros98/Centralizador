@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leading-tight">
             {{ __('Crear Nueva Inscripción') }}
@@ -6,7 +6,7 @@
     </x-slot>
 
     <div >
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             <!-- Alerta para CI existente -->
             <div id="ci-alert-container" class="mb-4"></div>
 

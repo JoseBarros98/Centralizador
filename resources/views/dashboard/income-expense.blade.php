@@ -1,8 +1,8 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
-<div class="py-6">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+<div>
+    <div class="w-full sm:px-6 lg:px-8">
         <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900">Dashboard Ingresos vs Egresos</h2>

@@ -1,18 +1,8 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Tipos de Arte') }}
-            </h2>
-            @can('content.create')
-            <a href="{{ route('type_of_arts.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                {{ __('Nuevo Tipo de Arte') }}
-            </a>
-            @endcan
-        </div>
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ __('Tipos de Arte') }}
+        </h2>
     </x-slot>
 
 <style>
@@ -30,7 +20,17 @@
 </style>
 
     <div >
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
+            <div class="flex items-center justify-end gap-2 mb-4">
+                @can('content.create')
+                <a href="{{ route('type_of_arts.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    {{ __('Nuevo Tipo de Arte') }}
+                </a>
+                @endcan
+            </div>
             @if (session('success'))
                 <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">{{ session('success') }}</span>
@@ -41,7 +41,7 @@
                 <div class="p-6 bg-white border-b border-gray-200">
                     <!-- Formulario de búsqueda -->
                     <div class="mb-4">
-                        <form method="GET" action="{{ route('type_of_arts.index') }}" class="flex gap-2 max-w-lg">
+                        <form method="GET" action="{{ route('type_of_arts.index') }}" class="flex flex-wrap gap-2 max-w-lg">
                             <input type="text" name="search" value="{{ request('search') }}" 
                                    placeholder="Buscar por nombre o descripción..." 
                                    class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">

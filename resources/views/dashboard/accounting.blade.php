@@ -1,8 +1,8 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <div class="py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+    <div class="w-full px-4 sm:px-6 md:px-8">
         <!-- Encabezado -->
         <div class="mb-8">
             <div class="mb-6">
@@ -11,7 +11,7 @@
             </div>
             
             <!-- Filtros por Mes y Año -->
-            <form id="filterForm" method="GET" action="{{ route('dashboard.accounting') }}" class="grid grid-cols-2 gap-4 w-96">
+            <form id="filterForm" method="GET" action="{{ route('dashboard.accounting') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-sm sm:max-w-md">
                 <div>
                     <label for="mes" class="block text-sm font-medium text-gray-700 mb-2">Filtro por Mes</label>
                     <select id="mes" name="mes" onchange="document.getElementById('filterForm').submit()" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">

@@ -1,19 +1,19 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                Titulación
-            </h2>
-            @can('graduation_cite.create')
-                <a href="{{ route('graduation-cites.create') }}" class="inline-flex items-center px-4 py-2 bg-white text-indigo-700 text-xs font-semibold uppercase tracking-widest rounded-md shadow-sm hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-900">
-                    Nuevo CITE
-                </a>
-            @endcan
-        </div>
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            Titulación
+        </h2>
     </x-slot>
 
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+        <div class="w-full sm:px-6 lg:px-8 space-y-6">
+            <div class="flex items-center justify-end gap-2 mb-4">
+                @can('graduation_cite.create')
+                    <a href="{{ route('graduation-cites.create') }}" class="inline-flex items-center px-4 py-2 bg-white text-indigo-700 text-xs font-semibold uppercase tracking-widest rounded-md shadow-sm hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-indigo-900">
+                        Nuevo CITE
+                    </a>
+                @endcan
+            </div>
             @if(session('success'))
                 <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
                     {{ session('success') }}
@@ -22,7 +22,7 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 border-b border-gray-200">
-                    <form method="GET" action="{{ route('graduation-cites.index') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <form method="GET" action="{{ route('graduation-cites.index') }}" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                         <div>
                             <label for="cite_number" class="block text-sm font-medium text-gray-700 mb-1">CITE</label>
                             <input id="cite_number" type="text" name="cite_number" value="{{ request('cite_number') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Buscar por código">

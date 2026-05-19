@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-white leading-tight">
@@ -8,13 +8,13 @@
     </x-slot>
 
     <div >
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
 
             <!-- Barra de búsqueda y filtros -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
                     <form method="GET" action="{{ route('programs.index') }}">
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                             <!-- Campo de búsqueda -->
                             <div class="md:col-span-2">
                                 <x-label for="search" :value="__('Buscar')" />
@@ -45,7 +45,7 @@
 
                         <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                             <!-- Botones de acción -->
-                            <div class="flex space-x-2">
+                            <div class="flex flex-wrap gap-2">
                                 <button type="submit" class="inline-flex items-center px-4 py-2 bg-gray-800 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

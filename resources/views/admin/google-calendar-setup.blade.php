@@ -1,8 +1,8 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
+    <div class="w-full">
         <div class="bg-white rounded-lg shadow-md p-6">
             <h1 class="text-2xl font-bold text-gray-900 mb-6">
                 <i class="fab fa-google text-blue-600 mr-2"></i>

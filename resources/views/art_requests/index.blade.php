@@ -1,14 +1,12 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-white leading-tight">
-                {{ __('Solicitudes de Arte') }}
-            </h2>
-        </div>
+        <h2 class="font-semibold text-xl text-white leading-tight">
+            {{ __('Solicitudes de Arte') }}
+        </h2>
     </x-slot>
 
     <div>
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             <!-- Filtros -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
@@ -36,7 +34,7 @@
                             @endcan
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                             <div>
                                 <x-label for="status" :value="__('Estado')" />
                                 <select id="status" name="status" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
@@ -112,7 +110,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Estadísticas de Solicitudes</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                         <div class="bg-gray-100 p-4 rounded-lg">
                             <p class="text-sm text-gray-600">Total Solicitudes</p>
                             <p class="text-2xl font-bold">{{ $stats['total'] }}</p>

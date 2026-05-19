@@ -47,7 +47,7 @@
                 </div>
 
                 <!-- Valores anteriores y nuevos -->
-                <div class="grid grid-cols-2 gap-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
                         <label for="old_value" class="block text-xs font-medium text-gray-700 mb-1">
                             Valor Anterior

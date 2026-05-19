@@ -1,8 +1,8 @@
-<x-app-layout>
+﻿<x-app-layout>
     @section('header-title', 'Detalles de Inscripción')
     
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div>
+        <div class="w-full sm:px-6 lg:px-8">
             <!-- Botones de acción -->
             <div class="mb-6 flex justify-end space-x-2">
                 @can('inscription.edit')

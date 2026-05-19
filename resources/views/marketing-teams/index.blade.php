@@ -1,4 +1,4 @@
-<x-app-layout>
+﻿<x-app-layout>
     <x-slot name="header">
         <div class="flex justify-between items-center">
             <h2 class="font-semibold text-xl text-white leading-tight">
@@ -8,7 +8,7 @@
     </x-slot>
 
     <div>
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="w-full sm:px-6 lg:px-8">
             <!-- Filtros y botón crear -->
             <x-card class="mb-6">
                 <x-slot name="header">
@@ -32,7 +32,7 @@
 
                 <!-- Filtros -->
                 <form method="GET" action="{{ route('marketing-teams.index') }}" class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         <div>
                             <x-label for="search" :value="__('Buscar')" />
                             <x-input id="search" name="search" type="text" :value="request('search')" placeholder="Buscar por nombre..." class="mt-1" />
