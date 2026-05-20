@@ -12,54 +12,46 @@
             <!-- Filtros -->
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <form method="GET" action="{{ route('art_requests.dashboard') }}" class="space-y-4">
-                        <!-- Campos ocultos para mes y año -->
-                        <input type="hidden" id="month_hidden" name="month" value="{{ $month }}">
-                        <input type="hidden" id="year_hidden" name="year" value="{{ $year }}">
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- Filtro por Mes -->
-                            <div>
-                                <x-label for="month_year" :value="__('Mes y Año')" />
-                                <select id="month_year" name="month_year" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full" onchange="updateWeeks(this)">
-                                    @foreach($months as $key => $monthLabel)
-                                        <option value="{{ $key }}" {{ ($month . '-' . $year) == $key ? 'selected' : '' }}>
-                                            {{ $monthLabel }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <!-- Filtro por Semana -->
-                            <div>
-                                <x-label for="week" :value="__('Semana del Mes')" />
-                                <select id="week" name="week" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
-                                    @foreach($weeks as $weekNum => $weekData)
-                                        <option value="{{ $weekNum }}" {{ ($selectedWeek == $weekNum || (!request('week') && $defaultWeek == $weekNum)) ? 'selected' : '' }}>
-                                            Semana {{ $weekNum }}: {{ $weekData['label'] }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <!-- Filtro por Diseñador -->
-                            <div>
-                                <x-label for="designer_id" :value="__('Diseñador')" />
-                                <select id="designer_id" name="designer_id" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full">
-                                    <option value="">Todos los Diseñadores</option>
-                                    @foreach($designers as $designer)
-                                        <option value="{{ $designer->id }}" {{ $designerId == $designer->id ? 'selected' : '' }}>
-                                            {{ $designer->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
+                    <form method="GET" action="{{ route('art_requests.dashboard') }}" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <!-- Desde -->
+                        <div>
+                            <x-label for="date_from" :value="__('Desde')" />
+                            <input type="date" id="date_from" name="date_from"
+                                value="{{ $dateFrom->format('Y-m-d') }}"
+                                max="{{ now()->format('Y-m-d') }}"
+                                class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
                         </div>
-                        
-                        <div class="flex justify-end">
-                            <x-button>
-                                {{ __('Filtrar') }}
-                            </x-button>
+
+                        <!-- Hasta -->
+                        <div>
+                            <x-label for="date_to" :value="__('Hasta')" />
+                            <input type="date" id="date_to" name="date_to"
+                                value="{{ $dateTo->format('Y-m-d') }}"
+                                max="{{ now()->format('Y-m-d') }}"
+                                class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
+                        </div>
+
+                        <!-- Diseñador -->
+                        <div>
+                            <x-label for="designer_id" :value="__('Diseñador')" />
+                            <select id="designer_id" name="designer_id" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
+                                <option value="">Todos los Diseñadores</option>
+                                @foreach($designers as $designer)
+                                    <option value="{{ $designer->id }}" {{ $designerId == $designer->id ? 'selected' : '' }}>
+                                        {{ $designer->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <!-- Acciones -->
+                        <div class="flex gap-2">
+                            <button type="submit" class="flex-1 px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-md hover:bg-indigo-700">
+                                Filtrar
+                            </button>
+                            <a href="{{ route('art_requests.dashboard') }}" class="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-md hover:bg-gray-300">
+                                Limpiar
+                            </a>
                         </div>
                     </form>
                 </div>
@@ -126,7 +118,7 @@
                     <div>
                         <h2 class="text-4xl leading-none font-bold text-cyan-900">{{ number_format($stats['avg_completed_per_day'], 2) }}</h2>
                         <p class="text-gray-600 text-sm mt-1">Promedio entregadas/dia</p>
-                        <p class="text-gray-400 text-xs mt-1">Calculado en {{ $stats['days_for_average'] }} dia(s)</p>
+                        <p class="text-gray-400 text-xs mt-1">{{ $dateFrom->format('d/m/Y') }} — {{ $dateTo->format('d/m/Y') }} ({{ $stats['days_for_average'] }} día(s))</p>
                     </div>
                     <div class="bg-cyan-500 p-2.5 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -181,16 +173,6 @@
     </div>
 
     @push('scripts')
-    <script>
-        // Almacenar datos de semanas por mes
-        window.monthsData = {!! json_encode($months) !!};
-        
-        // Almacenar semanas actuales
-        window.currentWeeks = {!! json_encode($weeks) !!};
-
-        console.log('Dashboard data:', {!! json_encode(['stats' => $stats, 'weeks' => array_map(fn($w) => $w['label'], $weeks), 'selectedWeek' => $selectedWeek]) !!});
-        console.log('Week Start:', '{{ $weekStart->format("Y-m-d") }}', 'Week End:', '{{ $weekEnd->format("Y-m-d") }}');
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

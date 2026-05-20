@@ -77,6 +77,14 @@ class ArtRequestController extends Controller
         $user = Auth::user();
         if (!$user instanceof \App\Models\User) abort(403);
 
+        $dateFrom = \Carbon\Carbon::createFromFormat('Y-m-d',
+            $request->filled('date_from') ? $request->date_from : now()->startOfMonth()->format('Y-m-d')
+        )->startOfDay();
+
+        $dateTo = \Carbon\Carbon::createFromFormat('Y-m-d',
+            $request->filled('date_to') ? $request->date_to : now()->endOfMonth()->format('Y-m-d')
+        )->endOfDay();
+
         $query = ArtRequest::with(['requester', 'designer', 'contentPillar', 'typeOfArt'])
             ->active();
 
@@ -84,53 +92,35 @@ class ArtRequestController extends Controller
             $query->where('created_by', $user->id);
         }
 
-        // Filtros
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
+        if ($dateFrom) $query->where('created_at', '>=', $dateFrom);
+        if ($dateTo)   $query->where('created_at', '<=', $dateTo);
 
-        if ($request->filled('priority')) {
-            $query->where('priority', $request->priority);
-        }
-
-        if ($request->filled('designer_id')) {
-            $query->where('designer_id', $request->designer_id);
-        }
-
-        if ($request->filled('content_pillar_id')) {
-            $query->where('content_pillar_id', $request->content_pillar_id);
-        }
-
-        if ($request->filled('type_of_art_id')) {
-            $query->where('type_of_art_id', $request->type_of_art_id);
-        }
+        if ($request->filled('status'))           $query->where('status', $request->status);
+        if ($request->filled('priority'))         $query->where('priority', $request->priority);
+        if ($request->filled('designer_id'))      $query->where('designer_id', $request->designer_id);
+        if ($request->filled('content_pillar_id')) $query->where('content_pillar_id', $request->content_pillar_id);
+        if ($request->filled('type_of_art_id'))   $query->where('type_of_art_id', $request->type_of_art_id);
 
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhereHas('requester', function($q) use ($search) {
-                      $q->where('name', 'like', "%{$search}%");
-                  });
+                  ->orWhereHas('requester', fn($q) => $q->where('name', 'like', "%{$search}%"));
             });
         }
 
-        $artRequests = $query->orderBy('created_at', 'desc')->paginate(15);
+        $artRequests = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        // Datos para filtros
-        $designers = User::whereHas('roles', function($q) {
-            $q->where('name', 'design');
-        })->get();
-
+        $designers      = User::whereHas('roles', fn($q) => $q->where('name', 'design'))->get();
         $contentPillars = ContentPillar::where('active', true)->get();
-        $typeOfArts = TypeOfArt::where('active', true)->get();
+        $typeOfArts     = TypeOfArt::where('active', true)->get();
 
-        // Base para estadísticas con el mismo filtro de visibilidad que la tabla
+        // Stats con el mismo filtro de visibilidad y fechas
         $statsBase = ArtRequest::active();
-        if (!$user->can('content.view')) {
-            $statsBase->where('created_by', $user->id);
-        }
+        if (!$user->can('content.view')) $statsBase->where('created_by', $user->id);
+        if ($dateFrom) $statsBase->where('created_at', '>=', $dateFrom);
+        if ($dateTo)   $statsBase->where('created_at', '<=', $dateTo);
 
         $stats = [
             'total'       => (clone $statsBase)->count(),
@@ -142,7 +132,7 @@ class ArtRequestController extends Controller
         ];
 
         return view('art_requests.index', compact(
-            'artRequests', 'designers', 'contentPillars', 'typeOfArts', 'stats'
+            'artRequests', 'designers', 'contentPillars', 'typeOfArts', 'stats', 'dateFrom', 'dateTo'
         ));
     }
 

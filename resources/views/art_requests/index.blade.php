@@ -34,6 +34,22 @@
                             @endcan
                         </div>
 
+                        <!-- Rango de fechas -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <x-label for="date_from" :value="__('Desde')" />
+                                <input type="date" id="date_from" name="date_from"
+                                    value="{{ $dateFrom->format('Y-m-d') }}"
+                                    class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
+                            </div>
+                            <div>
+                                <x-label for="date_to" :value="__('Hasta')" />
+                                <input type="date" id="date_to" name="date_to"
+                                    value="{{ $dateTo->format('Y-m-d') }}"
+                                    class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 block mt-1 w-full text-sm">
+                            </div>
+                        </div>
+
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                             <div>
                                 <x-label for="status" :value="__('Estado')" />
@@ -97,10 +113,11 @@
                             </div>
                         </div>
                         
-                        <div class="flex justify-end">
-                            <x-button>
-                                {{ __('Filtrar') }}
-                            </x-button>
+                        <div class="flex justify-end gap-2">
+                            <x-button>{{ __('Filtrar') }}</x-button>
+                            <a href="{{ route('art_requests.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-200 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-300">
+                                Limpiar
+                            </a>
                         </div>
                     </form>
                 </div>
