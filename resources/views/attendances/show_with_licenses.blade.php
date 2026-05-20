@@ -37,19 +37,6 @@
         </div>
     </div>
 
-    <!-- Alertas -->
-    @if (session('success'))
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
-            <span class="block sm:inline">{{ session('success') }}</span>
-        </div>
-    @endif
-
-    @if (session('error'))
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            <span class="block sm:inline">{{ session('error') }}</span>
-        </div>
-    @endif
-
     <!-- Estadísticas -->
     <div class="flex flex-wrap gap-3 mb-6">
         <div class="bg-white overflow-hidden shadow rounded-lg flex-1 min-w-32">

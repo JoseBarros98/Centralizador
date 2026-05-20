@@ -37,6 +37,7 @@ use App\Http\Controllers\PaymentRequestController;
 use App\Http\Controllers\ManagementIncomeController;
 use App\Http\Controllers\ManagementExpenseController;
 use App\Http\Controllers\ManagementInvestmentController;
+use App\Http\Controllers\BackupController;
 use App\Models\ProgramAllocation;
 use Illuminate\Support\Facades\Route;
 
@@ -313,6 +314,14 @@ Route::middleware('auth')->group(function () {
   Route::get('/logs', [App\Http\Controllers\LogController::class, 'index'])->name('logs.index');
   Route::get('/logs/download', [App\Http\Controllers\LogController::class, 'download'])->name('logs.download');
   Route::post('/logs/clear', [App\Http\Controllers\LogController::class, 'clear'])->name('logs.clear');
+
+  // Rutas para backup
+  Route::get('backup', [BackupController::class, 'index'])->name('backup.index');
+  Route::post('backup/database', [BackupController::class, 'createDatabase'])->name('backup.database');
+  Route::post('backup/full', [BackupController::class, 'createFull'])->name('backup.full');
+  Route::get('backup/{filename}/download', [BackupController::class, 'download'])->name('backup.download');
+  Route::delete('backup/{filename}', [BackupController::class, 'destroy'])->name('backup.destroy');
+  Route::post('backup/import', [BackupController::class, 'import'])->name('backup.import');
 
   // Rutas para notificaciones
   Route::prefix('notifications')->name('notifications.')->group(function () {

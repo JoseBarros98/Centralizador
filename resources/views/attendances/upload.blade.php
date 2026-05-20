@@ -9,12 +9,6 @@
         <div class="w-full sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    @if (session('error'))
-                        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                            <span class="block sm:inline">{{ session('error') }}</span>
-                        </div>
-                    @endif
-
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Cargar archivo de asistencia</h3>
                     
                     <p class="mb-4">Por favor, cargue un archivo XLSX con los datos de asistencia. El archivo debe contener al menos las siguientes columnas:</p>

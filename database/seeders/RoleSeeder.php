@@ -59,7 +59,8 @@ class RoleSeeder extends Seeder
             'marketing_contact.edit', 'marketing_contact.edit_own',
             'marketing_contact.delete', 'marketing_contact.delete_own',
 
-            'system.view_logs'
+            'system.view_logs',
+            'system.backup',
         ];
 
         // Solo crear permisos que no existan

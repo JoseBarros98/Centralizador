@@ -12,13 +12,6 @@
 
     <div class="w-full sm:px-6 lg:px-8 space-y-4">
 
-        @if(session('success'))
-            <x-alert type="success" :message="session('success')"/>
-        @endif
-        @if(session('error'))
-            <x-alert type="error" :message="session('error')"/>
-        @endif
-
         <!-- Acciones -->
         <div class="flex justify-end gap-2">
             @if($canEdit)

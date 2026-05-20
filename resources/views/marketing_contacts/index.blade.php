@@ -5,13 +5,6 @@
 
     <div class="w-full sm:px-6 lg:px-8">
 
-        @if(session('success'))
-            <x-alert type="success" :message="session('success')" class="mb-4"/>
-        @endif
-        @if(session('error'))
-            <x-alert type="error" :message="session('error')" class="mb-4"/>
-        @endif
-
         <!-- Filtros -->
         @if($isTeamLeader && auth()->user()->can('marketing_contact.view_team') && !auth()->user()->can('marketing_contact.view'))
         <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800 flex items-center gap-2">

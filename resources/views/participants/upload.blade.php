@@ -19,18 +19,6 @@
                 <div class="p-6 bg-white border-b border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Programa: ') }} {{ $program->name }}</h3>
 
-                    @if (session('error'))
-                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-                            <p>{{ session('error') }}</p>
-                        </div>
-                    @endif
-
-                    @if (session('success'))
-                        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-                            <p>{{ session('success') }}</p>
-                        </div>
-                    @endif
-
                     <form action="{{ route('participants.process', $program) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                         @csrf
                         <div>

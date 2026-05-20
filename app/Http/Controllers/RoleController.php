@@ -141,6 +141,7 @@ class RoleController extends Controller
             'edit_own'                 => 'Editar (solo propios)',
             'delete_own'               => 'Eliminar (solo propios)',
             'view_team'                => 'Ver equipo',
+            'backup'                   => 'Backup',
         ];
 
         $grouped = [];

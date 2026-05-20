@@ -7,12 +7,6 @@
 
     <div class="py-12">
         <div class="w-full sm:px-6 lg:px-8">
-            @if(session('error'))
-                <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                    <span class="block sm:inline">{{ session('error') }}</span>
-                </div>
-            @endif
-
             @if(!isset($selectedModule) || !$selectedModule)
                 <div class="mb-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded relative" role="alert">
                     <span class="block sm:inline">⚠️ No se ha seleccionado ningún módulo. Por favor, accede a esta página desde la vista de un programa o docente.</span>
