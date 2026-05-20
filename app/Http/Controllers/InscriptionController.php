@@ -55,7 +55,11 @@ class InscriptionController extends Controller
     private function canViewInscriptions(?User $user): bool
     {
         return $user !== null
-            && ($user->hasPermissionTo('inscription.view') || $user->leadsActiveMarketingTeam());
+            && (
+                $user->hasPermissionTo('inscription.view')
+                || $user->hasPermissionTo('inscription.view_own')
+                || $user->leadsActiveMarketingTeam()
+            );
     }
 
     private function canEditInscriptions(?User $user): bool
@@ -130,11 +134,6 @@ class InscriptionController extends Controller
         $inscription->save();
     }
 
-    /**
-     * Verificar si el usuario tiene permiso para ver/editar/eliminar la inscripción.
-     * Permisos "all": inscription.view / inscription.edit / inscription.delete
-     * Permisos "own": inscription.edit_own / inscription.delete_own (solo sus propias)
-     */
     private function authorizeInscriptionAccess(Inscription $inscription, string $ability = 'view')
     {
         $user = Auth::user();
@@ -144,16 +143,17 @@ class InscriptionController extends Controller
 
         $isOwner = (int) $inscription->created_by === (int) $user->id;
 
-        // Permisos globales (cualquier inscripción)
-        if ($ability === 'view' && $user->hasPermissionTo('inscription.view')) return;
-        if ($ability === 'edit' && $user->hasPermissionTo('inscription.edit')) return;
+        // Permisos globales
+        if ($ability === 'view'   && $user->hasPermissionTo('inscription.view'))   return;
+        if ($ability === 'edit'   && $user->hasPermissionTo('inscription.edit'))   return;
         if ($ability === 'delete' && $user->hasPermissionTo('inscription.delete')) return;
 
-        // Permisos propietario (solo sus propias inscripciones)
-        if ($ability === 'edit' && $user->hasPermissionTo('inscription.edit_own') && $isOwner) return;
+        // Permisos solo propios
+        if ($ability === 'view'   && $user->hasPermissionTo('inscription.view_own')   && $isOwner) return;
+        if ($ability === 'edit'   && $user->hasPermissionTo('inscription.edit_own')   && $isOwner) return;
         if ($ability === 'delete' && $user->hasPermissionTo('inscription.delete_own') && $isOwner) return;
 
-        // Ver también se permite si puede editar sus propias (necesita ver para editar)
+        // Si puede editar sus propias, también puede verlas (acceso implícito para edición)
         if ($ability === 'view' && $user->hasPermissionTo('inscription.edit_own') && $isOwner) return;
 
         // Líder de equipo puede acceder a inscripciones externas no asignadas
@@ -168,7 +168,7 @@ class InscriptionController extends Controller
         if (!$user instanceof \App\Models\User) abort(403);
         $externalSystemUserId = $this->getExternalSystemUserId();
         // Usuario que solo puede ver/editar sus propias inscripciones (sin acceso global)
-        $isMarketingAdvisor = $user->hasPermissionTo('inscription.edit_own')
+        $isMarketingAdvisor = ($user->hasPermissionTo('inscription.view_own') || $user->hasPermissionTo('inscription.edit_own'))
             && !$user->hasPermissionTo('inscription.view')
             && !$user->hasPermissionTo('inscription.edit');
         $isTeamLeader = $user->leadsActiveMarketingTeam();

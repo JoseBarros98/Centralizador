@@ -18,7 +18,13 @@ class ArtRequestController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:content.view')->only(['index', 'show']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('content.view') || $user->can('content.view_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['index', 'show']);
         $this->middleware('permission:content.create')->only(['create', 'store']);
         $this->middleware(function ($request, $next) {
             $user = $request->user();
@@ -36,7 +42,13 @@ class ArtRequestController extends Controller
         })->only(['destroy']);
 
         $this->middleware('permission:content.manage_files')->only(['addFile', 'deleteFile']);
-        $this->middleware('permission:content.view')->only(['serveFile', 'downloadFile']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('content.view') || $user->can('content.view_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['serveFile', 'downloadFile']);
         $this->middleware('permission:content.toggle_active')->only(['toggleActive']);
     }
 
@@ -47,12 +59,14 @@ class ArtRequestController extends Controller
 
         $isOwner = (int) $artRequest->created_by === (int) $user->id;
 
-        if ($ability === 'edit' && $user->can('content.edit')) return;
-        if ($ability === 'edit' && $user->can('content.edit_own') && $isOwner) return;
-        if ($ability === 'delete' && $user->can('content.delete')) return;
-        if ($ability === 'delete' && $user->can('content.delete_own') && $isOwner) return;
+        if ($ability === 'view'   && $user->can('content.view'))                             return;
+        if ($ability === 'view'   && $user->can('content.view_own')   && $isOwner)           return;
+        if ($ability === 'edit'   && $user->can('content.edit'))                             return;
+        if ($ability === 'edit'   && $user->can('content.edit_own')   && $isOwner)           return;
+        if ($ability === 'delete' && $user->can('content.delete'))                           return;
+        if ($ability === 'delete' && $user->can('content.delete_own') && $isOwner)           return;
 
-        abort(403, 'Solo puedes ' . ($ability === 'edit' ? 'editar' : 'eliminar') . ' solicitudes de arte que tú creaste.');
+        abort(403);
     }
 
     /**
@@ -60,8 +74,15 @@ class ArtRequestController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+
         $query = ArtRequest::with(['requester', 'designer', 'contentPillar', 'typeOfArt'])
             ->active();
+
+        if (!$user->can('content.view')) {
+            $query->where('created_by', $user->id);
+        }
 
         // Filtros
         if ($request->filled('status')) {
@@ -101,18 +122,23 @@ class ArtRequestController extends Controller
         $designers = User::whereHas('roles', function($q) {
             $q->where('name', 'design');
         })->get();
-        
+
         $contentPillars = ContentPillar::where('active', true)->get();
         $typeOfArts = TypeOfArt::where('active', true)->get();
 
-        // Estadísticas
+        // Base para estadísticas con el mismo filtro de visibilidad que la tabla
+        $statsBase = ArtRequest::active();
+        if (!$user->can('content.view')) {
+            $statsBase->where('created_by', $user->id);
+        }
+
         $stats = [
-            'total' => ArtRequest::active()->count(),
-            'pending' => ArtRequest::active()->where('status', 'NO INICIADO')->count(),
-            'in_progress' => ArtRequest::active()->where('status', 'EN CURSO')->count(),
-            'completed' => ArtRequest::active()->where('status', 'COMPLETO')->count(),
-            'overdue' => ArtRequest::active()->whereDate('delivery_date', '<', now()->toDateString())
-                ->whereNotIn('status', ['COMPLETO', 'CANCELADO'])->count(),
+            'total'       => (clone $statsBase)->count(),
+            'pending'     => (clone $statsBase)->where('status', 'NO INICIADO')->count(),
+            'in_progress' => (clone $statsBase)->where('status', 'EN CURSO')->count(),
+            'completed'   => (clone $statsBase)->where('status', 'COMPLETO')->count(),
+            'overdue'     => (clone $statsBase)->whereDate('delivery_date', '<', now()->toDateString())
+                                ->whereNotIn('status', ['COMPLETO', 'CANCELADO'])->count(),
         ];
 
         return view('art_requests.index', compact(
@@ -228,8 +254,9 @@ class ArtRequestController extends Controller
      */
     public function show(ArtRequest $artRequest)
     {
+        $this->authorizeArtRequestAccess($artRequest, 'view');
         $artRequest->load([
-            'requester', 
+            'requester',
             'designer', 
             'contentPillar', 
             'typeOfArt', 

@@ -24,10 +24,10 @@ class RoleSeeder extends Seeder
         $expectedPermissions = [
             'dashboard.marketing', 'dashboard.academic', 'dashboard.accounting', 'dashboard.design',
 
-            'inscription.view', 'inscription.create', 'inscription.edit', 'inscription.edit_own', 'inscription.delete', 'inscription.delete_own',
+            'inscription.view', 'inscription.view_own', 'inscription.create', 'inscription.edit', 'inscription.edit_own', 'inscription.delete', 'inscription.delete_own',
             'inscriptions.sync',
 
-            'content.view', 'content.create', 'content.edit', 'content.edit_own', 'content.delete', 'content.delete_own', 'content.toggle_active', 'content.manage_files',
+            'content.view', 'content.view_own', 'content.create', 'content.edit', 'content.edit_own', 'content.delete', 'content.delete_own', 'content.toggle_active', 'content.manage_files',
 
             'content_pillar.view', 'content_pillar.create', 'content_pillar.edit', 'content_pillar.edit_own', 'content_pillar.delete', 'content_pillar.delete_own', 'content_pillar.toggle_active', 'content_pillar.manage_files',
 
@@ -54,7 +54,7 @@ class RoleSeeder extends Seeder
 
             'role.view', 'role.create', 'role.edit', 'role.delete',
 
-            'marketing_contact.view', 'marketing_contact.view_team',
+            'marketing_contact.view', 'marketing_contact.view_own', 'marketing_contact.view_team',
             'marketing_contact.create',
             'marketing_contact.edit', 'marketing_contact.edit_own',
             'marketing_contact.delete', 'marketing_contact.delete_own',
@@ -76,12 +76,12 @@ class RoleSeeder extends Seeder
         // Marketing
         $marketingRole->syncPermissions([
             'dashboard.marketing',
-            'inscription.view', 'inscription.create', 'inscription.edit_own', 'inscription.delete_own',
+            'inscription.view_own', 'inscription.create', 'inscription.edit_own', 'inscription.delete_own',
             'program.view',
-            'content.view', 'content.create', 'content.edit_own', 'content.delete_own',
+            'content.view_own', 'content.create', 'content.edit_own', 'content.delete_own',
             'marketing.view', 'marketing.create', 'marketing.edit', 'marketing.delete',
             'marketing.manage_teams', 'marketing.manage_goals', 'marketing.view_reports',
-            'marketing_contact.view_team', 'marketing_contact.create',
+            'marketing_contact.view_own', 'marketing_contact.view_team', 'marketing_contact.create',
             'marketing_contact.edit_own', 'marketing_contact.delete_own',
         ]);
 

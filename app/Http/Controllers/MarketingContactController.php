@@ -18,8 +18,8 @@ class MarketingContactController extends Controller
             $user = $request->user();
             if ($user && (
                 $user->can('marketing_contact.view') ||
-                $user->can('marketing_contact.view_team') ||
-                $user->can('marketing_contact.create')
+                $user->can('marketing_contact.view_own') ||
+                $user->can('marketing_contact.view_team')
             )) {
                 return $next($request);
             }
@@ -231,8 +231,8 @@ class MarketingContactController extends Controller
         if ($ability === 'edit'   && $user->can('marketing_contact.edit_own')   && $isOwner) return;
         if ($ability === 'delete' && $user->can('marketing_contact.delete_own') && $isOwner) return;
 
-        // El asesor puede ver/agregar interacciones a sus propios contactos
-        if ($ability === 'view' && $isOwner) return;
+        // Ver solo propios
+        if ($ability === 'view' && $user->can('marketing_contact.view_own') && $isOwner) return;
 
         // El líder de equipo puede ver los contactos de sus miembros solo si tiene el permiso view_team
         if ($ability === 'view' && $user->can('marketing_contact.view_team') && $this->userIsTeamLeaderOf($user, (int) $contact->created_by)) return;
@@ -242,7 +242,8 @@ class MarketingContactController extends Controller
 
     private function getVisibleCreatorIds(\App\Models\User $user): array
     {
-        $ids = [$user->id];
+        // view_own: incluye los propios contactos del usuario
+        $ids = $user->can('marketing_contact.view_own') ? [$user->id] : [];
 
         // El líder ve también los contactos de sus miembros solo si tiene el permiso view_team
         if ($user->can('marketing_contact.view_team') && $user->leadsActiveMarketingTeam()) {

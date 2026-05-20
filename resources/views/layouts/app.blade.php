@@ -168,7 +168,7 @@
                                 @endif
 
                                 <!-- Marketing - Desplegable -->
-                                @if(auth()->user()->can('inscription.view') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing_contact.view'))
+                                @if(auth()->user()->can('inscription.view') || auth()->user()->can('inscription.view_own') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing_contact.view') || auth()->user()->can('marketing_contact.view_own') || auth()->user()->can('marketing_contact.view_team'))
                                 <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') || request()->routeIs('marketing-contacts.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Marketing" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,24 +182,24 @@
 
                                     <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-1 space-y-1">
                                         <!-- Inscripciones -->
-                                        @can('inscription.view')
+                                        @if(auth()->user()->can('inscription.view') || auth()->user()->can('inscription.view_own'))
                                         <a href="{{ route('inscriptions.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('inscriptions.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('inscriptions.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                             </svg>
                                             Inscripciones
                                         </a>
-                                        @endcan
+                                        @endif
 
                                         <!-- Contactos -->
-                                        @can('marketing_contact.view')
+                                        @if(auth()->user()->can('marketing_contact.view') || auth()->user()->can('marketing_contact.view_own') || auth()->user()->can('marketing_contact.view_team'))
                                         <a href="{{ route('marketing-contacts.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('marketing-contacts.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('marketing-contacts.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                             </svg>
                                             Contactos
                                         </a>
-                                        @endcan
+                                        @endif
 
                                         <!-- Equipos -->
                                         @can('marketing.manage_teams')
@@ -283,7 +283,7 @@
                                 @endif
 
                                 <!-- Diseño - Desplegable -->
-                                @if(auth()->user()->can('content_pillar.view') || auth()->user()->can('type_of_art.view') || auth()->user()->can('content.view'))
+                                @if(auth()->user()->can('content_pillar.view') || auth()->user()->can('type_of_art.view') || auth()->user()->can('content.view') || auth()->user()->can('content.view_own'))
                                 <div x-data="{ open: {{ request()->routeIs('content-pillars.*') || request()->routeIs('type-of-arts.*') || request()->routeIs('type_of_arts.*') || request()->routeIs('art-requests.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Diseño" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -317,14 +317,14 @@
                                         @endcan
 
                                         <!-- Solicitud de Artes -->
-                                        @can('content.view')
+                                        @if(auth()->user()->can('content.view') || auth()->user()->can('content.view_own'))
                                         <a href="{{ route('art_requests.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('art-requests.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('art-requests.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             Solicitud de Artes
                                         </a>
-                                        @endcan
+                                        @endif
                                     </div>
                                 </div>
                                 @endif
@@ -572,7 +572,7 @@
                             @endif
 
                             <!-- Martketing - Desplegable -->
-                            @if(auth()->user()->can('inscription.view') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing_contact.view'))
+                            @if(auth()->user()->can('inscription.view') || auth()->user()->can('inscription.view_own') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing_contact.view') || auth()->user()->can('marketing_contact.view_own') || auth()->user()->can('marketing_contact.view_team'))
                             <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') || request()->routeIs('marketing-contacts.*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -586,24 +586,24 @@
                                 
                                 <div x-show="open" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 transform scale-100" x-transition:leave-end="opacity-0 transform scale-95" class="mt-1 space-y-1">
                                     <!-- Inscripciones -->
-                                    @can('inscription.view')
+                                    @if(auth()->user()->can('inscription.view') || auth()->user()->can('inscription.view_own'))
                                     <a href="{{ route('inscriptions.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('inscriptions.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('inscriptions.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                         </svg>
                                         Inscripciones
                                     </a>
-                                    @endcan
+                                    @endif
 
                                     <!-- Contactos -->
-                                    @can('marketing_contact.view')
+                                    @if(auth()->user()->can('marketing_contact.view') || auth()->user()->can('marketing_contact.view_own') || auth()->user()->can('marketing_contact.view_team'))
                                     <a href="{{ route('marketing-contacts.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('marketing-contacts.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('marketing-contacts.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                         </svg>
                                         Contactos
                                     </a>
-                                    @endcan
+                                    @endif
 
                                     <!-- Equipos -->
                                     @can('marketing.manage_teams')
@@ -687,7 +687,7 @@
                             @endif
 
                             <!-- Diseño - Desplegable -->
-                            @if(auth()->user()->can('content_pillar.view') || auth()->user()->can('type_of_art.view') || auth()->user()->can('content.view'))
+                            @if(auth()->user()->can('content_pillar.view') || auth()->user()->can('type_of_art.view') || auth()->user()->can('content.view') || auth()->user()->can('content.view_own'))
                             <div x-data="{ open: {{ request()->routeIs('content-pillars.*') || request()->routeIs('type-of-arts.*') || request()->routeIs('type_of_arts.*') || request()->routeIs('art-requests.*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -721,14 +721,14 @@
                                     @endcan
 
                                     <!-- Solicitud de Artes -->
-                                    @can('content.view')
+                                    @if(auth()->user()->can('content.view') || auth()->user()->can('content.view_own'))
                                     <a href="{{ route('art_requests.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('art-requests.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                         <svg class="mr-4 h-5 w-5 {{ request()->routeIs('art-requests.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                         </svg>
                                         Solicitud de Artes
                                     </a>
-                                    @endcan
+                                    @endif
                                 </div>
                             </div>
                             @endif

@@ -137,6 +137,7 @@ class RoleController extends Controller
             'academic'                 => 'Dashboard Académico',
             'accounting'               => 'Dashboard Contabilidad',
             'design'                   => 'Dashboard Diseño',
+            'view_own'                 => 'Ver (solo propios)',
             'edit_own'                 => 'Editar (solo propios)',
             'delete_own'               => 'Eliminar (solo propios)',
             'view_team'                => 'Ver equipo',
