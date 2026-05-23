@@ -10,8 +10,8 @@
                 <p class="mt-2 text-gray-600">Gestión de asignaciones de programas y cobros</p>
             </div>
             
-            <!-- Filtros por Mes y Año -->
-            <form id="filterForm" method="GET" action="{{ route('dashboard.accounting') }}" class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-sm sm:max-w-md">
+            <!-- Filtros por Mes, Año y Responsable de Cartera -->
+            <form id="filterForm" method="GET" action="{{ route('dashboard.accounting') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-2xl">
                 <div>
                     <label for="mes" class="block text-sm font-medium text-gray-700 mb-2">Filtro por Mes</label>
                     <select id="mes" name="mes" onchange="document.getElementById('filterForm').submit()" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
@@ -36,6 +36,15 @@
                         <option value="2024" {{ $year == 2024 ? 'selected' : '' }}>2024</option>
                         <option value="2025" {{ $year == 2025 ? 'selected' : '' }}>2025</option>
                         <option value="2026" {{ $year == 2026 ? 'selected' : '' }}>2026</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="responsable_cartera" class="block text-sm font-medium text-gray-700 mb-2">Responsable Cartera</label>
+                    <select id="responsable_cartera" name="responsable_cartera" onchange="document.getElementById('filterForm').submit()" class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Todos</option>
+                        @foreach($users as $user)
+                            <option value="{{ $user->id }}" {{ $responsableCartera == $user->id ? 'selected' : '' }}>{{ $user->name }}</option>
+                        @endforeach
                     </select>
                 </div>
             </form>

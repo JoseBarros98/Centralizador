@@ -159,6 +159,7 @@
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
                                 <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Título</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Solicitante</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Diseñador</th>
@@ -166,12 +167,49 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Entrega</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
                                 @forelse($artRequests as $request)
                                     <tr class="{{ $request->isOverdue() ? 'bg-red-50' : '' }}">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                            <div class="flex space-x-3">
+                                                <a href="{{ route('art_requests.show', $request) }}"
+                                                   class="text-indigo-600 hover:text-indigo-900"
+                                                   title="Ver detalles">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                    </svg>
+                                                    <span class="sr-only">Ver</span>
+                                                </a>
+                                                @if(auth()->user() && (auth()->user()->can('content.edit') || (auth()->user()->can('content.edit_own') && auth()->id() === (int) $request->created_by)))
+                                                <a href="{{ route('art_requests.edit', $request) }}"
+                                                   class="text-yellow-600 hover:text-yellow-900"
+                                                   title="Editar solicitud">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                    </svg>
+                                                    <span class="sr-only">Editar</span>
+                                                </a>
+                                                @endif
+
+                                                @if(auth()->user() && (auth()->user()->can('content.delete') || (auth()->user()->can('content.delete_own') && auth()->id() === (int) $request->created_by)))
+                                                <form method="POST" action="{{ route('art_requests.destroy', $request) }}" class="inline" onsubmit="return confirm('¿Estás seguro de eliminar esta solicitud?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                            class="text-red-600 hover:text-red-900"
+                                                            title="Eliminar solicitud">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                        </svg>
+                                                        <span class="sr-only">Eliminar</span>
+                                                    </button>
+                                                </form>
+                                                @endif
+                                            </div>
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             <div class="flex items-center">
                                                 @if($request->isOverdue())
@@ -231,45 +269,6 @@
                                                     Vencida hace {{ $request->delivery_date->diffForHumans() }}
                                                 </div>
                                             @endif
-                                        </td>
-                                        
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            <div class="flex space-x-3">
-                                                <a href="{{ route('art_requests.show', $request) }}" 
-                                                   class="text-indigo-600 hover:text-indigo-900"
-                                                   title="Ver detalles">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                    </svg>
-                                                    <span class="sr-only">Ver</span>
-                                                </a>
-                                                @if(auth()->user() && (auth()->user()->can('content.edit') || (auth()->user()->can('content.edit_own') && auth()->id() === (int) $request->created_by)))
-                                                <a href="{{ route('art_requests.edit', $request) }}"
-                                                   class="text-yellow-600 hover:text-yellow-900"
-                                                   title="Editar solicitud">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    <span class="sr-only">Editar</span>
-                                                </a>
-                                                @endif
-
-                                                @if(auth()->user() && (auth()->user()->can('content.delete') || (auth()->user()->can('content.delete_own') && auth()->id() === (int) $request->created_by)))
-                                                <form method="POST" action="{{ route('art_requests.destroy', $request) }}" class="inline" onsubmit="return confirm('¿Estás seguro de eliminar esta solicitud?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" 
-                                                            class="text-red-600 hover:text-red-900"
-                                                            title="Eliminar solicitud">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                        </svg>
-                                                        <span class="sr-only">Eliminar</span>
-                                                    </button>
-                                                </form>
-                                                @endif
-                                            </div>
                                         </td>
                                     </tr>
                                 @empty

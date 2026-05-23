@@ -11,18 +11,18 @@ class AccountingDashboardController extends Controller
 {
     public function index(Request $request): View
     {
-        // Obtener mes y año del request, por defecto los actuales
         $mes = $request->get('mes', date('n'));
         $year = $request->get('year', date('Y'));
-        
-        // Crear query base filtrada por mes (campo mes) y año (created_at)
+        $responsableCartera = $request->get('responsable_cartera');
+
+        $users = User::role('accountant')->orderBy('name')->get();
+
         $query = ProgramAllocation::where('mes', $mes)
-            ->whereYear('created_at', $year);
-        
-        // Obtener totales para el mes actual
+            ->whereYear('created_at', $year)
+            ->when($responsableCartera, fn($q) => $q->where('responsable_cartera', $responsableCartera));
+
         $totalAsignacion = $query->sum('asignacion_programa');
-        
-        // Calcular cobrado (máximo monto de cada asignación) para el mes
+
         $totalCobrado = $query->get()
             ->sum(function($allocation) {
                 $montos = [
@@ -38,15 +38,13 @@ class AccountingDashboardController extends Controller
 
         $porcentajeTotalAlcanzado = $totalAsignacion > 0 ? ($totalCobrado / $totalAsignacion) * 100 : 0;
 
-
-        // Datos para gráficos
         $chartData = [
             'months' => $this->getMonthLabels(),
-            'assignmentsByMonth' => $this->getAssignmentsByMonth($year),
-            'collectionsByMonth' => $this->getCollectionsByMonth($year),
-            'topAccountants' => $this->getTopAccountants($mes, $year),
-            'categories' => $this->getCategoriesData($mes, $year),
-            'programComparison' => $this->getProgramComparison($mes, $year)
+            'assignmentsByMonth' => $this->getAssignmentsByMonth($year, $responsableCartera),
+            'collectionsByMonth' => $this->getCollectionsByMonth($year, $responsableCartera),
+            'topAccountants' => $this->getTopAccountants($mes, $year, $responsableCartera),
+            'categories' => $this->getCategoriesData($mes, $year, $responsableCartera),
+            'programComparison' => $this->getProgramComparison($mes, $year, $responsableCartera)
         ];
 
         return view('dashboard.accounting', compact(
@@ -55,7 +53,9 @@ class AccountingDashboardController extends Controller
             'porcentajeTotalAlcanzado',
             'chartData',
             'mes',
-            'year'
+            'year',
+            'users',
+            'responsableCartera'
         ));
     }
 
@@ -68,24 +68,26 @@ class AccountingDashboardController extends Controller
         return $months;
     }
 
-    private function getAssignmentsByMonth($year): array
+    private function getAssignmentsByMonth($year, $responsableCartera = null): array
     {
         $data = [];
         for ($month = 1; $month <= 12; $month++) {
             $total = ProgramAllocation::where('mes', $month)
                 ->whereYear('created_at', $year)
+                ->when($responsableCartera, fn($q) => $q->where('responsable_cartera', $responsableCartera))
                 ->sum('asignacion_programa');
             $data[] = $total;
         }
         return $data;
     }
 
-    private function getCollectionsByMonth($year): array
+    private function getCollectionsByMonth($year, $responsableCartera = null): array
     {
         $data = [];
         for ($month = 1; $month <= 12; $month++) {
             $total = ProgramAllocation::where('mes', $month)
                 ->whereYear('created_at', $year)
+                ->when($responsableCartera, fn($q) => $q->where('responsable_cartera', $responsableCartera))
                 ->get()
                 ->sum(function($allocation) {
                     $montos = [
@@ -103,11 +105,12 @@ class AccountingDashboardController extends Controller
         return $data;
     }
 
-    private function getTopAccountants($mes, $year): array
+    private function getTopAccountants($mes, $year, $responsableCartera = null): array
     {
         $accountants = ProgramAllocation::where('mes', $mes)
             ->whereYear('created_at', $year)
             ->where('responsable_cartera', '!=', null)
+            ->when($responsableCartera, fn($q) => $q->where('responsable_cartera', $responsableCartera))
             ->selectRaw('responsable_cartera, COUNT(*) as count')
             ->groupBy('responsable_cartera')
             ->orderByDesc('count')
@@ -143,10 +146,11 @@ class AccountingDashboardController extends Controller
         ];
     }
 
-    private function getCategoriesData($mes, $year): array
+    private function getCategoriesData($mes, $year, $responsableCartera = null): array
     {
         $allocations = ProgramAllocation::where('mes', $mes)
             ->whereYear('created_at', $year)
+            ->when($responsableCartera, fn($q) => $q->where('responsable_cartera', $responsableCartera))
             ->with('program')->get();
         
         $categories = [
@@ -176,10 +180,11 @@ class AccountingDashboardController extends Controller
         ];
     }
 
-    private function getProgramComparison($mes, $year): array
+    private function getProgramComparison($mes, $year, $responsableCartera = null): array
     {
         $allocations = ProgramAllocation::where('mes', $mes)
             ->whereYear('created_at', $year)
+            ->when($responsableCartera, fn($q) => $q->where('responsable_cartera', $responsableCartera))
             ->with('program')
             ->selectRaw('program_id, SUM(asignacion_programa) as total_assigned')
             ->groupBy('program_id')
@@ -195,9 +200,10 @@ class AccountingDashboardController extends Controller
             if ($allocation->program) {
                 $labels[] = $allocation->program->name;
                 $assignments[] = $allocation->total_assigned ?? 0;
-                
+
                 $totalCobrado = ProgramAllocation::where('mes', $mes)
                     ->whereYear('created_at', $year)
+                    ->when($responsableCartera, fn($q) => $q->where('responsable_cartera', $responsableCartera))
                     ->where('program_id', $allocation->program_id)
                     ->get()
                     ->sum(function($alloc) {
