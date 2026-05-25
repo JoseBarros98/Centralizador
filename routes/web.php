@@ -31,6 +31,10 @@ use App\Http\Controllers\ArtRequestModificationController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\MarketingTeamController;
 use App\Http\Controllers\MarketingContactController;
+use App\Http\Controllers\MarketingGoalController;
+use App\Http\Controllers\MarketingGoalWeekController;
+use App\Http\Controllers\MarketingGoalWeekEntryController;
+use App\Http\Controllers\MarketingCourseTypeController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\ProfessionController;
 use App\Http\Controllers\PaymentRequestController;
@@ -289,6 +293,18 @@ Route::middleware('auth')->group(function () {
   Route::patch('/marketing-teams/{marketingTeam}/members/{user}/deactivate', [MarketingTeamController::class, 'deactivateMember'])->name('marketing-teams.deactivate-member');
   Route::delete('/marketing-teams/{marketingTeam}/members/{user}', [MarketingTeamController::class, 'removeMember'])->name('marketing-teams.remove-member');
   Route::patch('/marketing-teams/{marketingTeam}/restore', [MarketingTeamController::class, 'restore'])->name('marketing-teams.restore');
+
+  // Rutas para metas de marketing
+  Route::prefix('marketing-goals')->name('marketing-goals.')->group(function () {
+      Route::get('/', [MarketingGoalController::class, 'index'])->name('index');
+      Route::post('/', [MarketingGoalController::class, 'store'])->name('store');
+      Route::patch('/{marketingGoal}', [MarketingGoalController::class, 'update'])->name('update');
+      Route::delete('/{marketingGoal}', [MarketingGoalController::class, 'destroy'])->name('destroy');
+  });
+  Route::patch('marketing-goal-weeks/{marketingGoalWeek}', [MarketingGoalWeekController::class, 'update'])->name('marketing-goal-weeks.update');
+  Route::patch('marketing-goal-week-entries/{weekId}/{courseTypeId}', [MarketingGoalWeekEntryController::class, 'update'])->name('marketing-goal-week-entries.update');
+  Route::post('marketing-course-types', [MarketingCourseTypeController::class, 'store'])->name('marketing-course-types.store');
+  Route::post('marketing-course-types/{marketingCourseType}/toggle-month', [MarketingCourseTypeController::class, 'toggleMonth'])->name('marketing-course-types.toggle-month');
 
   // Rutas para Google Drive (solo administradores)
   Route::prefix('admin')->name('admin.')->group(function () {

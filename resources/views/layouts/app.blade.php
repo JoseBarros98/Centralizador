@@ -168,8 +168,8 @@
                                 @endif
 
                                 <!-- Marketing - Desplegable -->
-                                @if(auth()->user()->can('inscription.view') || auth()->user()->can('inscription.view_own') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing_contact.view') || auth()->user()->can('marketing_contact.view_own') || auth()->user()->can('marketing_contact.view_team'))
-                                <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') || request()->routeIs('marketing-contacts.*') ? 'true' : 'false' }} }">
+                                @if(auth()->user()->can('inscription.view') || auth()->user()->can('inscription.view_own') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing.manage_goals') || auth()->user()->can('marketing_contact.view') || auth()->user()->can('marketing_contact.view_own') || auth()->user()->can('marketing_contact.view_team'))
+                                <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') || request()->routeIs('marketing-contacts.*') || request()->routeIs('marketing-goals.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Marketing" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.891 15.107 15.11 8.89m-5.183-.52h.01m3.089 7.254h.01M14.08 3.902a2.849 2.849 0 0 0 2.176.902 2.845 2.845 0 0 1 2.94 2.94 2.849 2.849 0 0 0 .901 2.176 2.847 2.847 0 0 1 0 4.16 2.848 2.848 0 0 0-.901 2.175 2.843 2.843 0 0 1-2.94 2.94 2.848 2.848 0 0 0-2.176.902 2.847 2.847 0 0 1-4.16 0 2.85 2.85 0 0 0-2.176-.902 2.845 2.845 0 0 1-2.94-2.94 2.848 2.848 0 0 0-.901-2.176 2.848 2.848 0 0 1 0-4.16 2.849 2.849 0 0 0 .901-2.176 2.845 2.845 0 0 1 2.941-2.94 2.849 2.849 0 0 0 2.176-.901 2.847 2.847 0 0 1 4.159 0Z"/>
@@ -200,6 +200,16 @@
                                             Contactos
                                         </a>
                                         @endif
+
+                                        <!-- Metas -->
+                                        @can('marketing.manage_goals')
+                                        <a href="{{ route('marketing-goals.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('marketing-goals.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('marketing-goals.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                            </svg>
+                                            Metas
+                                        </a>
+                                        @endcan
 
                                         <!-- Equipos -->
                                         @can('marketing.manage_teams')
@@ -581,9 +591,9 @@
                             </div>
                             @endif
 
-                            <!-- Martketing - Desplegable -->
-                            @if(auth()->user()->can('inscription.view') || auth()->user()->can('inscription.view_own') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing_contact.view') || auth()->user()->can('marketing_contact.view_own') || auth()->user()->can('marketing_contact.view_team'))
-                            <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') || request()->routeIs('marketing-contacts.*') ? 'true' : 'false' }} }">
+                            <!-- Marketing - Desplegable -->
+                            @if(auth()->user()->can('inscription.view') || auth()->user()->can('inscription.view_own') || auth()->user()->can('marketing.manage_teams') || auth()->user()->can('marketing.manage_goals') || auth()->user()->can('marketing_contact.view') || auth()->user()->can('marketing_contact.view_own') || auth()->user()->can('marketing_contact.view_team'))
+                            <div x-data="{ open: {{ request()->routeIs('inscriptions.*') || request()->routeIs('marketing-teams.*') || request()->routeIs('marketing-contacts.*') || request()->routeIs('marketing-goals.*') ? 'true' : 'false' }} }">
                                 <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                     <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.891 15.107 15.11 8.89m-5.183-.52h.01m3.089 7.254h.01M14.08 3.902a2.849 2.849 0 0 0 2.176.902 2.845 2.845 0 0 1 2.94 2.94 2.849 2.849 0 0 0 .901 2.176 2.847 2.847 0 0 1 0 4.16 2.848 2.848 0 0 0-.901 2.175 2.843 2.843 0 0 1-2.94 2.94 2.848 2.848 0 0 0-2.176.902 2.847 2.847 0 0 1-4.16 0 2.85 2.85 0 0 0-2.176-.902 2.845 2.845 0 0 1-2.94-2.94 2.848 2.848 0 0 0-.901-2.176 2.848 2.848 0 0 1 0-4.16 2.849 2.849 0 0 0 .901-2.176 2.845 2.845 0 0 1 2.941-2.94 2.849 2.849 0 0 0 2.176-.901 2.847 2.847 0 0 1 4.159 0Z"/>
@@ -614,6 +624,16 @@
                                         Contactos
                                     </a>
                                     @endif
+
+                                    <!-- Metas -->
+                                    @can('marketing.manage_goals')
+                                    <a href="{{ route('marketing-goals.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('marketing-goals.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                                        <svg class="mr-4 h-5 w-5 {{ request()->routeIs('marketing-goals.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                        </svg>
+                                        Metas
+                                    </a>
+                                    @endcan
 
                                     <!-- Equipos -->
                                     @can('marketing.manage_teams')
