@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        Schema::dropIfExists('marketing_course_type_hidden_months');
+
         Schema::create('marketing_course_type_hidden_months', function (Blueprint $table) {
             $table->id();
             $table->foreignId('course_type_id')->constrained('marketing_course_types')->onDelete('cascade');
@@ -15,7 +17,7 @@ return new class extends Migration
             $table->smallInteger('year')->unsigned();
             $table->timestamps();
 
-            $table->unique(['course_type_id', 'month', 'year']);
+            $table->unique(['course_type_id', 'month', 'year'], 'mkt_ct_hidden_months_unique');
         });
     }
 

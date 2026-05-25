@@ -49,7 +49,8 @@ class MarketingGoalController extends Controller
             }
         }
 
-        $users       = User::role('marketing')->orderBy('name')->get();
+        $users       = User::whereHas('roles', fn($q) => $q->where('name', 'like', '%marketing%'))
+                         ->orderBy('name')->get();
         $teams       = MarketingTeam::where('active', true)->orderBy('name')->get();
         $courseTypes = MarketingCourseType::where('active', true)->orderBy('sort_order')->get();
 
