@@ -14,14 +14,16 @@ class ManagementInvestment extends Model
         'investment_amount',
         'mes',
         'gestion',
+        'dia',
         'observation',
         'user_id',
     ];
 
     protected $casts = [
         'investment_amount' => 'decimal:2',
-        'mes' => 'integer',
+        'mes'     => 'integer',
         'gestion' => 'integer',
+        'dia'     => 'integer',
     ];
 
     public function user()

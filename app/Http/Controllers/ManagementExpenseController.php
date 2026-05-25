@@ -19,19 +19,15 @@ class ManagementExpenseController extends Controller
     {
         $gestion = (int) $request->get('gestion', date('Y'));
 
-        $expenses = ManagementExpense::where('gestion', $gestion)->with('user')->get();
+        // Monthly totals: SUM per (item, mes)
+        $rows = ManagementExpense::where('gestion', $gestion)
+            ->selectRaw('item, mes, SUM(expense_amount) as total')
+            ->groupBy('item', 'mes')
+            ->get();
 
         $grid = [];
-        foreach ($expenses as $expense) {
-            if (!array_key_exists($expense->item, $grid)) {
-                $grid[$expense->item] = [];
-            }
-            $grid[$expense->item][$expense->mes] = [
-                'id'     => $expense->id,
-                'amount' => (float) $expense->expense_amount,
-                'obs'    => $expense->observation ?? '',
-                'user'   => $expense->user?->name ?? '',
-            ];
+        foreach ($rows as $row) {
+            $grid[$row->item][$row->mes] = ['amount' => (float) $row->total];
         }
         ksort($grid);
         $items = array_keys($grid);
@@ -40,7 +36,36 @@ class ManagementExpenseController extends Controller
     }
 
     /**
-     * Create or update a single cell (item + mes + gestion).
+     * Return all daily records for one (item, mes, gestion) — used by the calendar modal.
+     */
+    public function monthDetail(Request $request): JsonResponse
+    {
+        $request->validate([
+            'item'    => 'required|string|max:255',
+            'mes'     => 'required|integer|between:1,12',
+            'gestion' => 'required|integer|between:2000,2100',
+        ]);
+
+        $records = ManagementExpense::where('item', $request->item)
+            ->where('mes', $request->mes)
+            ->where('gestion', $request->gestion)
+            ->with('user')
+            ->orderBy('dia')
+            ->get()
+            ->map(fn($r) => [
+                'id'     => $r->id,
+                'dia'    => $r->dia,
+                'amount' => (float) $r->expense_amount,
+                'obs'    => $r->observation ?? '',
+                'user'   => $r->user?->name ?? '',
+            ]);
+
+        return response()->json(['records' => $records]);
+    }
+
+    /**
+     * Create or update a single daily record (item + mes + gestion + dia).
+     * If amount == 0, delete the record instead (keep DB clean).
      */
     public function upsertCell(Request $request): JsonResponse
     {
@@ -48,15 +73,36 @@ class ManagementExpenseController extends Controller
             'item'           => 'required|string|max:255',
             'mes'            => 'required|integer|between:1,12',
             'gestion'        => 'required|integer|between:2000,2100',
+            'dia'            => 'required|integer|between:1,31',
             'expense_amount' => 'required|numeric|min:0',
             'observation'    => 'nullable|string|max:1000',
         ]);
+
+        if ($validated['expense_amount'] == 0) {
+            ManagementExpense::where('item', $validated['item'])
+                ->where('mes', $validated['mes'])
+                ->where('gestion', $validated['gestion'])
+                ->where('dia', $validated['dia'])
+                ->delete();
+
+            $newTotal = ManagementExpense::where('item', $validated['item'])
+                ->where('mes', $validated['mes'])
+                ->where('gestion', $validated['gestion'])
+                ->sum('expense_amount');
+
+            return response()->json([
+                'success'    => true,
+                'deleted'    => true,
+                'month_total' => (float) $newTotal,
+            ]);
+        }
 
         $expense = ManagementExpense::updateOrCreate(
             [
                 'item'    => $validated['item'],
                 'mes'     => $validated['mes'],
                 'gestion' => $validated['gestion'],
+                'dia'     => $validated['dia'],
             ],
             [
                 'expense_amount' => $validated['expense_amount'],
@@ -65,17 +111,20 @@ class ManagementExpenseController extends Controller
             ]
         );
 
+        $newTotal = ManagementExpense::where('item', $validated['item'])
+            ->where('mes', $validated['mes'])
+            ->where('gestion', $validated['gestion'])
+            ->sum('expense_amount');
+
         return response()->json([
-            'success' => true,
-            'id'      => $expense->id,
-            'amount'  => (float) $expense->expense_amount,
-            'user'    => $request->user()->name,
+            'success'     => true,
+            'id'          => $expense->id,
+            'amount'      => (float) $expense->expense_amount,
+            'month_total' => (float) $newTotal,
+            'user'        => $request->user()->name,
         ]);
     }
 
-    /**
-     * Delete all records for a given item in a gestion.
-     */
     public function destroyItem(Request $request): JsonResponse
     {
         $request->validate([
@@ -90,9 +139,6 @@ class ManagementExpenseController extends Controller
         return response()->json(['success' => true]);
     }
 
-    /**
-     * Return distinct item names for a given gestion (used for import).
-     */
     public function getItemsForYear(Request $request): JsonResponse
     {
         $gestion = (int) $request->get('gestion', date('Y'));

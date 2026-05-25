@@ -14,14 +14,16 @@ class ManagementExpense extends Model
         'expense_amount',
         'mes',
         'gestion',
+        'dia',
         'observation',
         'user_id',
     ];
 
     protected $casts = [
         'expense_amount' => 'decimal:2',
-        'mes' => 'integer',
+        'mes'     => 'integer',
         'gestion' => 'integer',
+        'dia'     => 'integer',
     ];
 
     public function user()
