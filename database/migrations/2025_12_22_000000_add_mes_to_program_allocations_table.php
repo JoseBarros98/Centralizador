@@ -11,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('program_allocations', function (Blueprint $table) {
-            // Agregar campo mes (1-12)
-            $table->integer('mes')->nullable()->after('program_id');
-            
-            // Agregar índice compuesto para programa + mes
-            $table->unique(['program_id', 'mes'])->after('mes');
+        $indexes = collect(\DB::select('SHOW INDEX FROM `program_allocations`'))->pluck('Key_name')->unique();
+
+        Schema::table('program_allocations', function (Blueprint $table) use ($indexes) {
+            if (!Schema::hasColumn('program_allocations', 'mes')) {
+                $table->integer('mes')->nullable()->after('program_id');
+            }
+            if (!$indexes->contains('program_allocations_program_id_mes_unique')) {
+                $table->unique(['program_id', 'mes']);
+            }
         });
     }
 
@@ -25,9 +28,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('program_allocations', function (Blueprint $table) {
-            $table->dropUnique(['program_id', 'mes']);
-            $table->dropColumn('mes');
+        $indexes = collect(\DB::select('SHOW INDEX FROM `program_allocations`'))->pluck('Key_name')->unique();
+
+        Schema::table('program_allocations', function (Blueprint $table) use ($indexes) {
+            if ($indexes->contains('program_allocations_program_id_mes_unique')) {
+                $table->dropUnique(['program_id', 'mes']);
+            }
+            if (Schema::hasColumn('program_allocations', 'mes')) {
+                $table->dropColumn('mes');
+            }
         });
     }
 };

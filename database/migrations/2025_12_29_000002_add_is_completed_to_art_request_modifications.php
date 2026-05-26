@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('art_request_modifications', function (Blueprint $table) {
-            $table->boolean('is_completed')->default(false)->after('details')->index();
+            if (!Schema::hasColumn('art_request_modifications', 'is_completed')) {
+                $table->boolean('is_completed')->default(false)->after('details')->index();
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('art_request_modifications', function (Blueprint $table) {
-            $table->dropColumn('is_completed');
+            if (Schema::hasColumn('art_request_modifications', 'is_completed')) {
+                $table->dropColumn('is_completed');
+            }
         });
     }
 };

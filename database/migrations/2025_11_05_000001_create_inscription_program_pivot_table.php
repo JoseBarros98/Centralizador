@@ -12,20 +12,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Crear tabla pivot para relación muchos-a-muchos
-        Schema::create('inscription_program', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('inscription_id')->constrained('inscriptions')->onDelete('cascade');
-            $table->foreignId('program_id')->constrained('programs')->onDelete('cascade');
-            $table->timestamps();
-            
-            // Evitar duplicados
-            $table->unique(['inscription_id', 'program_id']);
-        });
+        if (!Schema::hasTable('inscription_program')) {
+            Schema::create('inscription_program', function (Blueprint $table) {
+                $table->id();
+                $table->foreignId('inscription_id')->constrained('inscriptions')->onDelete('cascade');
+                $table->foreignId('program_id')->constrained('programs')->onDelete('cascade');
+                $table->timestamps();
 
-        // Migrar datos existentes de inscriptions.program_id a la tabla pivot
+                $table->unique(['inscription_id', 'program_id']);
+            });
+        }
+
+        // Migrar datos existentes; INSERT IGNORE evita duplicados si ya existen
         DB::statement('
-            INSERT INTO inscription_program (inscription_id, program_id, created_at, updated_at)
+            INSERT IGNORE INTO inscription_program (inscription_id, program_id, created_at, updated_at)
             SELECT id, program_id, created_at, updated_at
             FROM inscriptions
             WHERE program_id IS NOT NULL

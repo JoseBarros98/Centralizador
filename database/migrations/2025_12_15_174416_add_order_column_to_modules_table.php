@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('modules', function (Blueprint $table) {
-            $table->integer('order')->default(0)->after('teacher_rating')->comment('Orden del módulo en el programa');
+            if (!Schema::hasColumn('modules', 'order')) {
+                $table->integer('order')->default(0)->after('teacher_rating')->comment('Orden del módulo en el programa');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('modules', function (Blueprint $table) {
-            $table->dropColumn('order');
+            if (Schema::hasColumn('modules', 'order')) {
+                $table->dropColumn('order');
+            }
         });
     }
 };

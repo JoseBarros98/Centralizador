@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('graduation_cites', function (Blueprint $table) {
-            $table->decimal('amount_per_participant', 10, 2)->default(0)->after('payment_type');
-            $table->decimal('total_amount', 10, 2)->default(0)->after('amount_per_participant');
+            if (!Schema::hasColumn('graduation_cites', 'amount_per_participant')) {
+                $table->decimal('amount_per_participant', 10, 2)->default(0)->after('payment_type');
+            }
+            if (!Schema::hasColumn('graduation_cites', 'total_amount')) {
+                $table->decimal('total_amount', 10, 2)->default(0)->after('amount_per_participant');
+            }
         });
     }
 
@@ -23,7 +27,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('graduation_cites', function (Blueprint $table) {
-            $table->dropColumn(['amount_per_participant', 'total_amount']);
+            $drop = array_filter(
+                ['amount_per_participant', 'total_amount'],
+                fn($c) => Schema::hasColumn('graduation_cites', $c)
+            );
+            if ($drop) {
+                $table->dropColumn(array_values($drop));
+            }
         });
     }
 };

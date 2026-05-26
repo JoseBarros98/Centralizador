@@ -12,13 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            // Campo para rastrear si hay múltiples inscripciones del mismo estudiante en diferentes meses
-            $table->string('payment_group_id')->nullable()->after('local_payment_status')
-                  ->comment('ID de grupo para inscripciones del mismo CI en meses diferentes');
-            
-            // Campo para rastrear el estado consolidado (para reportes anuales)
-            $table->enum('consolidated_status', ['Pendiente', 'Adelanto', 'Completando', 'Completo'])->nullable()->after('payment_group_id')
-                  ->comment('Estado consolidado para reportes (ignora si hay Adelanto + Completando en meses diferentes)');
+            if (!Schema::hasColumn('inscriptions', 'payment_group_id')) {
+                $table->string('payment_group_id')->nullable()->after('local_payment_status')
+                      ->comment('ID de grupo para inscripciones del mismo CI en meses diferentes');
+            }
+            if (!Schema::hasColumn('inscriptions', 'consolidated_status')) {
+                $table->enum('consolidated_status', ['Pendiente', 'Adelanto', 'Completando', 'Completo'])->nullable()->after('payment_group_id')
+                      ->comment('Estado consolidado para reportes (ignora si hay Adelanto + Completando en meses diferentes)');
+            }
         });
     }
 
@@ -28,7 +29,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            $table->dropColumn(['payment_group_id', 'consolidated_status']);
+            $drop = array_filter(
+                ['payment_group_id', 'consolidated_status'],
+                fn($c) => Schema::hasColumn('inscriptions', $c)
+            );
+            if ($drop) {
+                $table->dropColumn(array_values($drop));
+            }
         });
     }
 };

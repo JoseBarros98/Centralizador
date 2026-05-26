@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            $table->string('internal_accounting_plan_type')->nullable()->after('has_diplomas_delivered');
-            $table->string('internal_accounting_billing_status')->nullable()->after('internal_accounting_plan_type');
-            $table->decimal('internal_accounting_amount_due', 10, 2)->nullable()->after('internal_accounting_billing_status');
-            $table->string('internal_accounting_graduation_payment')->nullable()->after('internal_accounting_amount_due');
+            if (!Schema::hasColumn('inscriptions', 'internal_accounting_plan_type')) {
+                $table->string('internal_accounting_plan_type')->nullable()->after('has_diplomas_delivered');
+            }
+            if (!Schema::hasColumn('inscriptions', 'internal_accounting_billing_status')) {
+                $table->string('internal_accounting_billing_status')->nullable()->after('internal_accounting_plan_type');
+            }
+            if (!Schema::hasColumn('inscriptions', 'internal_accounting_amount_due')) {
+                $table->decimal('internal_accounting_amount_due', 10, 2)->nullable()->after('internal_accounting_billing_status');
+            }
+            if (!Schema::hasColumn('inscriptions', 'internal_accounting_graduation_payment')) {
+                $table->string('internal_accounting_graduation_payment')->nullable()->after('internal_accounting_amount_due');
+            }
         });
     }
 
@@ -25,12 +33,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            $table->dropColumn([
-                'internal_accounting_plan_type',
-                'internal_accounting_billing_status',
-                'internal_accounting_amount_due',
-                'internal_accounting_graduation_payment',
-            ]);
+            $drop = array_filter([
+                'internal_accounting_plan_type', 'internal_accounting_billing_status',
+                'internal_accounting_amount_due', 'internal_accounting_graduation_payment',
+            ], fn($c) => Schema::hasColumn('inscriptions', $c));
+            if ($drop) {
+                $table->dropColumn(array_values($drop));
+            }
         });
     }
 };

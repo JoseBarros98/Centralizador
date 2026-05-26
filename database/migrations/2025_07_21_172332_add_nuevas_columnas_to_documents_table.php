@@ -12,18 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('documents', function (Blueprint $table) {
-            $table->enum('document_type', [
-                'ci',
-                'titulo',
-                'diploma',
-                'nacimiento',
-                'documentacion_completa',
-                'compromiso',
-                'congelamiento',
-                'recibo',
-                'factura',
-                'comprobante_pago'
-            ])->after('inscription_id');
+            if (!Schema::hasColumn('documents', 'document_type')) {
+                $table->enum('document_type', [
+                    'ci',
+                    'titulo',
+                    'diploma',
+                    'nacimiento',
+                    'documentacion_completa',
+                    'compromiso',
+                    'congelamiento',
+                    'recibo',
+                    'factura',
+                    'comprobante_pago'
+                ])->after('inscription_id');
+            }
         });
     }
 
@@ -33,7 +35,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('documents', function (Blueprint $table) {
-            //
+            if (Schema::hasColumn('documents', 'document_type')) {
+                $table->dropColumn('document_type');
+            }
         });
     }
 };

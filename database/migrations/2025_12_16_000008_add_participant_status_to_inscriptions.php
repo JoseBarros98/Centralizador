@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            $table->string('participant_status')->nullable()->after('status');
-            $table->text('participant_justification')->nullable()->after('participant_status');
+            if (!Schema::hasColumn('inscriptions', 'participant_status')) {
+                $table->string('participant_status')->nullable()->after('status');
+            }
+            if (!Schema::hasColumn('inscriptions', 'participant_justification')) {
+                $table->text('participant_justification')->nullable()->after('participant_status');
+            }
         });
     }
 
@@ -23,7 +27,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            $table->dropColumn(['participant_status', 'participant_justification']);
+            $drop = array_filter(
+                ['participant_status', 'participant_justification'],
+                fn($c) => Schema::hasColumn('inscriptions', $c)
+            );
+            if ($drop) {
+                $table->dropColumn(array_values($drop));
+            }
         });
     }
 };

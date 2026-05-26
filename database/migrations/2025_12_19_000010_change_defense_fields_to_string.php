@@ -12,10 +12,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            // Cambiar campos de defensa de booleano a string (texto)
-            $table->string('has_pre_defense')->nullable()->change();
-            $table->string('has_defense')->nullable()->change();
-            $table->string('has_defense_accounting_status')->nullable()->change();
+            if (Schema::hasColumn('inscriptions', 'has_pre_defense')) {
+                $table->string('has_pre_defense')->nullable()->change();
+            }
+            if (Schema::hasColumn('inscriptions', 'has_defense')) {
+                $table->string('has_defense')->nullable()->change();
+            }
+            if (Schema::hasColumn('inscriptions', 'has_defense_accounting_status')) {
+                $table->string('has_defense_accounting_status')->nullable()->change();
+            }
         });
     }
 
@@ -25,10 +30,15 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            // Revertir a booleano si es necesario
-            $table->boolean('has_pre_defense')->default(false)->change();
-            $table->boolean('has_defense')->default(false)->change();
-            $table->boolean('has_defense_accounting_status')->default(false)->change();
+            if (Schema::hasColumn('inscriptions', 'has_pre_defense')) {
+                $table->boolean('has_pre_defense')->default(false)->change();
+            }
+            if (Schema::hasColumn('inscriptions', 'has_defense')) {
+                $table->boolean('has_defense')->default(false)->change();
+            }
+            if (Schema::hasColumn('inscriptions', 'has_defense_accounting_status')) {
+                $table->boolean('has_defense_accounting_status')->default(false)->change();
+            }
         });
     }
 };

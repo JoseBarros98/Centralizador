@@ -19,7 +19,11 @@
       "Bash(ls *.yml *.yaml)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\" -Directory)",
       "Bash(Select-Object -First 20)",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\" -Directory)"
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\" -Directory)",
+      "Bash(cat >> *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"
     ]
   }
 }

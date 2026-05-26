@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('inscriptions', function (Blueprint $table) {
-            $table->string('internal_accounting_graduation_payment')->nullable()->change();
-        });
+        if (Schema::hasColumn('inscriptions', 'internal_accounting_graduation_payment')) {
+            Schema::table('inscriptions', function (Blueprint $table) {
+                $table->string('internal_accounting_graduation_payment')->nullable()->change();
+            });
+        }
     }
 
     /**
@@ -21,8 +23,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('inscriptions', function (Blueprint $table) {
-            $table->boolean('internal_accounting_graduation_payment')->default(false)->change();
-        });
+        if (Schema::hasColumn('inscriptions', 'internal_accounting_graduation_payment')) {
+            Schema::table('inscriptions', function (Blueprint $table) {
+                $table->boolean('internal_accounting_graduation_payment')->default(false)->change();
+            });
+        }
     }
 };

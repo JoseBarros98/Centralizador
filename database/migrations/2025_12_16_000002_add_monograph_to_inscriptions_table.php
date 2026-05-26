@@ -12,9 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            // Trabajo Final / Monografía
-            $table->boolean('has_monograph_elaboration')->default(false)->after('graduation_procedure_type');
-            $table->boolean('has_monograph_received')->default(false)->after('has_monograph_elaboration');
+            if (!Schema::hasColumn('inscriptions', 'has_monograph_elaboration')) {
+                $table->boolean('has_monograph_elaboration')->default(false)->after('graduation_procedure_type');
+            }
+            if (!Schema::hasColumn('inscriptions', 'has_monograph_received')) {
+                $table->boolean('has_monograph_received')->default(false)->after('has_monograph_elaboration');
+            }
         });
     }
 
@@ -24,10 +27,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            $table->dropColumn([
-                'has_monograph_elaboration',
-                'has_monograph_received',
-            ]);
+            $drop = array_filter(
+                ['has_monograph_elaboration', 'has_monograph_received'],
+                fn($c) => Schema::hasColumn('inscriptions', $c)
+            );
+            if ($drop) {
+                $table->dropColumn(array_values($drop));
+            }
         });
     }
 };

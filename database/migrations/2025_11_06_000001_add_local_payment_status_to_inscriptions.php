@@ -12,20 +12,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('inscriptions', function (Blueprint $table) {
-            // Agregar nuevo campo para estados de pago locales
-            $table->enum('local_payment_status', ['Pendiente', 'Adelanto', 'Completando', 'Completo'])
-                  ->default('Pendiente')
-                  ->after('status')
-                  ->comment('Estado de pago local (independiente del estado académico externo)');
-        });
+        if (!Schema::hasColumn('inscriptions', 'local_payment_status')) {
+            Schema::table('inscriptions', function (Blueprint $table) {
+                $table->enum('local_payment_status', ['Pendiente', 'Adelanto', 'Completando', 'Completo'])
+                      ->default('Pendiente')
+                      ->after('status')
+                      ->comment('Estado de pago local (independiente del estado académico externo)');
+            });
 
-        // Migrar datos existentes: copiar status actual a local_payment_status
-        DB::statement("
-            UPDATE inscriptions 
-            SET local_payment_status = COALESCE(status, 'Pendiente')
-            WHERE is_synced = true
-        ");
+            DB::statement("
+                UPDATE inscriptions
+                SET local_payment_status = COALESCE(status, 'Pendiente')
+                WHERE is_synced = true
+            ");
+        }
     }
 
     /**
@@ -34,7 +34,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            $table->dropColumn('local_payment_status');
+            if (Schema::hasColumn('inscriptions', 'local_payment_status')) {
+                $table->dropColumn('local_payment_status');
+            }
         });
     }
 };

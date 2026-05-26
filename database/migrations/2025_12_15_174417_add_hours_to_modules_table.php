@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('modules', function (Blueprint $table) {
-            $table->decimal('presential_hours', 8, 2)->nullable()->after('name');
-            $table->decimal('non_presential_hours', 8, 2)->nullable()->after('presential_hours');
+            if (!Schema::hasColumn('modules', 'presential_hours')) {
+                $table->decimal('presential_hours', 8, 2)->nullable()->after('name');
+            }
+            if (!Schema::hasColumn('modules', 'non_presential_hours')) {
+                $table->decimal('non_presential_hours', 8, 2)->nullable()->after('presential_hours');
+            }
         });
 
         Schema::table('programs', function (Blueprint $table) {
@@ -29,8 +33,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('modules', function (Blueprint $table) {
-            $table->dropColumn('presential_hours');
-            $table->dropColumn('non_presential_hours');
+            if (Schema::hasColumn('modules', 'presential_hours')) {
+                $table->dropColumn('presential_hours');
+            }
+            if (Schema::hasColumn('modules', 'non_presential_hours')) {
+                $table->dropColumn('non_presential_hours');
+            }
         });
 
         Schema::table('programs', function (Blueprint $table) {

@@ -6,26 +6,34 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('art_request_files', function (Blueprint $table) {
-            $table->unsignedBigInteger('file_size')->nullable()->after('file_type');
-            $table->string('google_drive_id')->nullable()->after('file_size');
-            $table->string('google_drive_link')->nullable()->after('google_drive_id');
-            $table->boolean('stored_in_drive')->default(false)->after('google_drive_link');
+            if (!Schema::hasColumn('art_request_files', 'file_size')) {
+                $table->unsignedBigInteger('file_size')->nullable()->after('file_type');
+            }
+            if (!Schema::hasColumn('art_request_files', 'google_drive_id')) {
+                $table->string('google_drive_id')->nullable()->after('file_size');
+            }
+            if (!Schema::hasColumn('art_request_files', 'google_drive_link')) {
+                $table->string('google_drive_link')->nullable()->after('google_drive_id');
+            }
+            if (!Schema::hasColumn('art_request_files', 'stored_in_drive')) {
+                $table->boolean('stored_in_drive')->default(false)->after('google_drive_link');
+            }
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('art_request_files', function (Blueprint $table) {
-            $table->dropColumn(['file_size', 'google_drive_id', 'google_drive_link', 'stored_in_drive']);
+            $drop = array_filter(
+                ['file_size', 'google_drive_id', 'google_drive_link', 'stored_in_drive'],
+                fn($c) => Schema::hasColumn('art_request_files', $c)
+            );
+            if ($drop) {
+                $table->dropColumn(array_values($drop));
+            }
         });
     }
 };
