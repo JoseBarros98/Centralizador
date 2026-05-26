@@ -44,7 +44,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Composicion de Egresos</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Composición de Egresos</h3>
                 <canvas id="expenseCompositionChart"></canvas>
             </div>
 
@@ -59,7 +59,7 @@
             </div>
 
             <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Proyeccion de Cierre Anual</h3>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Proyección de Cierre Anual</h3>
                 <canvas id="annualProjectionChart"></canvas>
             </div>
         </div>
@@ -73,6 +73,14 @@
         return 'Bs. ' + Number(value).toLocaleString();
     }
 
+    function renderEmptyState(canvasEl, message) {
+        canvasEl.style.display = 'none';
+        const div = document.createElement('div');
+        div.className = 'flex flex-col items-center justify-center py-12 text-gray-400';
+        div.innerHTML = `<svg class="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p class="text-sm">${message}</p>`;
+        canvasEl.parentNode.appendChild(div);
+    }
+
     const moneyScale = {
         beginAtZero: true,
         ticks: {
@@ -82,195 +90,257 @@
         }
     };
 
-    new Chart(document.getElementById('incomeExpenseChart'), {
-        type: 'bar',
-        data: {
-            labels: chartData.months,
-            datasets: [
-                {
-                    type: 'bar',
-                    label: 'Ingresos',
-                    data: chartData.incomeSeries,
-                    backgroundColor: 'rgba(16, 185, 129, 0.45)',
-                    borderColor: 'rgb(16, 185, 129)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                },
-                {
-                    type: 'line',
-                    label: 'Egresos (Gastos + Inversiones)',
-                    data: chartData.expenseSeries,
-                    borderColor: 'rgb(244, 63, 94)',
-                    backgroundColor: 'rgba(244, 63, 94, 0.12)',
-                    borderWidth: 3,
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 3,
-                    pointHoverRadius: 5
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            aspectRatio: 2.5,
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                y: moneyScale
+    const moneyTooltip = {
+        callbacks: {
+            label: function(ctx) {
+                return ctx.dataset.label + ': Bs. ' + Number(ctx.parsed.y).toLocaleString();
             }
         }
-    });
+    };
 
-    new Chart(document.getElementById('expenseCompositionChart'), {
-        type: 'doughnut',
-        data: {
-            labels: chartData.expenseComposition.labels,
-            datasets: [
-                {
-                    data: chartData.expenseComposition.values,
-                    backgroundColor: [
-                        'rgba(244, 63, 94, 0.5)',
-                        'rgba(251, 146, 60, 0.5)'
-                    ],
-                    borderColor: [
-                        'rgb(244, 63, 94)',
-                        'rgb(251, 146, 60)'
-                    ],
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            aspectRatio: 2,
-            plugins: {
-                legend: { position: 'right' }
-            }
-        }
-    });
-
-    new Chart(document.getElementById('accumulatedChart'), {
-        type: 'line',
-        data: {
-            labels: chartData.months,
-            datasets: [
-                {
-                    label: 'Ingresos Acumulados',
-                    data: chartData.incomeAccumulated,
-                    borderColor: 'rgb(16, 185, 129)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                    borderWidth: 3,
-                    fill: false,
-                    tension: 0.25,
-                    pointRadius: 2
-                },
-                {
-                    label: 'Egresos Acumulados',
-                    data: chartData.expenseAccumulated,
-                    borderColor: 'rgb(220, 38, 38)',
-                    backgroundColor: 'rgba(220, 38, 38, 0.12)',
-                    borderWidth: 3,
-                    fill: false,
-                    tension: 0.25,
-                    pointRadius: 2
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            aspectRatio: 2,
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                y: moneyScale
-            }
-        }
-    });
-
-    new Chart(document.getElementById('monthlyDifferenceChart'), {
-        type: 'bar',
-        data: {
-            labels: chartData.months,
-            datasets: [
-                {
-                    label: 'Diferencia Mensual',
-                    data: chartData.balanceSeries,
-                    backgroundColor: chartData.balanceSeries.map(value => value >= 0 ? 'rgba(59, 130, 246, 0.45)' : 'rgba(245, 158, 11, 0.45)'),
-                    borderColor: chartData.balanceSeries.map(value => value >= 0 ? 'rgb(59, 130, 246)' : 'rgb(245, 158, 11)'),
-                    borderWidth: 1,
-                    borderRadius: 4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            aspectRatio: 2,
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                y: {
-                    ticks: {
-                        callback: function(value) {
-                            return bsTick(value);
-                        }
+    // Comparativa Mensual
+    const incomeExpenseCanvas = document.getElementById('incomeExpenseChart');
+    const hasMainData = (chartData.incomeSeries || []).some(v => v > 0) || (chartData.expenseSeries || []).some(v => v > 0);
+    if (!hasMainData) {
+        renderEmptyState(incomeExpenseCanvas, 'Sin datos para el período seleccionado');
+    } else {
+        new Chart(incomeExpenseCanvas, {
+            type: 'bar',
+            data: {
+                labels: chartData.months,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Ingresos',
+                        data: chartData.incomeSeries,
+                        backgroundColor: 'rgba(16, 185, 129, 0.45)',
+                        borderColor: 'rgb(16, 185, 129)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        type: 'line',
+                        label: 'Egresos (Gastos + Inversiones)',
+                        data: chartData.expenseSeries,
+                        borderColor: 'rgb(244, 63, 94)',
+                        backgroundColor: 'rgba(244, 63, 94, 0.12)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
                     }
+                ]
+            },
+            options: {
+                responsive: true,
+                aspectRatio: 2.5,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: moneyTooltip
+                },
+                scales: {
+                    y: moneyScale
                 }
             }
-        }
-    });
+        });
+    }
 
-    new Chart(document.getElementById('annualProjectionChart'), {
-        type: 'line',
-        data: {
-            labels: chartData.months,
-            datasets: [
-                {
-                    label: 'Proyeccion Ingresos (cierre anual)',
-                    data: chartData.incomeProjectionSeries,
-                    borderColor: 'rgb(5, 150, 105)',
-                    backgroundColor: 'rgba(5, 150, 105, 0.1)',
-                    borderWidth: 3,
-                    tension: 0.25,
-                    fill: false,
-                    pointRadius: 3,
-                    spanGaps: false
-                },
-                {
-                    label: 'Proyeccion Egresos (cierre anual)',
-                    data: chartData.expenseProjectionSeries,
-                    borderColor: 'rgb(225, 29, 72)',
-                    backgroundColor: 'rgba(225, 29, 72, 0.1)',
-                    borderWidth: 3,
-                    tension: 0.25,
-                    fill: false,
-                    pointRadius: 3,
-                    spanGaps: false
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            aspectRatio: 2,
-            plugins: {
-                legend: { display: true },
-                tooltip: {
-                    callbacks: {
-                        footer: function() {
-                            if (chartData.lastMonthWithData > 0) {
-                                return 'Estimacion basada hasta ' + chartData.months[chartData.lastMonthWithData - 1];
+    // Composición de Egresos — barra horizontal apilada
+    const expCompCanvas = document.getElementById('expenseCompositionChart');
+    const hasCompData = (chartData.expenseComposition.values || []).some(v => v > 0);
+    if (!hasCompData) {
+        renderEmptyState(expCompCanvas, 'Sin datos de egresos para el período');
+    } else {
+        const compColors = ['rgba(244, 63, 94, 0.6)', 'rgba(251, 146, 60, 0.6)'];
+        const compBorders = ['rgb(244, 63, 94)', 'rgb(251, 146, 60)'];
+        new Chart(expCompCanvas, {
+            type: 'bar',
+            data: {
+                labels: ['Egresos'],
+                datasets: chartData.expenseComposition.labels.map((label, i) => ({
+                    label: label,
+                    data: [chartData.expenseComposition.values[i]],
+                    backgroundColor: compColors[i] ?? 'rgba(156, 163, 175, 0.6)',
+                    borderColor: compBorders[i] ?? 'rgb(156, 163, 175)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }))
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                aspectRatio: 2,
+                plugins: {
+                    legend: { position: 'bottom' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': Bs. ' + Number(ctx.parsed.x).toLocaleString();
                             }
-                            return 'Sin datos suficientes para proyectar';
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        ticks: { callback: function(value) { return bsTick(value); } }
+                    },
+                    y: { stacked: true }
+                }
+            }
+        });
+    }
+
+    // Acumulado Anual
+    const accCanvas = document.getElementById('accumulatedChart');
+    const hasAccData = (chartData.incomeAccumulated || []).some(v => v > 0) || (chartData.expenseAccumulated || []).some(v => v > 0);
+    if (!hasAccData) {
+        renderEmptyState(accCanvas, 'Sin datos acumulados para el período');
+    } else {
+        new Chart(accCanvas, {
+            type: 'line',
+            data: {
+                labels: chartData.months,
+                datasets: [
+                    {
+                        label: 'Ingresos Acumulados',
+                        data: chartData.incomeAccumulated,
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.25,
+                        pointRadius: 2
+                    },
+                    {
+                        label: 'Egresos Acumulados',
+                        data: chartData.expenseAccumulated,
+                        borderColor: 'rgb(220, 38, 38)',
+                        backgroundColor: 'rgba(220, 38, 38, 0.12)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.25,
+                        pointRadius: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                aspectRatio: 2,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: moneyTooltip
+                },
+                scales: {
+                    y: moneyScale
+                }
+            }
+        });
+    }
+
+    // Diferencia por Mes
+    const diffCanvas = document.getElementById('monthlyDifferenceChart');
+    const hasDiffData = (chartData.balanceSeries || []).some(v => v !== 0);
+    if (!hasDiffData) {
+        renderEmptyState(diffCanvas, 'Sin diferencias registradas para el período');
+    } else {
+        new Chart(diffCanvas, {
+            type: 'bar',
+            data: {
+                labels: chartData.months,
+                datasets: [
+                    {
+                        label: 'Diferencia Mensual',
+                        data: chartData.balanceSeries,
+                        backgroundColor: chartData.balanceSeries.map(v => v >= 0 ? 'rgba(59, 130, 246, 0.45)' : 'rgba(245, 158, 11, 0.45)'),
+                        borderColor: chartData.balanceSeries.map(v => v >= 0 ? 'rgb(59, 130, 246)' : 'rgb(245, 158, 11)'),
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                aspectRatio: 2,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': Bs. ' + Number(ctx.parsed.y).toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return bsTick(value);
+                            }
                         }
                     }
                 }
-            },
-            scales: {
-                y: moneyScale
             }
-        }
-    });
+        });
+    }
+
+    // Proyección de Cierre Anual
+    const projCanvas = document.getElementById('annualProjectionChart');
+    if (!chartData.lastMonthWithData || chartData.lastMonthWithData < 1) {
+        renderEmptyState(projCanvas, 'Sin datos suficientes para proyectar');
+    } else {
+        new Chart(projCanvas, {
+            type: 'line',
+            data: {
+                labels: chartData.months,
+                datasets: [
+                    {
+                        label: 'Proyección Ingresos (cierre anual)',
+                        data: chartData.incomeProjectionSeries,
+                        borderColor: 'rgb(5, 150, 105)',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.25,
+                        fill: false,
+                        pointRadius: 3,
+                        spanGaps: false
+                    },
+                    {
+                        label: 'Proyección Egresos (cierre anual)',
+                        data: chartData.expenseProjectionSeries,
+                        borderColor: 'rgb(225, 29, 72)',
+                        backgroundColor: 'rgba(225, 29, 72, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.25,
+                        fill: false,
+                        pointRadius: 3,
+                        spanGaps: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                aspectRatio: 2,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': Bs. ' + Number(ctx.parsed.y).toLocaleString();
+                            },
+                            footer: function() {
+                                return 'Estimación basada hasta ' + chartData.months[chartData.lastMonthWithData - 1];
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: moneyScale
+                }
+            }
+        });
+    }
 </script>
 @endsection

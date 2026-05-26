@@ -353,6 +353,14 @@ const popularProgramsData = @json($popularProgramsData);
 // Esperar a que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function() {
 
+function renderEmptyState(canvasEl, message) {
+    canvasEl.style.display = 'none';
+    const div = document.createElement('div');
+    div.className = 'flex flex-col items-center justify-center h-full text-gray-400';
+    div.innerHTML = `<svg class="w-10 h-10 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p class="text-sm">${message}</p>`;
+    canvasEl.parentNode.appendChild(div);
+}
+
 function formatProgramLabelLines(label, charsPerLine = 28, maxLines = 3) {
     if (!label) return '';
 
@@ -402,7 +410,12 @@ function formatProgramLabelLines(label, charsPerLine = 28, maxLines = 3) {
 }
 
 // Gráfico de Programas por Área
-const areaCtx = document.getElementById('programsByAreaChart').getContext('2d');
+const areaCanvas = document.getElementById('programsByAreaChart');
+const hasAreaData = Object.values(programsByAreaData || {}).some(v => v > 0);
+if (!hasAreaData) {
+    renderEmptyState(areaCanvas, 'Sin programas por área');
+} else {
+const areaCtx = areaCanvas.getContext('2d');
 new Chart(areaCtx, {
     type: 'doughnut',
     data: {
@@ -445,9 +458,15 @@ new Chart(areaCtx, {
         }
     }
 });
+} // end area empty-state guard
 
 // Gráfico de Programas por Tipo
-const programTypeCtx = document.getElementById('programsByTypeChart').getContext('2d');
+const typeCanvas = document.getElementById('programsByTypeChart');
+const hasTypeData = (programsByTypeData || []).some(item => item.total > 0);
+if (!hasTypeData) {
+    renderEmptyState(typeCanvas, 'Sin programas por tipo');
+} else {
+const programTypeCtx = typeCanvas.getContext('2d');
 new Chart(programTypeCtx, {
     type: 'doughnut',
     data: {
@@ -490,6 +509,7 @@ new Chart(programTypeCtx, {
         }
     }
 });
+} // end type empty-state guard
 
 /* // Gráfico de Inscripciones por Año - Canvas no existe en la vista
 const yearCtx = document.getElementById('inscriptionsByYearChart').getContext('2d');
@@ -639,9 +659,13 @@ if (popularCtx && popularProgramsData && popularProgramsData.length > 0) {
     }
 }
 
-// Grafico: Estado por Programa
 // Gráfico de Programas por Estado
-const stateCtx = document.getElementById('programsByStateChart').getContext('2d');
+const stateCanvas = document.getElementById('programsByStateChart');
+const hasStateData = Object.values(programsByStateData || {}).some(v => v > 0);
+if (!hasStateData) {
+    renderEmptyState(stateCanvas, 'Sin programas por estado');
+} else {
+const stateCtx = stateCanvas.getContext('2d');
 new Chart(stateCtx, {
     type: 'bar',
     data: {
@@ -710,6 +734,7 @@ new Chart(stateCtx, {
         }
     }
 });
+} // end state empty-state guard
 
 }); // Fin de DOMContentLoaded
 

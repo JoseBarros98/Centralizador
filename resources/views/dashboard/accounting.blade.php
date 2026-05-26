@@ -163,215 +163,212 @@
     const chartData = @json($chartData);
 
     function wrapLabel(text, maxCharsPerLine = 26) {
-        if (!text || text.length <= maxCharsPerLine) {
-            return text;
-        }
-
+        if (!text || text.length <= maxCharsPerLine) return text;
         const words = text.split(' ');
         const lines = [];
         let currentLine = '';
-
         words.forEach(word => {
             const candidate = currentLine ? `${currentLine} ${word}` : word;
             if (candidate.length <= maxCharsPerLine) {
                 currentLine = candidate;
             } else {
-                if (currentLine) {
-                    lines.push(currentLine);
-                }
+                if (currentLine) lines.push(currentLine);
                 currentLine = word;
             }
         });
-
-        if (currentLine) {
-            lines.push(currentLine);
-        }
-
+        if (currentLine) lines.push(currentLine);
         return lines;
     }
 
-    // Gráfico combinado: Asignaciones y Cobros por Mes
-    new Chart(document.getElementById('monthlyComparisonChart'), {
-        type: 'bar',
-        data: {
-            labels: chartData.months,
-            datasets: [
-                {
-                    type: 'bar',
-                    label: 'Total Asignado',
-                    data: chartData.assignmentsByMonth,
-                    backgroundColor: 'rgba(59, 130, 246, 0.45)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                },
-                {
-                    type: 'line',
-                    label: 'Total Cobrado',
-                    data: chartData.collectionsByMonth,
-                    borderColor: 'rgb(34, 197, 94)',
-                    backgroundColor: 'rgba(34, 197, 94, 0.12)',
-                    borderWidth: 3,
-                    tension: 0.3,
-                    fill: true,
-                    pointRadius: 3,
-                    pointHoverRadius: 5
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            aspectRatio: 2.6,
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'Bs. ' + value.toLocaleString();
-                        }
-                    }
-                }
+    function renderEmptyState(canvasEl, message) {
+        canvasEl.style.display = 'none';
+        const div = document.createElement('div');
+        div.className = 'flex flex-col items-center justify-center h-full text-gray-400';
+        div.innerHTML = `<svg class="w-10 h-10 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p class="text-sm">${message}</p>`;
+        canvasEl.parentNode.appendChild(div);
+    }
+
+    const bsTick = value => 'Bs. ' + Number(value).toLocaleString();
+    const bsTooltip = {
+        callbacks: {
+            label: function(ctx) {
+                return ctx.dataset.label + ': Bs. ' + Number(ctx.parsed.y ?? ctx.parsed.x ?? ctx.parsed).toLocaleString();
             }
         }
-    });
+    };
+
+    // Gráfico combinado: Asignaciones y Cobros por Mes
+    const monthlyCanvas = document.getElementById('monthlyComparisonChart');
+    const hasMonthlyData = (chartData.assignmentsByMonth || []).some(v => v > 0) || (chartData.collectionsByMonth || []).some(v => v > 0);
+    if (!hasMonthlyData) {
+        renderEmptyState(monthlyCanvas, 'Sin datos para el período seleccionado');
+    } else {
+        new Chart(monthlyCanvas, {
+            type: 'bar',
+            data: {
+                labels: chartData.months,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Total Asignado',
+                        data: chartData.assignmentsByMonth,
+                        backgroundColor: 'rgba(59, 130, 246, 0.45)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        type: 'line',
+                        label: 'Total Cobrado',
+                        data: chartData.collectionsByMonth,
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.12)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: 3,
+                        pointHoverRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                aspectRatio: 2.6,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: bsTooltip
+                },
+                scales: {
+                    y: { beginAtZero: true, ticks: { callback: bsTick } }
+                }
+            }
+        });
+    }
 
     // Gráfico de Top Responsables
-    new Chart(document.getElementById('topAccountantsChart'), {
-        type: 'doughnut',
-        data: {
-            labels: chartData.topAccountants.labels,
-            datasets: [{
-                data: chartData.topAccountants.values,
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.5)',
-                    'rgba(54, 162, 235, 0.5)',
-                    'rgba(255, 206, 86, 0.5)',
-                    'rgba(75, 192, 192, 0.5)',
-                    'rgba(153, 102, 255, 0.5)'
-                ],
-                borderColor: [
-                    'rgb(255, 99, 132)',
-                    'rgb(54, 162, 235)',
-                    'rgb(255, 206, 86)',
-                    'rgb(75, 192, 192)',
-                    'rgb(153, 102, 255)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'right' }
+    const accountantsCanvas = document.getElementById('topAccountantsChart');
+    const hasAccountantsData = (chartData.topAccountants?.values || []).some(v => v > 0);
+    if (!hasAccountantsData) {
+        renderEmptyState(accountantsCanvas, 'Sin datos de responsables');
+    } else {
+        const acctBg = ['rgba(255,99,132,0.5)','rgba(54,162,235,0.5)','rgba(255,206,86,0.5)','rgba(75,192,192,0.5)','rgba(153,102,255,0.5)'];
+        const acctBorder = ['rgb(255,99,132)','rgb(54,162,235)','rgb(255,206,86)','rgb(75,192,192)','rgb(153,102,255)'];
+        new Chart(accountantsCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: chartData.topAccountants.labels,
+                datasets: [{ data: chartData.topAccountants.values, backgroundColor: acctBg, borderColor: acctBorder, borderWidth: 1 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0.0';
+                                return `${ctx.label}: Bs. ${Number(ctx.parsed).toLocaleString()} (${pct}%)`;
+                            }
+                        }
+                    }
+                }
             }
-        }
-    });
+        });
+    }
 
     // Gráfico de Categorías
-    new Chart(document.getElementById('categoriesChart'), {
-        type: 'pie',
-        data: {
-            labels: chartData.categories.labels,
-            datasets: [{
-                data: chartData.categories.values,
-                backgroundColor: [
-                    'rgba(99, 102, 241, 0.5)',
-                    'rgba(239, 68, 68, 0.5)',
-                    'rgba(59, 130, 246, 0.5)',
-                    'rgba(168, 85, 247, 0.5)'
-                ],
-                borderColor: [
-                    'rgb(99, 102, 241)',
-                    'rgb(239, 68, 68)',
-                    'rgb(59, 130, 246)',
-                    'rgb(168, 85, 247)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
+    const categoriesCanvas = document.getElementById('categoriesChart');
+    const hasCategoriesData = (chartData.categories?.values || []).some(v => v > 0);
+    if (!hasCategoriesData) {
+        renderEmptyState(categoriesCanvas, 'Sin datos de categorías');
+    } else {
+        new Chart(categoriesCanvas, {
+            type: 'pie',
+            data: {
+                labels: chartData.categories.labels,
+                datasets: [{
+                    data: chartData.categories.values,
+                    backgroundColor: ['rgba(99,102,241,0.5)','rgba(239,68,68,0.5)','rgba(59,130,246,0.5)','rgba(168,85,247,0.5)'],
+                    borderColor: ['rgb(99,102,241)','rgb(239,68,68)','rgb(59,130,246)','rgb(168,85,247)'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
             }
-        }
-    });
+        });
+    }
 
     // Gráfico Comparativo: Asignación vs Cobros por Programa
-    new Chart(document.getElementById('programComparisonChart'), {
-        type: 'bar',
-        data: {
-            labels: chartData.programComparison.labels,
-            datasets: [
-                {
-                    label: 'Asignación',
-                    data: chartData.programComparison.assignments,
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Cobrado',
-                    data: chartData.programComparison.collections,
-                    backgroundColor: 'rgba(34, 197, 94, 0.5)',
-                    borderColor: 'rgb(34, 197, 94)',
-                    borderWidth: 1
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            indexAxis: 'y',
-            layout: {
-                padding: {
-                    left: 12,
-                    right: 12
-                }
+    const programCanvas = document.getElementById('programComparisonChart');
+    const hasProgramData = (chartData.programComparison?.labels || []).length > 0;
+    if (!hasProgramData) {
+        renderEmptyState(programCanvas, 'Sin datos de programas');
+    } else {
+        new Chart(programCanvas, {
+            type: 'bar',
+            data: {
+                labels: chartData.programComparison.labels,
+                datasets: [
+                    {
+                        label: 'Asignación',
+                        data: chartData.programComparison.assignments,
+                        backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Cobrado',
+                        data: chartData.programComparison.collections,
+                        backgroundColor: 'rgba(34, 197, 94, 0.5)',
+                        borderColor: 'rgb(34, 197, 94)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
             },
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'Bs. ' + value.toLocaleString();
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                layout: { padding: { left: 12, right: 12 } },
+                plugins: {
+                    legend: { display: true },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return ctx.dataset.label + ': Bs. ' + Number(ctx.parsed.x).toLocaleString();
+                            }
                         }
                     }
                 },
-                y: {
-                    ticks: {
-                        callback: function(value) {
-                            const label = this.getLabelForValue(value);
-                            return wrapLabel(label, 24);
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { callback: bsTick }
+                    },
+                    y: {
+                        ticks: {
+                            callback: function(value) {
+                                return wrapLabel(this.getLabelForValue(value), 24);
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
 
-    // Preseleccionar y aplicar automáticamente el mes y año actual al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
-        const currentDate = new Date();
-        const currentMonth = currentDate.getMonth() + 1;
-        const currentYear = currentDate.getFullYear();
-        
-        // Verificar si los filtros tienen valores por defecto
-        const mesSelect = document.getElementById('mes');
-        const yearSelect = document.getElementById('year');
-        
-        // Si la URL no tiene parámetros, redirigir con los valores por defecto
         const urlParams = new URLSearchParams(window.location.search);
         if (!urlParams.has('mes') || !urlParams.has('year')) {
-            window.location.href = '{{ route("dashboard.accounting") }}?mes=' + currentMonth + '&year=' + currentYear;
+            const now = new Date();
+            window.location.href = '{{ route("dashboard.accounting") }}?mes=' + (now.getMonth() + 1) + '&year=' + now.getFullYear();
         }
     });
 </script>

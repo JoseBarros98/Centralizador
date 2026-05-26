@@ -143,9 +143,9 @@
                 </div>
             </div>
 
-            <!-- Gráficos -->
+            <!-- Gráficos: Estado (barra) + Tipo + Pilar -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <!-- Por Estado -->
+                <!-- Por Estado — barra horizontal para comparar 6+ estados fácilmente -->
                 <div class="bg-white rounded-lg shadow-lg p-6">
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">Solicitudes por Estado</h3>
                     <div class="relative" style="height: 300px;">
@@ -155,7 +155,7 @@
 
                 <!-- Por Tipo de Arte -->
                 <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Solicitudes por Tipo de Arte</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Por Tipo de Arte</h3>
                     <div class="relative" style="height: 300px;">
                         <canvas id="typeOfArtChart"></canvas>
                     </div>
@@ -163,192 +163,221 @@
 
                 <!-- Por Pilar de Contenido -->
                 <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Solicitudes por Pilar de Contenido</h3>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Por Pilar de Contenido</h3>
                     <div class="relative" style="height: 300px;">
                         <canvas id="contentPillarChart"></canvas>
                     </div>
+                </div>
+            </div>
+
+            <!-- Tendencia diaria: ingresadas vs completadas -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">Tendencia Diaria</h3>
+                        <p class="text-sm text-gray-500">Solicitudes ingresadas vs completadas por día en el período</p>
+                    </div>
+                </div>
+                <div class="relative" style="height: 260px;">
+                    <canvas id="trendChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
     @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        function generateColors(count) {
+            const colors = [];
+            for (let i = 0; i < count; i++) {
+                const hue = (i * 137) % 360;
+                colors.push(`hsla(${hue}, 70%, 60%, 0.8)`);
+            }
+            return colors;
+        }
+
+        function renderEmptyState(canvasEl, message = 'Sin datos para este período') {
+            if (!canvasEl) return;
+            canvasEl.style.display = 'none';
+            const div = document.createElement('div');
+            div.className = 'flex flex-col items-center justify-center h-full text-gray-400';
+            div.innerHTML = `
+                <svg class="w-10 h-10 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <p class="text-sm font-medium">${message}</p>`;
+            canvasEl.parentElement.appendChild(div);
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Colores
-            const statusColors = {
-                'NO INICIADO': 'rgba(107, 114, 128, 0.8)',
-                'EN CURSO': 'rgba(59, 130, 246, 0.8)',
-                'COMPLETO': 'rgba(34, 197, 94, 0.8)',
-                'RETRASADO': 'rgba(239, 68, 68, 0.8)',
-                'ESPERANDO APROBACION': 'rgba(234, 179, 8, 0.8)',
-                'ESPERANDO INFORMACION': 'rgba(168, 85, 247, 0.8)',
-                'CANCELADO': 'rgba(239, 68, 68, 0.8)',
-                'EN PAUSA': 'rgba(249, 115, 22, 0.8)'
+            const doughnutTooltip = {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const pct = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
+                        return `${context.label}: ${context.parsed} (${pct}%)`;
+                    }
+                }
             };
 
-            // Gráfico por Estado
-            const statusData = JSON.parse('{!! $chartData["statusData"] !!}');
+            const doughnutLegend = {
+                position: 'bottom',
+                labels: { boxWidth: 12, padding: 14, font: { size: 11 }, usePointStyle: true, pointStyle: 'circle' }
+            };
+
+            // ── Gráfico por Estado (barra horizontal) ──────────────────────
+            const statusColors = {
+                'NO INICIADO':           'rgba(107, 114, 128, 0.8)',
+                'EN CURSO':              'rgba(59,  130, 246, 0.8)',
+                'COMPLETO':              'rgba(34,  197,  94, 0.8)',
+                'RETRASADO':             'rgba(239,  68,  68, 0.8)',
+                'ESPERANDO APROBACION':  'rgba(234, 179,   8, 0.8)',
+                'ESPERANDO INFORMACION': 'rgba(168,  85, 247, 0.8)',
+                'CANCELADO':             'rgba(156, 163, 175, 0.8)',
+                'EN PAUSA':              'rgba(249, 115,  22, 0.8)',
+            };
+
+            const statusData   = JSON.parse('{!! $chartData["statusData"] !!}');
             const statusLabels = Object.keys(statusData);
             const statusValues = Object.values(statusData);
-            const statusChartColors = statusLabels.map(label => statusColors[label] || 'rgba(156, 163, 175, 0.8)');
 
-            console.log('Status Chart Data:', statusData, statusLabels, statusValues);
-
-            new Chart(document.getElementById('statusChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: statusLabels,
-                    datasets: [{
-                        data: statusValues,
-                        backgroundColor: statusChartColors,
-                        borderColor: statusChartColors.map(color => color.replace('0.8', '1')),
-                        borderWidth: 2,
-                        hoverOffset: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                padding: 15,
-                                font: { size: 11, weight: 'bold' },
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
-                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
+            if (statusLabels.length === 0 || statusValues.every(v => v === 0)) {
+                renderEmptyState(document.getElementById('statusChart'));
+            } else {
+                const statusBg = statusLabels.map(l => statusColors[l] || 'rgba(156,163,175,0.8)');
+                new Chart(document.getElementById('statusChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusValues,
+                            backgroundColor: statusBg,
+                            borderColor: statusBg.map(c => c.replace('0.8', '1')),
+                            borderWidth: 1,
+                            borderRadius: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? ((ctx.parsed.x / total) * 100).toFixed(1) : '0.0';
+                                        return `${ctx.parsed.x} solicitudes (${pct}%)`;
+                                    }
                                 }
                             }
+                        },
+                        scales: {
+                            x: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: 'rgba(0,0,0,0.05)' } },
+                            y: { grid: { display: false } }
                         }
-                    },
-                    cutout: '40%'
-                }
-            });
+                    }
+                });
+            }
 
-            // Gráfico por Tipo de Arte
-            const typeOfArtData = JSON.parse('{!! $chartData["typeOfArtData"] !!}');
+            // ── Gráfico por Tipo de Arte (dona) ────────────────────────────
+            const typeOfArtData   = JSON.parse('{!! $chartData["typeOfArtData"] !!}');
             const typeOfArtLabels = Object.keys(typeOfArtData);
             const typeOfArtValues = Object.values(typeOfArtData);
-            const typeOfArtColors = generateColors(typeOfArtLabels.length);
 
-            new Chart(document.getElementById('typeOfArtChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: typeOfArtLabels,
-                    datasets: [{
-                        data: typeOfArtValues,
-                        backgroundColor: typeOfArtColors,
-                        borderColor: typeOfArtColors.map(color => color.replace('0.8', '1')),
-                        borderWidth: 2,
-                        hoverOffset: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                padding: 15,
-                                font: { size: 11, weight: 'bold' },
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
-                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
-                                }
-                            }
-                        }
+            if (typeOfArtLabels.length === 0 || typeOfArtValues.every(v => v === 0)) {
+                renderEmptyState(document.getElementById('typeOfArtChart'));
+            } else {
+                const artColors = generateColors(typeOfArtLabels.length);
+                new Chart(document.getElementById('typeOfArtChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: typeOfArtLabels,
+                        datasets: [{ data: typeOfArtValues, backgroundColor: artColors,
+                            borderColor: artColors.map(c => c.replace('0.8','1')), borderWidth: 2, hoverOffset: 8 }]
                     },
-                    cutout: '40%'
-                }
-            });
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '45%',
+                        plugins: { legend: doughnutLegend, tooltip: doughnutTooltip } }
+                });
+            }
 
-            // Gráfico por Pilar de Contenido
-            const contentPillarData = JSON.parse('{!! $chartData["contentPillarData"] !!}');
+            // ── Gráfico por Pilar de Contenido (dona) ──────────────────────
+            const contentPillarData   = JSON.parse('{!! $chartData["contentPillarData"] !!}');
             const contentPillarLabels = Object.keys(contentPillarData);
             const contentPillarValues = Object.values(contentPillarData);
-            const contentPillarColors = generateColors(contentPillarLabels.length);
 
-            new Chart(document.getElementById('contentPillarChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: contentPillarLabels,
-                    datasets: [{
-                        data: contentPillarValues,
-                        backgroundColor: contentPillarColors,
-                        borderColor: contentPillarColors.map(color => color.replace('0.8', '1')),
-                        borderWidth: 2,
-                        hoverOffset: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                boxWidth: 12,
-                                padding: 15,
-                                font: { size: 11, weight: 'bold' },
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : '0.0';
-                                    return `${context.label}: ${context.parsed} (${percentage}%)`;
-                                }
-                            }
-                        }
+            if (contentPillarLabels.length === 0 || contentPillarValues.every(v => v === 0)) {
+                renderEmptyState(document.getElementById('contentPillarChart'));
+            } else {
+                const pillarColors = generateColors(contentPillarLabels.length);
+                new Chart(document.getElementById('contentPillarChart'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: contentPillarLabels,
+                        datasets: [{ data: contentPillarValues, backgroundColor: pillarColors,
+                            borderColor: pillarColors.map(c => c.replace('0.8','1')), borderWidth: 2, hoverOffset: 8 }]
                     },
-                    cutout: '40%'
-                }
-            });
-
-            // Función para generar colores dinámicos
-            function generateColors(count) {
-                const colors = [];
-                for (let i = 0; i < count; i++) {
-                    const hue = (i * 137) % 360;
-                    colors.push(`hsla(${hue}, 70%, 60%, 0.8)`);
-                }
-                return colors;
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '45%',
+                        plugins: { legend: doughnutLegend, tooltip: doughnutTooltip } }
+                });
             }
-        });
 
-        // Manejar cambio de mes
-        document.getElementById('month_year').addEventListener('change', function() {
-            const [month, year] = this.value.split('-');
-            const designerId = document.getElementById('designer_id').value;
-            // Construir URL con solo month, year y designer_id (sin week)
-            let url = `{{ route('art_requests.dashboard') }}?month=${month}&year=${year}`;
-            if (designerId) {
-                url += `&designer_id=${designerId}`;
+            // ── Tendencia diaria: ingresadas vs completadas ─────────────────
+            const dailyLabels    = JSON.parse('{!! $chartData["dailyLabels"] !!}');
+            const dailyTotals    = JSON.parse('{!! $chartData["dailyTotals"] !!}');
+            const dailyCompleted = JSON.parse('{!! $chartData["dailyCompleted"] !!}');
+
+            if (dailyLabels.length === 0) {
+                renderEmptyState(document.getElementById('trendChart'), 'Sin actividad en el período seleccionado');
+            } else {
+                new Chart(document.getElementById('trendChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: dailyLabels,
+                        datasets: [
+                            {
+                                type: 'bar',
+                                label: 'Ingresadas',
+                                data: dailyTotals,
+                                backgroundColor: 'rgba(59, 130, 246, 0.45)',
+                                borderColor: 'rgb(59, 130, 246)',
+                                borderWidth: 1,
+                                borderRadius: 4,
+                                order: 2,
+                            },
+                            {
+                                type: 'line',
+                                label: 'Completadas',
+                                data: dailyCompleted,
+                                borderColor: 'rgb(34, 197, 94)',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                borderWidth: 2.5,
+                                tension: 0.3,
+                                pointRadius: 3,
+                                pointHoverRadius: 5,
+                                fill: false,
+                                order: 1,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'top',
+                                labels: { boxWidth: 12, padding: 14, font: { size: 11 }, usePointStyle: true } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1, precision: 0 },
+                                grid: { color: 'rgba(0,0,0,0.05)' } },
+                            x: { grid: { display: false },
+                                ticks: { maxTicksLimit: 20, font: { size: 10 } } }
+                        }
+                    }
+                });
             }
-            window.location.href = url;
         });
     </script>
     @endpush

@@ -72,33 +72,30 @@ class ArtRequestDashboardController extends Controller
     {
         // Por estado
         $byStatus = $artRequests->groupBy('status')
-            ->map(function($items) {
-                return $items->count();
-            })
+            ->map(fn($items) => $items->count())
             ->toArray();
 
         // Por tipo de arte
-        $byTypeOfArt = $artRequests->groupBy(function($item) {
-                return $item->typeOfArt->name ?? 'Desconocido';
-            })
-            ->map(function($items) {
-                return $items->count();
-            })
+        $byTypeOfArt = $artRequests->groupBy(fn($item) => $item->typeOfArt->name ?? 'Desconocido')
+            ->map(fn($items) => $items->count())
             ->toArray();
 
         // Por pilar de contenido
-        $byContentPillar = $artRequests->groupBy(function($item) {
-                return $item->contentPillar->name ?? 'Sin Pilar';
-            })
-            ->map(function($items) {
-                return $items->count();
-            })
+        $byContentPillar = $artRequests->groupBy(fn($item) => $item->contentPillar->name ?? 'Sin Pilar')
+            ->map(fn($items) => $items->count())
             ->toArray();
 
+        // Tendencia diaria (ingresadas vs completadas por día)
+        $byDay = $artRequests->sortBy('created_at')
+            ->groupBy(fn($item) => $item->created_at->format('d/m'));
+
         return [
-            'statusData' => json_encode($byStatus),
-            'typeOfArtData' => json_encode($byTypeOfArt),
-            'contentPillarData' => json_encode($byContentPillar),
+            'statusData'       => json_encode($byStatus),
+            'typeOfArtData'    => json_encode($byTypeOfArt),
+            'contentPillarData'=> json_encode($byContentPillar),
+            'dailyLabels'      => json_encode($byDay->keys()->values()->toArray()),
+            'dailyTotals'      => json_encode($byDay->map(fn($items) => $items->count())->values()->toArray()),
+            'dailyCompleted'   => json_encode($byDay->map(fn($items) => $items->where('status', 'COMPLETO')->count())->values()->toArray()),
         ];
     }
 }

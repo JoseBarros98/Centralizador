@@ -342,53 +342,83 @@
         </div>
     </div>
     
-    <!-- Gráficos adicionales -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <!-- Inscripciones por estado -->
+    <!-- Estado / Medio de Pago + Equipo de Marketing -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+        <!-- Estado y Medio de Pago — vista con pestañas -->
         <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Inscripciones por Estado</h3>
-                
+            <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+                <h3 class="text-lg font-semibold text-gray-900" id="statusPaymentTitle">Inscripciones por Estado</h3>
+                <div class="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+                    <button id="tab-estado" onclick="switchStatusPaymentTab('estado')"
+                        class="px-4 py-1.5 font-medium bg-indigo-600 text-white transition-colors">Estado</button>
+                    <button id="tab-pago" onclick="switchStatusPaymentTab('pago')"
+                        class="px-4 py-1.5 font-medium text-gray-600 hover:bg-gray-50 transition-colors">Medio de Pago</button>
+                </div>
             </div>
             <div class="h-56 relative">
-                <canvas id="statusChart" class="w-full h-full"></canvas>
+                <div id="panel-estado" class="absolute inset-0">
+                    <canvas id="statusChart" class="w-full h-full"></canvas>
+                </div>
+                <div id="panel-pago" class="absolute inset-0" style="opacity:0;pointer-events:none;">
+                    <canvas id="paymentMethodChart" class="w-full h-full"></canvas>
+                </div>
             </div>
         </div>
-        
-        <!-- Inscripciones por medio de pago -->
+
+        <!-- Inscripciones por Equipo de Marketing -->
         <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-semibold text-gray-900">Inscripciones por Medio de Pago</h3>
+                <h3 class="text-lg font-semibold text-gray-900">Inscripciones por Equipo</h3>
             </div>
             <div class="h-56 relative">
-                <canvas id="paymentMethodChart" class="w-full h-full"></canvas>
+                <canvas id="marketingTeamChart" class="w-full h-full"></canvas>
             </div>
         </div>
-        
+
     </div>
     
     @push('scripts')
     <script>
-        // Función para mostrar/ocultar el campo de mes según el tipo de vista
         function toggleMonthField() {
             const viewType = document.getElementById('view_type').value;
             const monthField = document.getElementById('month-field');
-            
-            if (viewType === 'yearly') {
-                monthField.style.display = 'none';
-            } else {
-                monthField.style.display = 'block';
-            }
+            monthField.style.display = viewType === 'yearly' ? 'none' : 'block';
         }
-        
-        // Función para generar colores dinámicos
+
         function generateColors(count) {
             const colors = [];
             for (let i = 0; i < count; i++) {
-                const hue = (i * 137) % 360; // Distribuir los colores uniformemente
+                const hue = (i * 137) % 360;
                 colors.push(`hsla(${hue}, 70%, 60%, 0.7)`);
             }
             return colors;
+        }
+
+        function renderEmptyState(canvasEl, message) {
+            canvasEl.style.display = 'none';
+            const div = document.createElement('div');
+            div.className = 'flex flex-col items-center justify-center h-full text-gray-400';
+            div.innerHTML = `<svg class="w-10 h-10 mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p class="text-sm">${message}</p>`;
+            canvasEl.parentNode.appendChild(div);
+        }
+
+        function switchStatusPaymentTab(tab) {
+            const titles = {
+                estado: 'Inscripciones por Estado',
+                pago: 'Inscripciones por Medio de Pago'
+            };
+            document.getElementById('statusPaymentTitle').textContent = titles[tab];
+            ['estado', 'pago'].forEach(t => {
+                const panel = document.getElementById('panel-' + t);
+                const btn   = document.getElementById('tab-' + t);
+                const active = t === tab;
+                panel.style.opacity       = active ? '1' : '0';
+                panel.style.pointerEvents = active ? 'auto' : 'none';
+                btn.className = active
+                    ? 'px-4 py-1.5 font-medium bg-indigo-600 text-white transition-colors'
+                    : 'px-4 py-1.5 font-medium text-gray-600 hover:bg-gray-50 transition-colors';
+            });
         }
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -413,6 +443,9 @@
             const advisorCalculatedHeight = Math.max(advisorMinHeight, advisorLabels.length * advisorHeightPerItem);
             advisorChartContainer.style.height = advisorCalculatedHeight + 'px';
             
+            if (!advisorLabels.length) {
+                renderEmptyState(document.getElementById('creatorChart'), 'Sin inscripciones en el período');
+            } else {
             new Chart(creatorChartCtx, {
                 type: 'bar',
                 data: {
@@ -497,7 +530,8 @@
                     }
                 }
             });
-            
+            } // end advisor empty-state guard
+
             // Nuevo gráfico: Inscripciones por programa
             const programChartCtx = document.getElementById('programChart').getContext('2d');
             const programLabels = JSON.parse('{!! $chartData["programLabels"] !!}');
@@ -514,13 +548,15 @@
             // Crear labels truncadas para visualización
             const truncatedProgramLabels = programLabels.map(label => truncateLabel(label));
 
-            // Ajustar altura del contenedor según la cantidad de programas
             const programChartContainer = document.getElementById('programChartContainer');
             const minHeight = 400;
-            const heightPerItem = 50; // pixels por cada programa
+            const heightPerItem = 50;
             const calculatedHeight = Math.max(minHeight, programLabels.length * heightPerItem);
             programChartContainer.style.height = calculatedHeight + 'px';
 
+            if (!programLabels.length) {
+                renderEmptyState(document.getElementById('programChart'), 'Sin inscripciones en el período');
+            } else {
             new Chart(programChartCtx, {
                 type: 'bar',
                 data: {
@@ -614,7 +650,8 @@
                     }
                 }
             });
-            
+            } // end program empty-state guard
+
             // 1. Gráfico de inscripciones por estado
             const statusCtx = document.getElementById('statusChart').getContext('2d');
             const statusData = JSON.parse('{!! $chartData["statusData"] !!}');
@@ -641,14 +678,17 @@
                 statusValues.push(count);
             });
 
-            // Asegurar que tenemos los colores correctos para cada estado
             const finalStatusColors = statusLabels.map(label => {
                 if (label === 'COMPLETO') return 'rgba(34, 197, 94, 0.8)';
                 if (label === 'COMPLETANDO') return 'rgba(234, 179, 8, 0.8)';
                 if (label === 'ADELANTO') return 'rgba(59, 130, 246, 0.8)';
-                return 'rgba(156, 163, 175, 0.8)'; // Gris para otros
+                return 'rgba(156, 163, 175, 0.8)';
             });
-            
+
+            const hasStatusData = statusValues.some(v => v > 0);
+            if (!hasStatusData) {
+                renderEmptyState(document.getElementById('statusChart'), 'Sin inscripciones en el período');
+            } else {
             new Chart(statusCtx, {
                 type: 'doughnut',
                 data: {
@@ -696,7 +736,8 @@
                     cutout: '40%'
                 }
             });
-            
+            } // end status empty-state guard
+
             // 2. Gráfico de inscripciones por medio de pago
             const paymentMethodCtx = document.getElementById('paymentMethodChart').getContext('2d');
             
@@ -743,12 +784,15 @@
                 colorIndex++;
             });
 
-            // Asegurar que tenemos suficientes colores
             const finalColors = methodColors.slice(0, methodLabels.length);
             while (finalColors.length < methodLabels.length) {
                 finalColors.push(`hsla(${Math.random() * 360}, 70%, 60%, 0.8)`);
             }
 
+            const hasMethodData = methodValues.some(v => v > 0);
+            if (!hasMethodData) {
+                renderEmptyState(document.getElementById('paymentMethodChart'), 'Sin datos de medio de pago');
+            } else {
             new Chart(paymentMethodCtx, {
                 type: 'doughnut',
                 data: {
@@ -796,7 +840,73 @@
                     cutout: '40%'
                 }
             });
-            
+            } // end payment method empty-state guard
+
+            // 3. Inscripciones por Equipo de Marketing
+            const marketingTeamRaw = JSON.parse('{!! $chartData["marketingTeamData"] !!}');
+            const teamCanvas = document.getElementById('marketingTeamChart');
+            const teamLabels = Object.keys(marketingTeamRaw);
+            const teamValues = Object.values(marketingTeamRaw);
+            const hasTeamData = teamValues.some(v => v > 0);
+            if (!hasTeamData) {
+                renderEmptyState(teamCanvas, 'Sin datos de equipo de marketing');
+            } else {
+                const teamColors = teamLabels.map((_, i) => {
+                    const hue = (i * 137) % 360;
+                    return `hsla(${hue}, 65%, 55%, 0.75)`;
+                });
+                // Ajustar altura si hay muchos equipos
+                const teamContainer = teamCanvas.parentElement;
+                const teamHeight = Math.max(224, teamLabels.length * 44);
+                teamContainer.style.height = teamHeight + 'px';
+
+                new Chart(teamCanvas, {
+                    type: 'bar',
+                    data: {
+                        labels: teamLabels,
+                        datasets: [{
+                            label: 'Inscripciones',
+                            data: teamValues,
+                            backgroundColor: teamColors,
+                            borderColor: teamColors.map(c => c.replace('0.75', '1')),
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                titleColor: '#fff',
+                                bodyColor: '#fff',
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? ((ctx.parsed.x / total) * 100).toFixed(1) : '0.0';
+                                        return `Inscripciones: ${ctx.parsed.x} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { precision: 0, font: { size: 11 } },
+                                grid: { color: 'rgba(0,0,0,0.05)' }
+                            },
+                            y: {
+                                ticks: { font: { size: 11 }, maxRotation: 0 },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
+
             // 5. Inscripciones por residencia
             const residenceData = JSON.parse('{!! $chartData["residenceData"] !!}');
             
@@ -832,13 +942,15 @@
 
             const ctx = document.getElementById('departamentosChart');
 
-            // Ajustar altura del contenedor segun la cantidad de departamentos
             const departmentChartContainer = document.getElementById('departmentChartContainer');
             const departmentMinHeight = 400;
-            const departmentHeightPerItem = 40; // pixels por cada departamento
+            const departmentHeightPerItem = 40;
             const departmentCalculatedHeight = Math.max(departmentMinHeight, labels.length * departmentHeightPerItem);
             departmentChartContainer.style.height = departmentCalculatedHeight + 'px';
 
+            if (!labels.length) {
+                renderEmptyState(ctx, 'Sin inscripciones en el período');
+            } else {
             new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -881,7 +993,8 @@
                     }
                 }
             });
-            
+            } // end department empty-state guard
+
             // 6. Gráfico interactivo de inscripciones por género
             const genderData = @json($chartData['genderData'] ?? '{}');
             const genderDetailData = @json($chartData['genderDetailData'] ?? []);
@@ -891,7 +1004,6 @@
             try {
                 genderDataObj = typeof genderData === 'string' ? JSON.parse(genderData) : genderData;
             } catch (e) {
-                console.log('Error parsing genderData:', e);
                 genderDataObj = {};
             }
             
@@ -989,12 +1101,16 @@
             const progressiveValues = JSON.parse('{!! $chartData["progressiveData"] !!}');
             const progressiveGranularity = '{!! $chartData["progressiveGranularity"] !!}';
 
+            const hasProgressiveData = (progressiveValues || []).some(v => v > 0);
+            if (!hasProgressiveData) {
+                renderEmptyState(document.getElementById('progressiveChart'), 'Sin inscripciones en el período');
+            } else {
             new Chart(progressiveCtx, {
                 type: 'line',
                 data: {
                     labels: progressiveLabels,
                     datasets: [{
-                        label: progressiveGranularity === 'day' ? 'Acumulado por dia' : 'Acumulado por mes',
+                        label: progressiveGranularity === 'day' ? 'Acumulado por día' : 'Acumulado por mes',
                         data: progressiveValues,
                         borderColor: 'rgba(37, 99, 235, 0.9)',
                         backgroundColor: 'rgba(37, 99, 235, 0.15)',
@@ -1046,7 +1162,8 @@
                     }
                 }
             });
-            
+            } // end progressive empty-state guard
+
             @if($viewType === 'yearly')
                 // Gráfico de inscripciones mensuales (solo para vista anual)
                 const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
