@@ -144,6 +144,34 @@
                                 </div>
                             </div>
 
+                            <!-- Estimación de tiempo -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <x-label for="estimated_hours" :value="__('Horas Estimadas')" />
+                                    <div class="mt-1 relative">
+                                        <x-input id="estimated_hours" class="block w-full pr-12" type="number"
+                                                 name="estimated_hours" :value="old('estimated_hours')"
+                                                 step="0.5" min="0.5" max="9999.9" placeholder="0.0" />
+                                        <span class="absolute inset-y-0 right-3 flex items-center text-xs text-gray-400 pointer-events-none">hrs</span>
+                                    </div>
+                                    @error('estimated_hours')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <x-label for="actual_hours" :value="__('Horas Reales')" />
+                                    <div class="mt-1 relative">
+                                        <x-input id="actual_hours" class="block w-full pr-12" type="number"
+                                                 name="actual_hours" :value="old('actual_hours')"
+                                                 step="0.5" min="0.5" max="9999.9" placeholder="0.0" />
+                                        <span class="absolute inset-y-0 right-3 flex items-center text-xs text-gray-400 pointer-events-none">hrs</span>
+                                    </div>
+                                    @error('actual_hours')
+                                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+
                             <!-- Estado -->
                             <input type="hidden" id="status" name="status" value="NO INICIADO">
 

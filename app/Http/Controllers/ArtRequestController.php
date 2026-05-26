@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ArtRequest;
 use App\Models\ArtRequestFile;
+use App\Models\ArtRequestHistory;
 use App\Models\User;
 use App\Models\ContentPillar;
 use App\Models\TypeOfArt;
@@ -41,6 +42,20 @@ class ArtRequestController extends Controller
             abort(403);
         })->only(['destroy']);
 
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('content.view') || $user->can('content.view_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['kanban', 'calendar']);
+        $this->middleware(function ($request, $next) {
+            $user = $request->user();
+            if ($user && ($user->can('content.edit') || $user->can('content.edit_own'))) {
+                return $next($request);
+            }
+            abort(403);
+        })->only(['updateStatus']);
         $this->middleware('permission:content.manage_files')->only(['addFile', 'deleteFile']);
         $this->middleware(function ($request, $next) {
             $user = $request->user();
@@ -170,6 +185,8 @@ class ArtRequestController extends Controller
             'observations' => 'nullable|string',
             'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:512000',
             'file_description' => 'nullable|string',
+            'estimated_hours' => 'nullable|numeric|min:0.1|max:9999.9',
+            'actual_hours'    => 'nullable|numeric|min:0.1|max:9999.9',
         ]);
 
         try {
@@ -184,12 +201,25 @@ class ArtRequestController extends Controller
                 'title' => $request->title,
                 'content' => $request->content,
                 'details' => $request->details,
-                'status' => $request->status,
-                'priority' => $request->priority,
-                'observations' => $request->observations,
-                'active' => true,
-                'created_by' => Auth::id(),
+                'status'          => $request->status,
+                'priority'        => $request->priority,
+                'observations'    => $request->observations,
+                'estimated_hours' => $request->estimated_hours ?: null,
+                'actual_hours'    => $request->actual_hours ?: null,
+                'active'          => true,
+                'created_by'      => Auth::id(),
             ]);
+
+            try {
+                ArtRequestHistory::create([
+                    'art_request_id' => $artRequest->id,
+                    'user_id'        => Auth::id(),
+                    'from_status'    => null,
+                    'to_status'      => $artRequest->status,
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('No se pudo registrar historial de estado: ' . $e->getMessage());
+            }
 
             // Manejar archivo único SOLO EN GOOGLE DRIVE
             if ($request->hasFile('file')) {
@@ -247,12 +277,14 @@ class ArtRequestController extends Controller
         $this->authorizeArtRequestAccess($artRequest, 'view');
         $artRequest->load([
             'requester',
-            'designer', 
-            'contentPillar', 
-            'typeOfArt', 
-            'files', 
-            'creator', 
-            'updater'
+            'designer',
+            'contentPillar',
+            'typeOfArt',
+            'files',
+            'creator',
+            'updater',
+            'comments.user',
+            'statusHistory.user',
         ]);
         
         return view('art_requests.show', compact('artRequest'));
@@ -297,9 +329,13 @@ class ArtRequestController extends Controller
             'observations' => 'nullable|string',
             'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:512000',
             'file_description' => 'nullable|string',
+            'estimated_hours' => 'nullable|numeric|min:0.1|max:9999.9',
+            'actual_hours'    => 'nullable|numeric|min:0.1|max:9999.9',
         ]);
 
         try {
+            $oldStatus = $artRequest->status;
+
             // Actualizar SOLO los campos básicos - SIN TOCAR ARCHIVOS
             $artRequest->request_date = $request->request_date;
             $artRequest->delivery_date = $request->delivery_date;
@@ -311,10 +347,25 @@ class ArtRequestController extends Controller
             $artRequest->content = $request->content;
             $artRequest->details = $request->details;
             $artRequest->status = $request->status;
-            $artRequest->priority = $request->priority;
-            $artRequest->observations = $request->observations;
-            $artRequest->updated_by = Auth::id();
+            $artRequest->priority         = $request->priority;
+            $artRequest->observations     = $request->observations;
+            $artRequest->estimated_hours  = $request->estimated_hours ?: null;
+            $artRequest->actual_hours     = $request->actual_hours ?: null;
+            $artRequest->updated_by       = Auth::id();
             $artRequest->save();
+
+            if ($oldStatus !== $request->status) {
+                try {
+                    ArtRequestHistory::create([
+                        'art_request_id' => $artRequest->id,
+                        'user_id'        => Auth::id(),
+                        'from_status'    => $oldStatus,
+                        'to_status'      => $request->status,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning('No se pudo registrar historial de estado: ' . $e->getMessage());
+                }
+            }
 
             return redirect()->route('art_requests.show', $artRequest)
                 ->with('success', 'Solicitud de arte actualizada correctamente.');
@@ -565,8 +616,161 @@ class ArtRequestController extends Controller
         $artRequest->active = !$artRequest->active;
         $artRequest->updated_by = Auth::id();
         $artRequest->save();
-        
+
         return redirect()->route('art_requests.show', $artRequest)
             ->with('success', 'Estado de la solicitud actualizado correctamente.');
+    }
+
+    /**
+     * Calendar view.
+     */
+    public function calendar(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+
+        $year = $request->filled('year') ? (int) $request->year : now()->year;
+
+        $dateFrom = \Carbon\Carbon::create($year, 1, 1)->startOfDay();
+        $dateTo   = \Carbon\Carbon::create($year, 12, 31)->endOfDay();
+
+        $query = ArtRequest::with(['requester', 'designer', 'typeOfArt'])
+            ->active()
+            ->whereNotNull('delivery_date')
+            ->whereBetween('delivery_date', [$dateFrom, $dateTo]);
+
+        if (!$user->can('content.view')) {
+            $query->where('created_by', $user->id);
+        }
+
+        if ($request->filled('designer_id')) {
+            $query->where('designer_id', $request->designer_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $colorMap = [
+            'NO INICIADO'           => '#9ca3af',
+            'EN CURSO'              => '#3b82f6',
+            'ESPERANDO APROBACION'  => '#f59e0b',
+            'ESPERANDO INFORMACION' => '#f97316',
+            'EN PAUSA'              => '#a855f7',
+            'RETRASADO'             => '#ef4444',
+            'COMPLETO'              => '#22c55e',
+            'CANCELADO'             => '#64748b',
+        ];
+
+        $events = $query->get()->map(function ($r) use ($colorMap) {
+            return [
+                'id'              => $r->id,
+                'title'           => $r->title,
+                'start'           => $r->delivery_date->format('Y-m-d'),
+                'backgroundColor' => $colorMap[$r->status] ?? '#9ca3af',
+                'borderColor'     => $colorMap[$r->status] ?? '#9ca3af',
+                'textColor'       => '#ffffff',
+                'extendedProps'   => [
+                    'url'      => route('art_requests.show', $r),
+                    'status'   => $r->status,
+                    'priority' => $r->priority,
+                    'designer' => $r->designer?->name ?? 'Sin asignar',
+                    'requester'=> $r->requester->name,
+                ],
+            ];
+        })->values();
+
+        $designers = User::whereHas('roles', fn($q) => $q->where('name', 'design'))->get();
+
+        $statuses = [
+            'NO INICIADO', 'EN CURSO', 'ESPERANDO APROBACION', 'ESPERANDO INFORMACION',
+            'EN PAUSA', 'RETRASADO', 'COMPLETO', 'CANCELADO',
+        ];
+
+        return view('art_requests.calendar', compact('events', 'designers', 'statuses', 'year', 'colorMap'));
+    }
+
+    /**
+     * Kanban board view.
+     */
+    public function kanban(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+
+        $dateFrom = \Carbon\Carbon::createFromFormat('Y-m-d',
+            $request->filled('date_from') ? $request->date_from : now()->startOfMonth()->format('Y-m-d')
+        )->startOfDay();
+
+        $dateTo = \Carbon\Carbon::createFromFormat('Y-m-d',
+            $request->filled('date_to') ? $request->date_to : now()->endOfMonth()->format('Y-m-d')
+        )->endOfDay();
+
+        $query = ArtRequest::with(['requester', 'designer', 'typeOfArt'])
+            ->active()
+            ->whereBetween('created_at', [$dateFrom, $dateTo]);
+
+        if (!$user->can('content.view')) {
+            $query->where('created_by', $user->id);
+        }
+
+        if ($request->filled('designer_id')) {
+            $query->where('designer_id', $request->designer_id);
+        }
+
+        $priorityOrder = ['ALTA' => 0, 'MEDIA' => 1, 'BAJA' => 2];
+        $all = $query->orderBy('delivery_date')->get()
+            ->sortBy(fn($r) => $priorityOrder[$r->priority] ?? 1);
+
+        $statuses = [
+            'NO INICIADO'           => ['label' => 'No Iniciado',           'bg' => 'bg-gray-100',   'border' => 'border-gray-400',   'dot' => 'bg-gray-400'],
+            'EN CURSO'              => ['label' => 'En Curso',              'bg' => 'bg-blue-50',    'border' => 'border-blue-500',   'dot' => 'bg-blue-500'],
+            'ESPERANDO APROBACION'  => ['label' => 'Esp. Aprobación',       'bg' => 'bg-amber-50',   'border' => 'border-amber-500',  'dot' => 'bg-amber-500'],
+            'ESPERANDO INFORMACION' => ['label' => 'Esp. Información',      'bg' => 'bg-purple-50',  'border' => 'border-purple-500', 'dot' => 'bg-purple-500'],
+            'EN PAUSA'              => ['label' => 'En Pausa',              'bg' => 'bg-orange-50',  'border' => 'border-orange-500', 'dot' => 'bg-orange-500'],
+            'RETRASADO'             => ['label' => 'Retrasado',             'bg' => 'bg-red-50',     'border' => 'border-red-500',    'dot' => 'bg-red-500'],
+            'COMPLETO'              => ['label' => 'Completo',              'bg' => 'bg-green-50',   'border' => 'border-green-500',  'dot' => 'bg-green-500'],
+            'CANCELADO'             => ['label' => 'Cancelado',             'bg' => 'bg-slate-100',  'border' => 'border-slate-400',  'dot' => 'bg-slate-400'],
+        ];
+
+        $grouped = collect($statuses)->mapWithKeys(fn($meta, $status) => [
+            $status => $all->filter(fn($r) => $r->status === $status)->values(),
+        ]);
+
+        $designers = User::whereHas('roles', fn($q) => $q->where('name', 'design'))->get();
+
+        return view('art_requests.kanban', compact('grouped', 'statuses', 'designers', 'dateFrom', 'dateTo'));
+    }
+
+    /**
+     * Update status via AJAX (Kanban drag-and-drop).
+     */
+    public function updateStatus(Request $request, ArtRequest $artRequest)
+    {
+        $this->authorizeArtRequestAccess($artRequest, 'edit');
+
+        $request->validate([
+            'status' => 'required|in:NO INICIADO,EN CURSO,COMPLETO,RETRASADO,ESPERANDO APROBACION,ESPERANDO INFORMACION,CANCELADO,EN PAUSA',
+        ]);
+
+        $oldStatus = $artRequest->status;
+
+        $artRequest->update([
+            'status'     => $request->status,
+            'updated_by' => Auth::id(),
+        ]);
+
+        try {
+            ArtRequestHistory::create([
+                'art_request_id' => $artRequest->id,
+                'user_id'        => Auth::id(),
+                'from_status'    => $oldStatus,
+                'to_status'      => $request->status,
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('No se pudo registrar historial de estado: ' . $e->getMessage());
+        }
+
+        return response()->json(['success' => true, 'status' => $artRequest->status]);
     }
 }

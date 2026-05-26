@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class ArtRequestHistory extends Model
+class ArtRequestComment extends Model
 {
-    protected $table = 'art_request_history';
+    protected $fillable = ['art_request_id', 'user_id', 'body', 'is_internal'];
 
-    protected $fillable = ['art_request_id', 'user_id', 'from_status', 'to_status'];
+    protected $casts = ['is_internal' => 'boolean'];
 
     public function artRequest()
     {

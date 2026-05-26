@@ -22,7 +22,13 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\" -Directory)",
       "Bash(cat >> *)",
       "Bash(php -l resources/views/dashboard/income-expense.blade.php resources/views/dashboard.blade.php resources/views/dashboard/accounting.blade.php resources/views/dashboard/academic.blade.php)",
-      "Bash(php -l resources/views/dashboard.blade.php)"
+      "Bash(php -l resources/views/dashboard.blade.php)",
+      "Bash(grep -v \"^$\")",
+      "Bash(php -l resources/views/art_requests/kanban.blade.php app/Http/Controllers/ArtRequestController.php)",
+      "Bash(Select-String -Pattern \"art-requests\")",
+      "Bash(Select-Object -First 15)",
+      "PowerShell(php -l \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Http\\\\Controllers\\\\ArtRequestController.php\" 2>&1)",
+      "Bash(Get-Content storage\\\\logs\\\\laravel.log -Tail 40)"
     ],
     "additionalDirectories": [
       "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"

@@ -27,6 +27,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\TypeOfArtController;
 use App\Http\Controllers\ArtRequestController;
 use App\Http\Controllers\ArtRequestDashboardController;
+use App\Http\Controllers\ArtRequestCommentController;
 use App\Http\Controllers\ArtRequestModificationController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\MarketingTeamController;
@@ -253,12 +254,19 @@ Route::middleware('auth')->group(function () {
 
   // Art Requests
   Route::get('art-requests-dashboard', [ArtRequestDashboardController::class, 'index'])->name('art_requests.dashboard')->middleware('permission:dashboard.design');
+  Route::get('art-requests/kanban', [ArtRequestController::class, 'kanban'])->name('art_requests.kanban');
+  Route::get('art-requests/calendar', [ArtRequestController::class, 'calendar'])->name('art_requests.calendar');
+  Route::patch('art-requests/{artRequest}/update-status', [ArtRequestController::class, 'updateStatus'])->name('art_requests.updateStatus');
   Route::resource('art_requests', ArtRequestController::class);
   Route::post('art-requests/{artRequest}/files', [ArtRequestController::class, 'addFile'])->name('art_requests.files.add')->middleware('large_upload');
   Route::delete('art-request-files/{file}', [ArtRequestController::class, 'deleteFile'])->name('art_requests.files.destroy');
   Route::get('art-request-files/{file}/serve', [ArtRequestController::class, 'serveFile'])->name('art_requests.files.serve');
   Route::get('art-request-files/{file}/download', [ArtRequestController::class, 'downloadFile'])->name('art_requests.files.download');
   Route::patch('art-requests/{artRequest}/toggle-active', [ArtRequestController::class, 'toggleActive'])->name('art_requests.toggle_active');
+
+  // Art Request Comments
+  Route::post('art-requests/{artRequest}/comments', [ArtRequestCommentController::class, 'store'])->name('art-requests.comments.store');
+  Route::delete('art-requests/{artRequest}/comments/{comment}', [ArtRequestCommentController::class, 'destroy'])->name('art-requests.comments.destroy');
 
   // Art Request Modifications
   Route::post('art-requests/{artRequest}/modifications', [ArtRequestModificationController::class, 'store'])->name('art-requests.modifications.store');

@@ -270,9 +270,146 @@
                     </div>
 
                     <!-- Modal para registrar modificación -->
-                    
                     <x-art-request-record-modification-modal :artRequest="$artRequest" />
-                    
+
+                    <!-- Historial de Estado -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-5 border-b border-gray-200 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">Historial de Estado</h3>
+                                <p class="text-sm text-gray-500 mt-0.5">Registro de cambios de estado</p>
+                            </div>
+                            <span class="text-sm text-gray-400">{{ $artRequest->statusHistory->count() }} {{ $artRequest->statusHistory->count() === 1 ? 'cambio' : 'cambios' }}</span>
+                        </div>
+
+                        @if($artRequest->statusHistory->count() > 0)
+                        @php
+                            $statusBadgeColors = [
+                                'NO INICIADO'           => 'bg-gray-100 text-gray-600',
+                                'EN CURSO'              => 'bg-blue-100 text-blue-700',
+                                'ESPERANDO APROBACION'  => 'bg-yellow-100 text-yellow-700',
+                                'ESPERANDO INFORMACION' => 'bg-orange-100 text-orange-700',
+                                'EN PAUSA'              => 'bg-purple-100 text-purple-700',
+                                'RETRASADO'             => 'bg-red-100 text-red-700',
+                                'COMPLETO'              => 'bg-green-100 text-green-700',
+                                'CANCELADO'             => 'bg-slate-100 text-slate-600',
+                            ];
+                        @endphp
+                        <div class="p-5">
+                            <ol class="relative border-l border-gray-200 ml-3 space-y-5">
+                                @foreach($artRequest->statusHistory as $entry)
+                                <li class="ml-6">
+                                    <span class="absolute -left-2.5 flex h-5 w-5 items-center justify-center rounded-full bg-white border-2 border-blue-400 ring-4 ring-white">
+                                        <svg class="h-2.5 w-2.5 text-blue-500" fill="currentColor" viewBox="0 0 8 8">
+                                            <circle cx="4" cy="4" r="3"/>
+                                        </svg>
+                                    </span>
+                                    <div class="flex flex-wrap items-center gap-1.5">
+                                        @if($entry->from_status)
+                                            <span class="text-xs px-2 py-0.5 rounded-full {{ $statusBadgeColors[$entry->from_status] ?? 'bg-gray-100 text-gray-600' }}">
+                                                {{ $entry->from_status }}
+                                            </span>
+                                            <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                            </svg>
+                                        @else
+                                            <span class="text-xs text-gray-400 italic">Creado con</span>
+                                        @endif
+                                        <span class="text-xs px-2 py-0.5 rounded-full font-medium {{ $statusBadgeColors[$entry->to_status] ?? 'bg-gray-100 text-gray-600' }}">
+                                            {{ $entry->to_status }}
+                                        </span>
+                                    </div>
+                                    <p class="mt-0.5 text-xs text-gray-400">
+                                        {{ $entry->user->name }} &middot; {{ $entry->created_at->format('d/m/Y H:i') }}
+                                    </p>
+                                </li>
+                                @endforeach
+                            </ol>
+                        </div>
+                        @else
+                        <div class="p-8 text-center text-gray-400 text-sm">
+                            Sin cambios de estado registrados.
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Comentarios -->
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg" id="comments-section">
+                        <div class="p-5 border-b border-gray-200 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">Comentarios</h3>
+                                <p class="text-sm text-gray-500 mt-0.5">Comunicación sobre esta solicitud</p>
+                            </div>
+                            <span class="text-sm text-gray-400" id="comments-count">
+                                {{ $artRequest->comments->count() }} {{ $artRequest->comments->count() === 1 ? 'comentario' : 'comentarios' }}
+                            </span>
+                        </div>
+
+                        {{-- Lista de comentarios --}}
+                        <div class="divide-y divide-gray-100" id="comments-list">
+                            @forelse($artRequest->comments as $comment)
+                            <div class="p-5 flex gap-3 {{ $comment->is_internal ? 'bg-amber-50' : '' }}"
+                                 id="comment-{{ $comment->id }}">
+                                <div class="flex-shrink-0 h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold">
+                                    {{ strtoupper(substr($comment->user->name, 0, 1)) }}
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <span class="text-sm font-semibold text-gray-800">{{ $comment->user->name }}</span>
+                                        <span class="text-xs text-gray-400">{{ $comment->created_at->format('d/m/Y H:i') }}</span>
+                                        @if($comment->is_internal)
+                                            <span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Interno</span>
+                                        @endif
+                                    </div>
+                                    <p class="text-sm text-gray-700 whitespace-pre-line">{{ $comment->body }}</p>
+                                </div>
+                                @if(auth()->id() === $comment->user_id || auth()->user()->can('content.edit'))
+                                <button onclick="deleteComment({{ $artRequest->id }}, {{ $comment->id }})"
+                                        class="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors"
+                                        title="Eliminar comentario">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                                @endif
+                            </div>
+                            @empty
+                            <div class="p-8 text-center text-gray-400 text-sm" id="no-comments-msg">
+                                Sin comentarios aún. Sé el primero en comentar.
+                            </div>
+                            @endforelse
+                        </div>
+
+                        {{-- Formulario nuevo comentario --}}
+                        <div class="p-5 bg-gray-50 border-t border-gray-200">
+                            <form id="comment-form" class="space-y-3">
+                                @csrf
+                                <textarea id="comment-body" name="body" rows="3"
+                                          placeholder="Escribe un comentario..."
+                                          class="w-full rounded-md border-gray-300 shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500 resize-none"></textarea>
+                                <div class="flex items-center justify-between gap-3">
+                                    @can('content.view')
+                                    <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer select-none">
+                                        <input type="checkbox" id="comment-internal" name="is_internal"
+                                               class="rounded border-gray-300 text-amber-500 focus:ring-amber-400">
+                                        <span>Solo equipo interno</span>
+                                    </label>
+                                    @else
+                                    <span></span>
+                                    @endcan
+                                    <button type="submit"
+                                            class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 disabled:opacity-50">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                        </svg>
+                                        Comentar
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- Sidebar -->
@@ -325,6 +462,53 @@
                     </div>
                     @endcan
 
+
+                    <!-- Estimación de Tiempo -->
+                    @if($artRequest->estimated_hours || $artRequest->actual_hours)
+                    @php
+                        $est = (float) $artRequest->estimated_hours;
+                        $act = (float) $artRequest->actual_hours;
+                        $efficiency = ($est > 0 && $act > 0) ? round(($est / $act) * 100) : null;
+                        $effClass = $efficiency === null ? '' : ($efficiency >= 90 ? 'text-green-600' : ($efficiency >= 70 ? 'text-yellow-600' : 'text-red-600'));
+                        $effBg    = $efficiency === null ? '' : ($efficiency >= 90 ? 'bg-green-50 border-green-200' : ($efficiency >= 70 ? 'bg-yellow-50 border-yellow-200' : 'bg-red-50 border-red-200'));
+                    @endphp
+                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div class="p-5 border-b border-gray-200">
+                            <h3 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Estimación de Tiempo
+                            </h3>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            @if($artRequest->estimated_hours)
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-500">Estimado</span>
+                                <span class="font-semibold text-gray-800">{{ number_format($artRequest->estimated_hours, 1) }} hrs</span>
+                            </div>
+                            @endif
+                            @if($artRequest->actual_hours)
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-500">Real</span>
+                                <span class="font-semibold text-gray-800">{{ number_format($artRequest->actual_hours, 1) }} hrs</span>
+                            </div>
+                            @endif
+                            @if($efficiency !== null)
+                            <div class="rounded-lg border p-3 text-center {{ $effBg }}">
+                                <p class="text-xs text-gray-500 mb-0.5">Eficiencia</p>
+                                <p class="text-xl font-bold {{ $effClass }}">{{ $efficiency }}%</p>
+                                @if($act > $est)
+                                    <p class="text-xs text-gray-400 mt-0.5">+{{ number_format($act - $est, 1) }} hrs extra</p>
+                                @elseif($est > $act)
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ number_format($est - $act, 1) }} hrs ahorradas</p>
+                                @endif
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
 
                     <!-- Información del Solicitante -->
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
@@ -419,4 +603,110 @@
             </div>
         </div>
     </div>
+
+@push('scripts')
+<script>
+(function () {
+    const artRequestId = {{ $artRequest->id }};
+    const storeUrl     = `/art-requests/${artRequestId}/comments`;
+    const csrf         = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const form         = document.getElementById('comment-form');
+    const list         = document.getElementById('comments-list');
+    const countEl      = document.getElementById('comments-count');
+    const noMsg        = document.getElementById('no-comments-msg');
+
+    function updateCount() {
+        const n = list.querySelectorAll('[id^="comment-"]').length;
+        if (countEl) countEl.textContent = n + (n === 1 ? ' comentario' : ' comentarios');
+        if (noMsg) noMsg.classList.toggle('hidden', n > 0);
+    }
+
+    function buildCommentHTML(c) {
+        const internalBadge = c.is_internal
+            ? `<span class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Interno</span>`
+            : '';
+        const deleteBtn = `
+            <button onclick="deleteComment(${artRequestId}, ${c.id})"
+                    class="flex-shrink-0 text-gray-300 hover:text-red-500 transition-colors"
+                    title="Eliminar comentario">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>`;
+
+        return `
+        <div class="p-5 flex gap-3 ${c.is_internal ? 'bg-amber-50' : ''}" id="comment-${c.id}">
+            <div class="flex-shrink-0 h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-semibold">
+                ${c.avatar}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                    <span class="text-sm font-semibold text-gray-800">${c.user}</span>
+                    <span class="text-xs text-gray-400">${c.created_at}</span>
+                    ${internalBadge}
+                </div>
+                <p class="text-sm text-gray-700 whitespace-pre-line">${c.body}</p>
+            </div>
+            ${c.is_own ? deleteBtn : ''}
+        </div>`;
+    }
+
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const body       = document.getElementById('comment-body').value.trim();
+            const isInternal = document.getElementById('comment-internal')?.checked ?? false;
+            const btn        = form.querySelector('button[type="submit"]');
+
+            if (!body) return;
+
+            btn.disabled = true;
+
+            fetch(storeUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ body, is_internal: isInternal }),
+            })
+            .then(r => r.ok ? r.json() : Promise.reject(r))
+            .then(comment => {
+                const div = document.createElement('div');
+                div.innerHTML = buildCommentHTML(comment).trim();
+                const node = div.firstChild;
+                list.appendChild(node);
+                document.getElementById('comment-body').value = '';
+                if (document.getElementById('comment-internal')) {
+                    document.getElementById('comment-internal').checked = false;
+                }
+                updateCount();
+            })
+            .catch(() => alert('No se pudo agregar el comentario.'))
+            .finally(() => { btn.disabled = false; });
+        });
+    }
+
+    window.deleteComment = function (requestId, commentId) {
+        if (!confirm('¿Eliminar este comentario?')) return;
+
+        fetch(`/art-requests/${requestId}/comments/${commentId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json',
+            },
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(() => {
+            const el = document.getElementById(`comment-${commentId}`);
+            if (el) el.remove();
+            updateCount();
+        })
+        .catch(() => alert('No se pudo eliminar el comentario.'));
+    };
+})();
+</script>
+@endpush
 </x-app-layout>

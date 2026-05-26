@@ -26,13 +26,17 @@ class ArtRequest extends Model
         'observations',
         'active',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'estimated_hours',
+        'actual_hours',
     ];
 
     protected $casts = [
-        'request_date' => 'date',
-        'delivery_date' => 'date',
-        'active' => 'boolean',
+        'request_date'    => 'date',
+        'delivery_date'   => 'date',
+        'active'          => 'boolean',
+        'estimated_hours' => 'decimal:1',
+        'actual_hours'    => 'decimal:1',
     ];
 
     // Relaciones
@@ -64,6 +68,16 @@ class ArtRequest extends Model
     public function modifications()
     {
         return $this->hasMany(ArtRequestModification::class)->orderBy('created_at', 'DESC');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(ArtRequestComment::class)->orderBy('created_at', 'asc');
+    }
+
+    public function statusHistory()
+    {
+        return $this->hasMany(ArtRequestHistory::class)->orderBy('created_at', 'asc');
     }
 
     public function creator()
