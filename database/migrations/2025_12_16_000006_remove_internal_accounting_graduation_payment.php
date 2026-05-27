@@ -24,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('inscriptions', function (Blueprint $table) {
-            $table->string('internal_accounting_graduation_payment')->nullable()->after('internal_accounting_amount_due');
+            if (!Schema::hasColumn('inscriptions', 'internal_accounting_graduation_payment')) {
+                $table->string('internal_accounting_graduation_payment')->nullable()->after('internal_accounting_amount_due');
+            }
         });
     }
 };

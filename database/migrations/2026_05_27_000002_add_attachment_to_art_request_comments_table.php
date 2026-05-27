@@ -19,7 +19,8 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::table('art_request_comments', function (Blueprint $table) {
-            $table->dropColumn(['attachment_name', 'attachment_drive_id', 'attachment_type']);
+            $cols = array_filter(['attachment_name', 'attachment_drive_id', 'attachment_type'], fn($c) => Schema::hasColumn('art_request_comments', $c));
+            if ($cols) $table->dropColumn(array_values($cols));
         });
     }
 };

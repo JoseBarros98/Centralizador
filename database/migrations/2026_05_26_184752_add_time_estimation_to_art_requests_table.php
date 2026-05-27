@@ -24,7 +24,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('art_requests', function (Blueprint $table) {
-            $table->dropColumn(['estimated_hours', 'actual_hours']);
+            $cols = array_filter(['estimated_hours', 'actual_hours'], fn($c) => Schema::hasColumn('art_requests', $c));
+            if ($cols) $table->dropColumn(array_values($cols));
         });
     }
 };
