@@ -9,33 +9,16 @@ use Illuminate\Support\Facades\Auth;
 
 class ArtRequestCommentController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware(function ($request, $next) {
-            $user = $request->user();
-            if ($user && ($user->can('content.view') || $user->can('content.view_own'))) {
-                return $next($request);
-            }
-            abort(403);
-        })->only(['index']);
-
-        $this->middleware(function ($request, $next) {
-            $user = $request->user();
-            if ($user && ($user->can('content.view') || $user->can('content.view_own'))) {
-                return $next($request);
-            }
-            abort(403);
-        })->only(['store']);
-    }
-
     public function store(Request $request, ArtRequest $artRequest)
     {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        if (!($user->can('content.view') || $user->can('content.view_own'))) abort(403);
+
         $request->validate([
             'body'        => 'required|string|min:1|max:2000',
             'is_internal' => 'boolean',
         ]);
-
-        $user = Auth::user();
 
         // Solo quienes pueden ver todos pueden marcar como interno
         $isInternal = $request->boolean('is_internal') && $user->can('content.view');

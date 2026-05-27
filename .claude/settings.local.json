@@ -28,7 +28,16 @@
       "Bash(Select-String -Pattern \"art-requests\")",
       "Bash(Select-Object -First 15)",
       "PowerShell(php -l \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Http\\\\Controllers\\\\ArtRequestController.php\" 2>&1)",
-      "Bash(Get-Content storage\\\\logs\\\\laravel.log -Tail 40)"
+      "Bash(Get-Content storage\\\\logs\\\\laravel.log -Tail 40)",
+      "Bash(claude doctor *)",
+      "PowerShell(claude doctor *)",
+      "PowerShell(npm install *)",
+      "PowerShell(& \"C:\\\\Users\\\\PC\\\\AppData\\\\Roaming\\\\npm\\\\claude.cmd\" doctor)",
+      "PowerShell(& \"C:\\\\Users\\\\PC\\\\AppData\\\\Roaming\\\\npm\\\\node_modules\\\\@anthropic-ai\\\\claude-code\\\\bin\\\\claude.exe\" --version)",
+      "Bash(Get-ChildItem *)",
+      "Skill(impeccable)",
+      "Bash(node *)",
+      "Bash(powershell *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"

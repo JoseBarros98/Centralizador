@@ -51,7 +51,7 @@ class ArtRequestController extends Controller
         })->only(['kanban', 'calendar']);
         $this->middleware(function ($request, $next) {
             $user = $request->user();
-            if ($user && ($user->can('content.edit') || $user->can('content.edit_own'))) {
+            if ($user && ($user->can('content.edit') || $user->can('content.edit_own') || $user->can('content.toggle_active'))) {
                 return $next($request);
             }
             abort(403);
@@ -185,8 +185,6 @@ class ArtRequestController extends Controller
             'observations' => 'nullable|string',
             'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:512000',
             'file_description' => 'nullable|string',
-            'estimated_hours' => 'nullable|numeric|min:0.1|max:9999.9',
-            'actual_hours'    => 'nullable|numeric|min:0.1|max:9999.9',
         ]);
 
         try {
@@ -204,8 +202,6 @@ class ArtRequestController extends Controller
                 'status'          => $request->status,
                 'priority'        => $request->priority,
                 'observations'    => $request->observations,
-                'estimated_hours' => $request->estimated_hours ?: null,
-                'actual_hours'    => $request->actual_hours ?: null,
                 'active'          => true,
                 'created_by'      => Auth::id(),
             ]);
@@ -329,12 +325,11 @@ class ArtRequestController extends Controller
             'observations' => 'nullable|string',
             'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png,gif,mp4,avi,mov,zip,rar|max:512000',
             'file_description' => 'nullable|string',
-            'estimated_hours' => 'nullable|numeric|min:0.1|max:9999.9',
-            'actual_hours'    => 'nullable|numeric|min:0.1|max:9999.9',
         ]);
 
         try {
             $oldStatus = $artRequest->status;
+            $newStatus = $request->status;
 
             // Actualizar SOLO los campos básicos - SIN TOCAR ARCHIVOS
             $artRequest->request_date = $request->request_date;
@@ -346,12 +341,13 @@ class ArtRequestController extends Controller
             $artRequest->title = $request->title;
             $artRequest->content = $request->content;
             $artRequest->details = $request->details;
-            $artRequest->status = $request->status;
-            $artRequest->priority         = $request->priority;
-            $artRequest->observations     = $request->observations;
-            $artRequest->estimated_hours  = $request->estimated_hours ?: null;
-            $artRequest->actual_hours     = $request->actual_hours ?: null;
-            $artRequest->updated_by       = Auth::id();
+            $artRequest->status = $newStatus;
+            $artRequest->priority     = $request->priority;
+            $artRequest->observations = $request->observations;
+            $artRequest->updated_by   = Auth::id();
+
+            $this->applyTimeTracking($artRequest, $oldStatus, $newStatus);
+
             $artRequest->save();
 
             if ($oldStatus !== $request->status) {
@@ -608,6 +604,17 @@ class ArtRequestController extends Controller
         }
     }
 
+    private function applyTimeTracking(ArtRequest $artRequest, string $oldStatus, string $newStatus): void
+    {
+        if ($newStatus === 'EN CURSO' && $oldStatus !== 'EN CURSO' && !$artRequest->started_at) {
+            $artRequest->started_at = now();
+        }
+
+        if ($newStatus === 'COMPLETO' && $artRequest->started_at && !$artRequest->actual_hours) {
+            $artRequest->actual_hours = round($artRequest->started_at->diffInMinutes(now()) / 60, 1);
+        }
+    }
+
     /**
      * Toggle active status of art request.
      */
@@ -747,18 +754,23 @@ class ArtRequestController extends Controller
      */
     public function updateStatus(Request $request, ArtRequest $artRequest)
     {
-        $this->authorizeArtRequestAccess($artRequest, 'edit');
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        if (!($user->can('content.edit') || $user->can('content.edit_own') || $user->can('content.toggle_active'))) {
+            abort(403);
+        }
 
         $request->validate([
             'status' => 'required|in:NO INICIADO,EN CURSO,COMPLETO,RETRASADO,ESPERANDO APROBACION,ESPERANDO INFORMACION,CANCELADO,EN PAUSA',
         ]);
 
         $oldStatus = $artRequest->status;
+        $newStatus = $request->status;
 
-        $artRequest->update([
-            'status'     => $request->status,
-            'updated_by' => Auth::id(),
-        ]);
+        $artRequest->status     = $newStatus;
+        $artRequest->updated_by = Auth::id();
+        $this->applyTimeTracking($artRequest, $oldStatus, $newStatus);
+        $artRequest->save();
 
         try {
             ArtRequestHistory::create([
@@ -771,6 +783,11 @@ class ArtRequestController extends Controller
             Log::warning('No se pudo registrar historial de estado: ' . $e->getMessage());
         }
 
-        return response()->json(['success' => true, 'status' => $artRequest->status]);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'status' => $artRequest->status]);
+        }
+
+        return redirect()->route('art_requests.show', $artRequest)
+            ->with('success', 'Estado actualizado correctamente.');
     }
 }

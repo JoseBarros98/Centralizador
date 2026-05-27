@@ -91,7 +91,7 @@ class RoleSeeder extends Seeder
             'dashboard.design',
             'content_pillar.view', 'content_pillar.create', 'content_pillar.edit', 'content_pillar.delete', 'content_pillar.toggle_active', 'content_pillar.manage_files',
             'type_of_art.view', 'type_of_art.create', 'type_of_art.edit', 'type_of_art.delete', 'type_of_art.toggle_active',
-            'content.view', 'content.create', 'content.edit', 'content.delete', 'content.toggle_active', 'content.manage_files',
+            'content.view', 'content.create', 'content.toggle_active', 'content.manage_files',
         ]);
 
         // Academic

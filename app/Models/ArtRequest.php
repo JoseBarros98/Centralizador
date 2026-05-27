@@ -29,6 +29,7 @@ class ArtRequest extends Model
         'updated_by',
         'estimated_hours',
         'actual_hours',
+        'started_at',
     ];
 
     protected $casts = [
@@ -37,6 +38,7 @@ class ArtRequest extends Model
         'active'          => 'boolean',
         'estimated_hours' => 'decimal:1',
         'actual_hours'    => 'decimal:1',
+        'started_at'      => 'datetime',
     ];
 
     // Relaciones
