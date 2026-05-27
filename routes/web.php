@@ -266,6 +266,7 @@ Route::middleware('auth')->group(function () {
 
   // Art Request Comments
   Route::post('art-requests/{artRequest}/comments', [ArtRequestCommentController::class, 'store'])->name('art-requests.comments.store');
+  Route::get('art-requests/{artRequest}/comments/latest', [ArtRequestCommentController::class, 'latest'])->name('art-requests.comments.latest');
   Route::delete('art-requests/{artRequest}/comments/{comment}', [ArtRequestCommentController::class, 'destroy'])->name('art-requests.comments.destroy');
   Route::get('art-requests/{artRequest}/comments/{comment}/attachment', [ArtRequestCommentController::class, 'serveAttachment'])->name('art-requests.comments.attachment');
 

@@ -1137,44 +1137,87 @@
             }
         });
         
+        // Sonido de notificación (Web Audio API, sin archivos externos)
+        function playNotifSound() {
+            try {
+                const ac = new (window.AudioContext || window.webkitAudioContext)();
+                [[880, 0], [1100, 0.16]].forEach(([freq, delay]) => {
+                    const osc = ac.createOscillator(), gain = ac.createGain();
+                    osc.connect(gain); gain.connect(ac.destination);
+                    osc.type = 'sine'; osc.frequency.value = freq;
+                    const t = ac.currentTime + delay;
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.22, t + 0.01);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+                    osc.start(t); osc.stop(t + 0.45);
+                });
+            } catch (e) {}
+        }
+
+        // Notificación del navegador (OS)
+        function showBrowserNotification(title, body, url) {
+            if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+            try {
+                const n = new Notification(title, { body, icon: '/favicon.ico', tag: 'esam-notif' });
+                n.onclick = () => { window.focus(); if (url && url !== '#') window.location.href = url; n.close(); };
+                setTimeout(() => n.close(), 6000);
+            } catch (e) {}
+        }
+
+        // Exponer globalmente para el show page
+        window.playNotifSound       = playNotifSound;
+        window.showBrowserNotification = showBrowserNotification;
+
         // Función para el dropdown de notificaciones
         function notificationDropdown() {
     return {
         open: false,
         notifications: [],
         unreadCount: 0,
-        
+        initialized: false,
+
         init() {
+            if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
             this.fetchNotifications();
             setInterval(() => this.fetchNotifications(), 30000);
         },
-        
+
         toggle() {
             this.open = !this.open;
             if (this.open) {
                 this.fetchNotifications();
             }
         },
-        
+
         async fetchNotifications() {
             try {
+                const previousCount = this.unreadCount;
                 const [notificationsResponse, countResponse] = await Promise.all([
                     fetch('/notifications/unread'),
                     fetch('/notifications/count')
                 ]);
-                
+
                 if (notificationsResponse.ok && countResponse.ok) {
                     const notificationsData = await notificationsResponse.json();
                     const countData = await countResponse.json();
-                    
+
                     let notifications = notificationsData.notifications || notificationsData;
-                    
-                    if (!Array.isArray(notifications)) {
-                        notifications = [];
+                    if (!Array.isArray(notifications)) notifications = [];
+
+                    const newCount = countData.unread_count || countData.count || 0;
+
+                    // Sonido + notificación OS cuando llega algo nuevo
+                    if (this.initialized && newCount > previousCount) {
+                        playNotifSound();
+                        const latest = notifications[0];
+                        if (latest) showBrowserNotification(latest.title, latest.message, latest.url);
                     }
-                    
+
                     this.notifications = notifications;
-                    this.unreadCount = countData.unread_count || countData.count || 0;
+                    this.unreadCount   = newCount;
+                    this.initialized   = true;
                 }
             } catch (error) {
                 console.error('Error fetching notifications:', error);

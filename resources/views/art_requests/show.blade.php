@@ -776,21 +776,43 @@
             if (!body) return;
             btn.disabled = true;
 
-            const fd = new FormData();
-            fd.append('body', body);
-            fd.append('is_internal', isInternal ? '1' : '0');
-            if (attachFile) fd.append('attachment', attachFile);
+            // JSON cuando no hay adjunto (más confiable); FormData solo con archivo
+            let fetchBody, fetchHeaders;
+            if (attachFile) {
+                const fd = new FormData();
+                fd.append('body', body);
+                fd.append('is_internal', isInternal ? '1' : '0');
+                fd.append('attachment', attachFile);
+                fetchBody    = fd;
+                fetchHeaders = { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' };
+            } else {
+                fetchBody    = JSON.stringify({ body, is_internal: isInternal });
+                fetchHeaders = {
+                    'X-CSRF-TOKEN': csrf,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                };
+            }
 
-            fetch(storeUrl, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-                body: fd,
+            fetch(storeUrl, { method: 'POST', headers: fetchHeaders, body: fetchBody })
+            .then(async r => {
+                if (!r.ok) {
+                    const text = await r.text();
+                    console.error('Error al guardar comentario:', r.status, text);
+                    throw new Error(r.status);
+                }
+                return r.json();
             })
-            .then(r => r.ok ? r.json() : Promise.reject(r))
             .then(comment => {
+                // Ocultar empty state si existe
+                const noMsgEl = document.getElementById('no-comments-msg');
+                if (noMsgEl) noMsgEl.classList.add('hidden');
+
                 const div = document.createElement('div');
                 div.innerHTML = buildCommentHTML(comment).trim();
-                list.appendChild(div.firstChild);
+                const node = div.firstElementChild;
+                if (node) list.appendChild(node);
+
                 bodyEl.value = '';
                 bodyEl.style.height = 'auto';
                 if (attachmentInput) {
@@ -803,7 +825,10 @@
                 list.scrollTop = list.scrollHeight;
                 updateCount();
             })
-            .catch(() => alert('No se pudo agregar el comentario.'))
+            .catch(err => {
+                console.error('Fetch comentario falló:', err);
+                alert('No se pudo agregar el comentario. Revisa la consola para más detalles.');
+            })
             .finally(() => { btn.disabled = false; });
         });
     }
@@ -858,6 +883,87 @@
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeAttachmentModal();
     });
+
+    // Burbuja para comentarios de otros usuarios (izquierda)
+    function buildOtherCommentHTML(c) {
+        const internalBadge = c.is_internal
+            ? `<p class="flex items-center gap-1 text-xs font-semibold mb-1.5 text-amber-500">
+                   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/></svg>
+                   Interno
+               </p>`
+            : '';
+        const attachmentHtml = c.attachment_url
+            ? `<button type="button"
+                  onclick="openAttachmentModal('${c.attachment_url}', ${JSON.stringify(c.attachment_name)}, '${c.attachment_type ?? ''}')"
+                  class="mt-2 pt-2 w-full flex items-center gap-2 text-xs border-t border-gray-200 hover:text-indigo-600 transition-colors text-left">
+                   <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                   </svg>
+                   <span class="truncate max-w-[180px]">${c.attachment_name}</span>
+               </button>`
+            : '';
+        const ringClass = c.is_internal ? ' ring-2 ring-amber-300 bg-amber-50' : '';
+
+        return `
+        <div class="flex justify-start items-end gap-2" id="comment-${c.id}">
+            <div class="flex-shrink-0 h-7 w-7 rounded-full bg-indigo-400 flex items-center justify-center text-white text-xs font-semibold mb-4">
+                ${c.avatar}
+            </div>
+            <div class="max-w-[75%] flex flex-col items-start gap-1">
+                <span class="text-xs font-medium text-gray-500 ml-1">${c.user}</span>
+                <div class="px-4 py-2.5 text-sm leading-relaxed bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-none shadow-sm${ringClass}">
+                    ${internalBadge}
+                    <p class="whitespace-pre-line">${c.body}</p>
+                    ${attachmentHtml}
+                </div>
+                <span class="text-xs text-gray-400 ml-1">${c.created_at}</span>
+            </div>
+        </div>`;
+    }
+
+    // Polling de comentarios nuevos de otros usuarios (cada 5 seg)
+    let lastCommentCheck = Math.floor(Date.now() / 1000);
+    let pollingActive = true;
+
+    document.addEventListener('visibilitychange', () => {
+        pollingActive = document.visibilityState === 'visible';
+    });
+
+    setInterval(async () => {
+        if (!pollingActive) return;
+        try {
+            const res = await fetch(`/art-requests/${artRequestId}/comments/latest?since=${lastCommentCheck}`, {
+                headers: { 'Accept': 'application/json' },
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            lastCommentCheck = data.timestamp;
+
+            if (data.comments && data.comments.length > 0) {
+                data.comments.forEach(c => {
+                    if (!document.getElementById(`comment-${c.id}`)) {
+                        const div = document.createElement('div');
+                        div.innerHTML = buildOtherCommentHTML(c).trim();
+                        const node = div.firstElementChild;
+                        if (node) list.appendChild(node);
+                    }
+                });
+                list.scrollTop = list.scrollHeight;
+                updateCount();
+                if (typeof playNotifSound === 'function') playNotifSound();
+                if (typeof showBrowserNotification === 'function') {
+                    const first = data.comments[0];
+                    showBrowserNotification(
+                        'Nuevo comentario',
+                        `${first.user}: ${first.body.replace(/<[^>]+>/g, '').substring(0, 80)}`,
+                        window.location.href
+                    );
+                }
+            }
+        } catch (e) {
+            console.warn('Polling comentarios falló:', e);
+        }
+    }, 5000);
 
     window.deleteComment = function (requestId, commentId) {
         if (!confirm('¿Eliminar este comentario?')) return;

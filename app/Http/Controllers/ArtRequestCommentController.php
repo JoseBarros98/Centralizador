@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ArtRequest;
 use App\Models\ArtRequestComment;
+use App\Notifications\NewArtRequestCommentNotification;
 use App\Services\GoogleDriveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,16 +55,34 @@ class ArtRequestCommentController extends Controller
         }
 
         $comment = ArtRequestComment::create([
-            'art_request_id'     => $artRequest->id,
-            'user_id'            => $user->id,
-            'body'               => $request->body,
-            'is_internal'        => $isInternal,
-            'attachment_name'    => $attachmentName,
-            'attachment_drive_id'=> $attachmentDriveId,
-            'attachment_type'    => $attachmentType,
+            'art_request_id'      => $artRequest->id,
+            'user_id'             => $user->id,
+            'body'                => $request->body,
+            'is_internal'         => $isInternal,
+            'attachment_name'     => $attachmentName,
+            'attachment_drive_id' => $attachmentDriveId,
+            'attachment_type'     => $attachmentType,
         ]);
 
         $comment->load('user');
+
+        // Notificar al diseñador si el comentario no es suyo
+        if ($artRequest->designer_id && $artRequest->designer_id !== $user->id) {
+            try {
+                $artRequest->designer->notify(new NewArtRequestCommentNotification($comment, $artRequest));
+            } catch (\Exception $e) {
+                Log::warning('No se pudo enviar notificación al diseñador: ' . $e->getMessage());
+            }
+        }
+
+        // Notificar al solicitante si el comentario no es suyo
+        if ($artRequest->requester_id && $artRequest->requester_id !== $user->id) {
+            try {
+                $artRequest->requester->notify(new NewArtRequestCommentNotification($comment, $artRequest));
+            } catch (\Exception $e) {
+                Log::warning('No se pudo enviar notificación al solicitante: ' . $e->getMessage());
+            }
+        }
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -83,6 +102,44 @@ class ArtRequestCommentController extends Controller
         }
 
         return back()->with('success', 'Comentario agregado.');
+    }
+
+    public function latest(ArtRequest $artRequest, Request $request)
+    {
+        $user = Auth::user();
+        if (!$user instanceof \App\Models\User) abort(403);
+        if (!($user->can('content.view') || $user->can('content.view_own'))) abort(403);
+
+        $since = $request->filled('since')
+            ? \Carbon\Carbon::createFromTimestamp((int) $request->since)
+            : now()->subMinute();
+
+        $comments = ArtRequestComment::with('user')
+            ->where('art_request_id', $artRequest->id)
+            ->where('user_id', '!=', $user->id)
+            ->where('created_at', '>', $since)
+            ->when(!$user->can('content.view'), fn($q) => $q->where('is_internal', false))
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn($c) => [
+                'id'              => $c->id,
+                'body'            => e($c->body),
+                'is_internal'     => $c->is_internal,
+                'user'            => $c->user->name,
+                'avatar'          => strtoupper(substr($c->user->name, 0, 1)),
+                'created_at'      => $c->created_at->format('d/m/Y H:i'),
+                'is_own'          => false,
+                'attachment_name' => $c->attachment_name,
+                'attachment_type' => $c->attachment_type,
+                'attachment_url'  => $c->attachment_drive_id
+                    ? route('art-requests.comments.attachment', [$artRequest, $c])
+                    : null,
+            ]);
+
+        return response()->json([
+            'comments'  => $comments,
+            'timestamp' => now()->timestamp,
+        ]);
     }
 
     public function serveAttachment(ArtRequest $artRequest, ArtRequestComment $comment, Request $request)
