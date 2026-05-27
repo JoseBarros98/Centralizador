@@ -12,6 +12,7 @@ window._expConfig = {
     renameUrl:          "{{ route('management-expenses.renameItem') }}",
     itemsUrl:           "{{ route('management-expenses.items') }}",
     entityStoreUrl:     "{{ route('management-expenses.entity.store') }}",
+    entityRenameBase:   "{{ url('management-expenses/entity') }}",
     entityDestroyBase:  "{{ url('management-expenses/entity') }}",
     entityDetailBase:   "{{ url('management-expenses/entity') }}",
     entityAmountUrl:    "{{ route('management-expenses.entity.upsertAmount') }}",
@@ -85,15 +86,51 @@ window._expConfig = {
             <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Entidades:</span>
 
             <template x-for="ent in entities" :key="ent.id">
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full text-xs font-medium">
-                    <span x-text="ent.name"></span>
-                    <button @click="deleteEntity(ent.id)"
-                            class="text-blue-400 hover:text-red-600 transition-colors leading-none"
-                            title="Eliminar entidad">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                    </button>
+                <div class="inline-flex items-center gap-1 rounded-full text-xs font-medium transition-colors"
+                     :class="renamingEntityId === ent.id
+                         ? 'px-1.5 py-0.5 bg-blue-100 border border-blue-400'
+                         : 'px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-800'">
+
+                    {{-- Normal view --}}
+                    <template x-if="renamingEntityId !== ent.id">
+                        <div class="flex items-center gap-1.5">
+                            <button @click="startRenameEntity(ent.id, ent.name)"
+                                    class="hover:text-blue-600 transition-colors cursor-text"
+                                    title="Clic para renombrar"
+                                    x-text="ent.name"></button>
+                            <button @click="deleteEntity(ent.id)"
+                                    class="text-blue-300 hover:text-red-600 transition-colors leading-none"
+                                    title="Eliminar entidad">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
+
+                    {{-- Rename input --}}
+                    <template x-if="renamingEntityId === ent.id">
+                        <div class="flex items-center gap-1">
+                            <input :id="'rename-entity-' + ent.id"
+                                   x-model="renameEntityValue"
+                                   type="text"
+                                   @keydown.enter.prevent="saveRenameEntity(ent.id)"
+                                   @keydown.escape.prevent="cancelRenameEntity()"
+                                   class="w-24 px-1.5 py-0.5 border border-blue-400 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white">
+                            <button @click="saveRenameEntity(ent.id)" :disabled="renamingEntity"
+                                    class="text-blue-600 hover:text-blue-800 disabled:opacity-50" title="Guardar">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </button>
+                            <button @click="cancelRenameEntity()" :disabled="renamingEntity"
+                                    class="text-gray-400 hover:text-gray-600 disabled:opacity-50" title="Cancelar">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </template>
                 </div>
             </template>
 
@@ -529,6 +566,9 @@ function expenseGrid() {
         expandedMonths:    [],
         addingEntity:      false,
         newEntityName:     '',
+        renamingEntityId:  null,
+        renameEntityValue: '',
+        renamingEntity:    false,
         entityFilter:      '',  // '' = all, entity id (number/string) = specific entity
 
         monthShort: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
@@ -688,6 +728,48 @@ function expenseGrid() {
 
                 // Recalculate main grid
                 this._rebuildGrid();
+            }
+        },
+
+        startRenameEntity(entityId, currentName) {
+            this.renamingEntityId  = entityId;
+            this.renameEntityValue = currentName;
+            this.$nextTick(() => {
+                const el = document.getElementById('rename-entity-' + entityId);
+                if (el) { el.focus(); el.select(); }
+            });
+        },
+
+        cancelRenameEntity() {
+            this.renamingEntityId  = null;
+            this.renameEntityValue = '';
+        },
+
+        async saveRenameEntity(entityId) {
+            const newName = this.renameEntityValue.trim();
+            const ent     = this.entities.find(e => e.id === entityId);
+            if (!newName || newName === ent?.name) { this.cancelRenameEntity(); return; }
+
+            this.renamingEntity = true;
+            try {
+                const res  = await fetch(cfg.entityRenameBase + '/' + entityId, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept':       'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({ name: newName }),
+                });
+                const data = await res.json();
+                if (data.success) {
+                    this.entities = this.entities.map(e => e.id === entityId ? { ...e, name: data.name } : e);
+                    this.cancelRenameEntity();
+                } else {
+                    alert(data.message ?? 'No se pudo renombrar la entidad.');
+                }
+            } finally {
+                this.renamingEntity = false;
             }
         },
 

@@ -36,6 +36,26 @@ class ManagementExpenseEntityController extends Controller
         ]);
     }
 
+    public function rename(ManagementExpenseEntity $entity, Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+        ]);
+
+        $duplicate = ManagementExpenseEntity::where('gestion', $entity->gestion)
+            ->where('name', $validated['name'])
+            ->where('id', '!=', $entity->id)
+            ->exists();
+
+        if ($duplicate) {
+            return response()->json(['success' => false, 'message' => 'Ya existe una entidad con ese nombre.'], 422);
+        }
+
+        $entity->update(['name' => $validated['name']]);
+
+        return response()->json(['success' => true, 'name' => $entity->name]);
+    }
+
     public function destroy(ManagementExpenseEntity $entity): JsonResponse
     {
         $entity->delete();

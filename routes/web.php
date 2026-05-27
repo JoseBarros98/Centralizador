@@ -411,6 +411,7 @@ Route::middleware('auth')->group(function () {
   Route::delete('management-expenses/item',              [ManagementExpenseController::class, 'destroyItem'])->name('management-expenses.destroyItem');
   Route::post('management-expenses/entity',                              [ManagementExpenseEntityController::class, 'store'])->name('management-expenses.entity.store');
   Route::get('management-expenses/entity/{entity}/month-detail',        [ManagementExpenseEntityController::class, 'monthDetail'])->name('management-expenses.entity.monthDetail');
+  Route::patch('management-expenses/entity/{entity}',                   [ManagementExpenseEntityController::class, 'rename'])->name('management-expenses.entity.rename');
   Route::delete('management-expenses/entity/{entity}',                  [ManagementExpenseEntityController::class, 'destroy'])->name('management-expenses.entity.destroy');
   Route::post('management-expenses/entity-amount',                      [ManagementExpenseEntityController::class, 'upsertAmount'])->name('management-expenses.entity.upsertAmount');
 
