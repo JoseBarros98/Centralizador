@@ -199,6 +199,16 @@
                                             </p>
                                             @endif
                                             <p class="whitespace-pre-line">{{ $comment->body }}</p>
+                                            @if($comment->attachment_name)
+                                            <a href="{{ route('art-requests.comments.attachment', [$artRequest, $comment]) }}"
+                                               target="_blank"
+                                               class="mt-2 pt-2 flex items-center gap-2 text-xs border-t {{ $isOwn ? 'border-indigo-500 hover:text-indigo-200' : 'border-gray-200 hover:text-indigo-600' }} transition-colors">
+                                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                                </svg>
+                                                <span class="truncate max-w-[180px]">{{ $comment->attachment_name }}</span>
+                                            </a>
+                                            @endif
                                         </div>
                                         @if(auth()->id() === $comment->user_id || auth()->user()->can('content.edit'))
                                         <button onclick="deleteComment({{ $artRequest->id }}, {{ $comment->id }})"
@@ -243,11 +253,32 @@
                                     Solo equipo interno
                                 </label>
                                 @endcan
+                                {{-- Chip de archivo seleccionado --}}
+                                <div id="attachment-preview" class="hidden mb-2 flex items-center gap-2 px-3 py-1.5 bg-indigo-50 border border-indigo-200 rounded-full text-xs text-indigo-700 w-fit max-w-full">
+                                    <svg class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                    </svg>
+                                    <span id="attachment-filename" class="truncate max-w-[200px]"></span>
+                                    <button type="button" id="attachment-clear" class="flex-shrink-0 text-indigo-400 hover:text-indigo-700 ml-1">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
                                 <div class="flex items-end gap-2">
                                     <textarea id="comment-body" name="body" rows="1"
                                               placeholder="Escribe un comentario..."
                                               class="flex-1 rounded-2xl border-gray-300 shadow-sm text-sm focus:ring-indigo-500 focus:border-indigo-500 resize-none py-2.5 px-4"
                                               oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"></textarea>
+                                    <input type="file" id="comment-attachment" class="hidden"
+                                           accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.mp4,.avi,.mov,.zip,.rar">
+                                    <button type="button" id="attachment-btn"
+                                            class="flex-shrink-0 h-10 w-10 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center hover:bg-gray-200 transition-colors"
+                                            title="Adjuntar archivo">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                        </svg>
+                                    </button>
                                     <button type="submit"
                                             class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-600 text-white flex items-center justify-center hover:bg-indigo-700 disabled:opacity-50 transition-colors">
                                         <svg class="w-4 h-4 translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -602,6 +633,32 @@
     // Scroll al último mensaje al cargar
     if (list) list.scrollTop = list.scrollHeight;
 
+    // Paperclip
+    const attachmentInput   = document.getElementById('comment-attachment');
+    const attachmentBtn     = document.getElementById('attachment-btn');
+    const attachmentPreview = document.getElementById('attachment-preview');
+    const attachmentFilename= document.getElementById('attachment-filename');
+    const attachmentClear   = document.getElementById('attachment-clear');
+
+    if (attachmentBtn) attachmentBtn.addEventListener('click', () => attachmentInput.click());
+
+    if (attachmentInput) {
+        attachmentInput.addEventListener('change', function () {
+            if (this.files[0]) {
+                attachmentFilename.textContent = this.files[0].name;
+                attachmentPreview.classList.remove('hidden');
+            }
+        });
+    }
+
+    if (attachmentClear) {
+        attachmentClear.addEventListener('click', function () {
+            attachmentInput.value = '';
+            attachmentPreview.classList.add('hidden');
+            attachmentFilename.textContent = '';
+        });
+    }
+
     function updateCount() {
         const n = list.querySelectorAll('[id^="comment-"]').length;
         if (countEl) countEl.textContent = n;
@@ -617,8 +674,17 @@
                    Interno
                </p>`
             : '';
-        const ringClass  = c.is_internal ? ' ring-2 ring-amber-400' : '';
-        const deleteBtn  = `
+        const attachmentHtml = c.attachment_url
+            ? `<a href="${c.attachment_url}" target="_blank"
+                  class="mt-2 pt-2 flex items-center gap-2 text-xs border-t border-indigo-500 hover:text-indigo-200 transition-colors">
+                   <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                   </svg>
+                   <span class="truncate max-w-[180px]">${c.attachment_name}</span>
+               </a>`
+            : '';
+        const ringClass = c.is_internal ? ' ring-2 ring-amber-400' : '';
+        const deleteBtn = `
             <button onclick="deleteComment(${artRequestId}, ${c.id})"
                     class="absolute -top-1.5 -left-1.5 opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow"
                     title="Eliminar">
@@ -634,6 +700,7 @@
                     <div class="px-4 py-2.5 text-sm leading-relaxed bg-indigo-600 text-white rounded-2xl rounded-br-none${ringClass}">
                         ${internalBadge}
                         <p class="whitespace-pre-line">${c.body}</p>
+                        ${attachmentHtml}
                     </div>
                     ${deleteBtn}
                 </div>
@@ -651,20 +718,21 @@
             const bodyEl     = document.getElementById('comment-body');
             const body       = bodyEl.value.trim();
             const isInternal = document.getElementById('comment-internal')?.checked ?? false;
+            const attachFile = attachmentInput?.files[0] ?? null;
             const btn        = form.querySelector('button[type="submit"]');
 
             if (!body) return;
-
             btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('body', body);
+            fd.append('is_internal', isInternal ? '1' : '0');
+            if (attachFile) fd.append('attachment', attachFile);
 
             fetch(storeUrl, {
                 method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': csrf,
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({ body, is_internal: isInternal }),
+                headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                body: fd,
             })
             .then(r => r.ok ? r.json() : Promise.reject(r))
             .then(comment => {
@@ -673,6 +741,11 @@
                 list.appendChild(div.firstChild);
                 bodyEl.value = '';
                 bodyEl.style.height = 'auto';
+                if (attachmentInput) {
+                    attachmentInput.value = '';
+                    attachmentPreview.classList.add('hidden');
+                    attachmentFilename.textContent = '';
+                }
                 const internalCb = document.getElementById('comment-internal');
                 if (internalCb) internalCb.checked = false;
                 list.scrollTop = list.scrollHeight;

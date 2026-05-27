@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ArtRequestComment extends Model
 {
-    protected $fillable = ['art_request_id', 'user_id', 'body', 'is_internal'];
+    protected $fillable = ['art_request_id', 'user_id', 'body', 'is_internal', 'attachment_name', 'attachment_drive_id', 'attachment_type'];
 
     protected $casts = ['is_internal' => 'boolean'];
 

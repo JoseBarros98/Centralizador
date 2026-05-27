@@ -319,6 +319,14 @@ class GoogleDriveService
     }
     
     /**
+     * Buscar o crear una subcarpeta dentro de una carpeta padre conocida (por ID)
+     */
+    public function findOrCreateSubfolder(string $name, string $parentFolderId): string
+    {
+        return $this->findOrCreateFolder($name, $parentFolderId);
+    }
+
+    /**
      * Buscar una carpeta por nombre, si no existe la crea
      */
     private function findOrCreateFolder($folderName, $parentId = null)
