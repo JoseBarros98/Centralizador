@@ -75,6 +75,7 @@ class ArtRequestCommentController extends Controller
                 'created_at'      => $comment->created_at->format('d/m/Y H:i'),
                 'is_own'          => true,
                 'attachment_name' => $comment->attachment_name,
+                'attachment_type' => $comment->attachment_type,
                 'attachment_url'  => $comment->attachment_drive_id
                     ? route('art-requests.comments.attachment', [$artRequest, $comment])
                     : null,
@@ -84,7 +85,7 @@ class ArtRequestCommentController extends Controller
         return back()->with('success', 'Comentario agregado.');
     }
 
-    public function serveAttachment(ArtRequest $artRequest, ArtRequestComment $comment)
+    public function serveAttachment(ArtRequest $artRequest, ArtRequestComment $comment, Request $request)
     {
         $user = Auth::user();
         if (!$user instanceof \App\Models\User) abort(403);
@@ -92,11 +93,12 @@ class ArtRequestCommentController extends Controller
 
         if (!$comment->attachment_drive_id) abort(404);
 
-        $content = (new GoogleDriveService())->downloadFile($comment->attachment_drive_id);
+        $content     = (new GoogleDriveService())->downloadFile($comment->attachment_drive_id);
+        $disposition = $request->boolean('dl') ? 'attachment' : 'inline';
 
         return response($content, 200, [
             'Content-Type'        => $comment->attachment_type ?? 'application/octet-stream',
-            'Content-Disposition' => 'inline; filename="' . $comment->attachment_name . '"',
+            'Content-Disposition' => $disposition . '; filename="' . $comment->attachment_name . '"',
         ]);
     }
 

@@ -611,7 +611,7 @@ class ArtRequestController extends Controller
         }
 
         if ($newStatus === 'COMPLETO' && $artRequest->started_at && !$artRequest->actual_hours) {
-            $artRequest->actual_hours = round($artRequest->started_at->diffInMinutes(now()) / 60, 1);
+            $artRequest->actual_hours = round($artRequest->started_at->diffInMinutes(now()) / 60, 4);
         }
     }
 

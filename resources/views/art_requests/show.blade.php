@@ -200,14 +200,14 @@
                                             @endif
                                             <p class="whitespace-pre-line">{{ $comment->body }}</p>
                                             @if($comment->attachment_name)
-                                            <a href="{{ route('art-requests.comments.attachment', [$artRequest, $comment]) }}"
-                                               target="_blank"
-                                               class="mt-2 pt-2 flex items-center gap-2 text-xs border-t {{ $isOwn ? 'border-indigo-500 hover:text-indigo-200' : 'border-gray-200 hover:text-indigo-600' }} transition-colors">
+                                            <button type="button"
+                                                    onclick="openAttachmentModal('{{ route('art-requests.comments.attachment', [$artRequest, $comment]) }}', {{ Js::from($comment->attachment_name) }}, '{{ $comment->attachment_type }}')"
+                                                    class="mt-2 pt-2 w-full flex items-center gap-2 text-xs border-t {{ $isOwn ? 'border-indigo-500 hover:text-indigo-200' : 'border-gray-200 hover:text-indigo-600' }} transition-colors text-left">
                                                 <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                                                 </svg>
                                                 <span class="truncate max-w-[180px]">{{ $comment->attachment_name }}</span>
-                                            </a>
+                                            </button>
                                             @endif
                                         </div>
                                         @if(auth()->id() === $comment->user_id || auth()->user()->can('content.edit'))
@@ -349,14 +349,26 @@
                             </div>
                             @endif
                             @if($artRequest->actual_hours)
+                            @php
+                                $totalMins = (int) round($artRequest->actual_hours * 60);
+                                $timeDisplay = $totalMins < 60
+                                    ? $totalMins . ' min'
+                                    : number_format($artRequest->actual_hours, 1) . ' hrs';
+                            @endphp
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-gray-500">Tiempo total</span>
-                                <span class="font-semibold text-gray-800">{{ number_format($artRequest->actual_hours, 1) }} hrs</span>
+                                <span class="font-semibold text-gray-800">{{ $timeDisplay }}</span>
                             </div>
                             @elseif($artRequest->started_at && $artRequest->status === 'EN CURSO')
+                            @php
+                                $elapsedMins = (int) $artRequest->started_at->diffInMinutes(now());
+                                $elapsedDisplay = $elapsedMins < 60
+                                    ? $elapsedMins . ' min'
+                                    : number_format($elapsedMins / 60, 1) . ' hrs';
+                            @endphp
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-gray-500">Transcurrido</span>
-                                <span class="font-semibold text-blue-600">{{ round($artRequest->started_at->diffInMinutes(now()) / 60, 1) }} hrs</span>
+                                <span class="font-semibold text-blue-600">{{ $elapsedDisplay }}</span>
                             </div>
                             @endif
                         </div>
@@ -447,12 +459,14 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center space-x-1.5 ml-2">
-                                        <a href="{{ route('art_requests.files.serve', $file) }}" target="_blank" class="text-indigo-500 hover:text-indigo-700">
+                                        <button type="button"
+                                                onclick="openAttachmentModal('{{ route('art_requests.files.serve', $file) }}', {{ Js::from($file->file_name) }}, '{{ $file->file_type }}')"
+                                                class="text-indigo-500 hover:text-indigo-700">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                                             </svg>
-                                        </a>
+                                        </button>
                                         <a href="{{ route('art_requests.files.download', $file) }}" class="text-indigo-500 hover:text-indigo-700">
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -613,6 +627,43 @@
                 </div>
             </div>
 
+        <!-- Modal adjunto comentario -->
+        <div id="attachment-modal"
+             class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+             style="background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);"
+             onclick="if(event.target===this) closeAttachmentModal()">
+            <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col"
+                 style="max-height:90vh">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200 flex-shrink-0">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                        </svg>
+                        <span id="modal-filename" class="text-sm font-medium text-gray-800 truncate"></span>
+                    </div>
+                    <div class="flex items-center gap-2 flex-shrink-0 ml-4">
+                        <a id="modal-download" href="#"
+                           class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            Descargar
+                        </a>
+                        <button onclick="closeAttachmentModal()"
+                                class="h-8 w-8 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <!-- Contenido -->
+                <div id="modal-body" class="flex-1 overflow-auto min-h-0 p-4 flex items-center justify-center">
+                </div>
+            </div>
+        </div>
+
         <!-- Modal para registrar modificación -->
         <x-art-request-record-modification-modal :artRequest="$artRequest" />
 
@@ -675,13 +726,14 @@
                </p>`
             : '';
         const attachmentHtml = c.attachment_url
-            ? `<a href="${c.attachment_url}" target="_blank"
-                  class="mt-2 pt-2 flex items-center gap-2 text-xs border-t border-indigo-500 hover:text-indigo-200 transition-colors">
+            ? `<button type="button"
+                  onclick="openAttachmentModal('${c.attachment_url}', ${JSON.stringify(c.attachment_name)}, '${c.attachment_type ?? ''}')"
+                  class="mt-2 pt-2 w-full flex items-center gap-2 text-xs border-t border-indigo-500 hover:text-indigo-200 transition-colors text-left">
                    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
                    </svg>
                    <span class="truncate max-w-[180px]">${c.attachment_name}</span>
-               </a>`
+               </button>`
             : '';
         const ringClass = c.is_internal ? ' ring-2 ring-amber-400' : '';
         const deleteBtn = `
@@ -755,6 +807,57 @@
             .finally(() => { btn.disabled = false; });
         });
     }
+
+    window.openAttachmentModal = function (url, name, type) {
+        const modal    = document.getElementById('attachment-modal');
+        const body     = document.getElementById('modal-body');
+        const filename = document.getElementById('modal-filename');
+        const download = document.getElementById('modal-download');
+
+        filename.textContent = name;
+        download.href        = url + '?dl=1';
+        download.download    = name;
+        body.innerHTML       = '';
+
+        if (type && type.startsWith('image/')) {
+            body.innerHTML = `<img src="${url}" alt="${name}" class="max-w-full max-h-[75vh] rounded object-contain shadow">`;
+        } else if (type === 'application/pdf') {
+            body.innerHTML = `<iframe src="${url}" class="w-full rounded" style="height:75vh;border:0;"></iframe>`;
+        } else {
+            body.innerHTML = `
+                <div class="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                    <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p class="text-sm font-medium text-gray-700">${name}</p>
+                    <p class="text-xs text-gray-400">Este tipo de archivo no tiene vista previa disponible.</p>
+                    <a href="${url}?dl=1" download="${name}"
+                       class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Descargar archivo
+                    </a>
+                </div>`;
+        }
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeAttachmentModal = function () {
+        const modal = document.getElementById('attachment-modal');
+        const body  = document.getElementById('modal-body');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        body.innerHTML = '';
+        document.body.style.overflow = '';
+    };
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeAttachmentModal();
+    });
 
     window.deleteComment = function (requestId, commentId) {
         if (!confirm('¿Eliminar este comentario?')) return;
