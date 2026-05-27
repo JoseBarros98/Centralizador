@@ -3,17 +3,22 @@
 @section('content')
 <script>
 window._expConfig = {
-    grid:        @json((object)$grid),
-    items:       @json($items),
-    gestion:     {{ $gestion }},
-    upsertUrl:   "{{ route('management-expenses.cell') }}",
-    destroyUrl:  "{{ route('management-expenses.destroyItem') }}",
-    renameUrl:   "{{ route('management-expenses.renameItem') }}",
-    itemsUrl:    "{{ route('management-expenses.items') }}",
-    detailUrl:   "{{ route('management-expenses.monthDetail') }}",
-    amountField: 'expense_amount',
+    grid:               @json((object)$grid),
+    items:              @json($items),
+    gestion:            {{ $gestion }},
+    entities:           @json($entities->toArray()),
+    entityAmountsGrid:  @json((object)$entityAmountsGrid),
+    destroyUrl:         "{{ route('management-expenses.destroyItem') }}",
+    renameUrl:          "{{ route('management-expenses.renameItem') }}",
+    itemsUrl:           "{{ route('management-expenses.items') }}",
+    entityStoreUrl:     "{{ route('management-expenses.entity.store') }}",
+    entityDestroyBase:  "{{ url('management-expenses/entity') }}",
+    entityDetailBase:   "{{ url('management-expenses/entity') }}",
+    entityAmountUrl:    "{{ route('management-expenses.entity.upsertAmount') }}",
+    currentMonth:       {{ (int)date('n') }},
 };
 </script>
+
 <div class="py-12" x-data="expenseGrid()">
     <div class="max-w-full px-4 sm:px-6 md:px-8">
 
@@ -21,7 +26,9 @@ window._expConfig = {
         <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">Egresos por Gestión</h1>
-                <p class="mt-1 text-sm text-gray-600">Haz clic en una celda para registrar el egreso diario del mes.</p>
+                <p class="mt-1 text-sm text-gray-600">
+                    Define las entidades, expande un mes y haz clic en una celda de entidad para registrar los egresos diarios.
+                </p>
             </div>
             <form method="GET" action="{{ route('management-expenses.index') }}" class="flex items-center gap-2">
                 <label for="gestion" class="text-sm font-medium text-gray-700">Gestión:</label>
@@ -34,6 +41,8 @@ window._expConfig = {
 
         {{-- Controls bar --}}
         <div class="mb-4 flex flex-wrap items-center gap-3">
+
+            {{-- Add item --}}
             <template x-if="!addingItem">
                 <button @click="addingItem = true; $nextTick(() => $refs.newItemInput.focus())"
                         class="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700">
@@ -51,12 +60,15 @@ window._expConfig = {
                 </div>
             </template>
 
+            {{-- Import from previous year --}}
             <button @click="importFromYear(gestion - 1)" :disabled="importing"
                     class="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md text-sm font-medium hover:bg-indigo-200 disabled:opacity-60">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
                 <span x-text="importing ? 'Importando…' : 'Copiar ítems de ' + (gestion - 1)"></span>
             </button>
+            <span x-show="importMsg" x-text="importMsg" class="text-sm text-indigo-700 font-medium"></span>
 
+            {{-- Search --}}
             <div class="relative flex-1 min-w-[220px] max-w-md ml-auto">
                 <input x-model="searchQuery" type="text" placeholder="Buscar ítem..."
                        style="padding-left:2.5rem;"
@@ -66,7 +78,78 @@ window._expConfig = {
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </div>
-            <span x-show="importMsg" x-text="importMsg" class="text-sm text-indigo-700 font-medium"></span>
+        </div>
+
+        {{-- Entity management bar --}}
+        <div class="mb-4 flex flex-wrap items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Entidades:</span>
+
+            <template x-for="ent in entities" :key="ent.id">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-800 rounded-full text-xs font-medium">
+                    <span x-text="ent.name"></span>
+                    <button @click="deleteEntity(ent.id)"
+                            class="text-blue-400 hover:text-red-600 transition-colors leading-none"
+                            title="Eliminar entidad">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </template>
+
+            <template x-if="!addingEntity">
+                <button @click="addingEntity = true; $nextTick(() => $refs.newEntityInput.focus())"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-600 text-white rounded-full text-xs font-medium hover:bg-blue-700 transition-colors">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Añadir entidad
+                </button>
+            </template>
+            <template x-if="addingEntity">
+                <div class="flex items-center gap-1.5">
+                    <input x-ref="newEntityInput" x-model="newEntityName" type="text"
+                           placeholder="Nombre (ej. ISPI)…"
+                           @keydown.enter.prevent="addEntity()"
+                           @keydown.escape.prevent="addingEntity = false; newEntityName = ''"
+                           class="w-36 px-2 py-1 border border-blue-400 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-blue-400">
+                    <button @click="addEntity()"
+                            class="px-2.5 py-1 bg-blue-600 text-white rounded-full text-xs font-medium hover:bg-blue-700">
+                        Añadir
+                    </button>
+                    <button @click="addingEntity = false; newEntityName = ''"
+                            class="px-2.5 py-1 bg-gray-200 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-300">
+                        Cancelar
+                    </button>
+                </div>
+            </template>
+
+            <template x-if="entities.length === 0">
+                <span class="text-xs text-gray-400 italic">Añade entidades para registrar egresos (ej. ISPI, LATAM).</span>
+            </template>
+
+            {{-- Entity filter --}}
+            <template x-if="entities.length > 1">
+                <div class="ml-auto flex items-center gap-2">
+                    <span class="text-xs font-medium text-gray-500">Filtrar:</span>
+                    <select x-model="entityFilter"
+                            class="px-2.5 py-1 text-xs border rounded-full focus:outline-none focus:ring-1 transition-colors"
+                            :class="entityFilter
+                                ? 'border-blue-400 bg-blue-50 text-blue-800 font-semibold focus:ring-blue-400'
+                                : 'border-gray-300 bg-white text-gray-700 focus:ring-blue-400'">
+                        <option value="">Todas las entidades</option>
+                        <template x-for="ent in entities" :key="ent.id">
+                            <option :value="ent.id" x-text="ent.name"></option>
+                        </template>
+                    </select>
+                    <button x-show="entityFilter" @click="entityFilter = ''"
+                            class="text-blue-400 hover:text-red-500 transition-colors" title="Quitar filtro">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </template>
         </div>
 
         {{-- Grid table --}}
@@ -76,30 +159,74 @@ window._expConfig = {
                     <thead>
                         <tr class="bg-gray-50 border-b-2 border-gray-200">
                             <th class="sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px] border-r border-gray-200">Ítem</th>
-                            @foreach(['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'] as $i => $short)
-                            <th class="px-2 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px]
-                                       {{ (int)date('n') === $i + 1 ? 'bg-red-50 text-red-700' : '' }}">
-                                {{ $short }}
-                            </th>
-                            @endforeach
+
+                            <template x-for="col in visibleColumns()" :key="col.key">
+                                <th :class="{
+                                        'px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider min-w-[82px] select-none': true,
+                                        'bg-red-50 text-red-700': col.type === 'month' && col.mes === currentMonth && !col.expanded,
+                                        'bg-red-50 text-red-600': col.type === 'month' && col.mes === currentMonth && col.expanded,
+                                        'bg-gray-50 text-gray-600 cursor-pointer hover:bg-gray-100': col.type === 'month',
+                                        'bg-blue-50 text-blue-700 min-w-[90px]': col.type === 'entity',
+                                    }">
+
+                                    {{-- Month column header — click to expand --}}
+                                    <template x-if="col.type === 'month'">
+                                        <button @click="toggleMonth(col.mes)"
+                                                class="w-full flex flex-col items-center gap-0.5 py-0.5"
+                                                :title="col.expanded ? 'Contraer desglose' : 'Expandir para ver entidades'">
+                                            <span class="flex items-center gap-1">
+                                                <span x-text="col.short"></span>
+                                                <svg x-show="!col.expanded" class="w-3 h-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                </svg>
+                                                <svg x-show="col.expanded" class="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                                                </svg>
+                                            </span>
+                                            <span x-show="col.expanded" class="text-[10px] font-normal text-gray-400 normal-case">Total</span>
+                                        </button>
+                                    </template>
+
+                                    {{-- Entity column header --}}
+                                    <template x-if="col.type === 'entity'">
+                                        <div class="flex items-center justify-center gap-1">
+                                            <span x-text="col.entityName" class="text-xs font-semibold text-blue-700 uppercase tracking-wider"></span>
+                                            <button @click="deleteEntity(col.entityId)"
+                                                    class="text-blue-300 hover:text-red-500 transition-colors flex-shrink-0"
+                                                    title="Eliminar entidad">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </template>
+                                </th>
+                            </template>
+
                             <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[110px] border-l border-gray-200">Total ítem</th>
                             <th class="px-3 py-3 min-w-[48px]"></th>
                         </tr>
                     </thead>
+
                     <tbody class="divide-y divide-gray-100">
                         <template x-if="items.length === 0">
-                            <tr><td colspan="15" class="px-6 py-14 text-center text-sm text-gray-400">
+                            <tr><td :colspan="2 + visibleColumns().length + 2" class="px-6 py-14 text-center text-sm text-gray-400">
                                 No hay ítems para la gestión <span x-text="gestion"></span>.
+                                <template x-if="entities.length === 0">
+                                    <span> Añade entidades primero para poder registrar egresos.</span>
+                                </template>
                             </td></tr>
                         </template>
                         <template x-if="items.length > 0 && filteredItems().length === 0">
-                            <tr><td colspan="15" class="px-6 py-14 text-center text-sm text-gray-400">
+                            <tr><td :colspan="2 + visibleColumns().length + 2" class="px-6 py-14 text-center text-sm text-gray-400">
                                 No se encontraron ítems para "<span x-text="searchQuery"></span>".
                             </td></tr>
                         </template>
 
                         <template x-for="item in filteredItems()" :key="item">
                             <tr class="hover:bg-gray-50 transition-colors">
+
+                                {{-- Item name column --}}
                                 <td class="sticky left-0 z-10 bg-white px-4 py-2 font-medium text-gray-900 border-r border-gray-100">
                                     <template x-if="renamingItem !== item">
                                         <div style="display:flex;align-items:center;gap:6px;">
@@ -128,21 +255,46 @@ window._expConfig = {
                                     </template>
                                 </td>
 
-                                <template x-for="mes in [1,2,3,4,5,6,7,8,9,10,11,12]" :key="mes">
-                                    <td class="px-1 py-1 text-center">
-                                        <button @click="openCalendar(item, mes)"
-                                                class="w-full min-h-[2.25rem] rounded px-1 py-1 text-xs transition-colors"
-                                                :class="getCellAmount(item, mes) > 0
-                                                    ? 'text-red-700 font-semibold hover:bg-red-50'
-                                                    : 'text-gray-300 hover:bg-red-50 hover:text-gray-500'">
-                                            <span x-text="getCellAmount(item, mes) > 0 ? fmtAmt(getCellAmount(item, mes)) : '–'"></span>
-                                        </button>
+                                {{-- Dynamic month / entity columns --}}
+                                <template x-for="col in visibleColumns()" :key="col.key">
+                                    <td :class="{
+                                            'px-1 py-1 text-center': col.type === 'month',
+                                            'px-1 py-1 text-center bg-blue-50/40': col.type === 'entity',
+                                        }">
+
+                                        {{-- Month cell: read-only total, click to expand month --}}
+                                        <template x-if="col.type === 'month'">
+                                            <button @click="toggleMonth(col.mes)"
+                                                    class="w-full min-h-[2.25rem] rounded px-1 py-1 text-xs transition-colors"
+                                                    :title="col.expanded ? 'Contraer' : 'Expandir para ver entidades'"
+                                                    :class="getCellAmount(item, col.mes) > 0
+                                                        ? 'text-red-700 font-semibold hover:bg-red-50'
+                                                        : 'text-gray-300 hover:bg-gray-50'">
+                                                <span x-text="getCellAmount(item, col.mes) > 0 ? fmtAmt(getCellAmount(item, col.mes)) : '–'"></span>
+                                            </button>
+                                        </template>
+
+                                        {{-- Entity cell: click opens calendar modal --}}
+                                        <template x-if="col.type === 'entity'">
+                                            <button @click="openEntityCalendar(col.entityId, item, col.mes)"
+                                                    class="w-full min-h-[2.25rem] rounded px-1 py-1 text-xs transition-colors"
+                                                    :class="getEntityAmount(col.entityId, item, col.mes) > 0
+                                                        ? 'text-blue-700 font-semibold hover:bg-blue-100'
+                                                        : 'text-gray-300 hover:bg-blue-50 hover:text-gray-400'">
+                                                <span x-text="getEntityAmount(col.entityId, item, col.mes) > 0
+                                                    ? fmtAmt(getEntityAmount(col.entityId, item, col.mes))
+                                                    : '–'"></span>
+                                            </button>
+                                        </template>
                                     </td>
                                 </template>
 
+                                {{-- Item row total --}}
                                 <td class="px-4 py-2 text-right font-bold text-red-700 border-l border-gray-100">
                                     Bs. <span x-text="fmtAmt(getItemTotal(item))"></span>
                                 </td>
+
+                                {{-- Delete button --}}
                                 <td class="px-3 py-2 text-center">
                                     <button @click="deleteItem(item)" title="Eliminar ítem" class="text-gray-300 hover:text-red-600 transition-colors">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,14 +305,27 @@ window._expConfig = {
                             </tr>
                         </template>
                     </tbody>
+
                     <tfoot class="border-t-2 border-gray-300 bg-gray-50">
                         <tr>
                             <td class="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-xs font-bold text-gray-700 uppercase border-r border-gray-200">Total mes</td>
-                            @for ($m = 1; $m <= 12; $m++)
-                            <td class="px-2 py-3 text-center text-xs font-bold text-gray-800 {{ (int)date('n') === $m ? 'bg-red-50' : '' }}">
-                                Bs. <span x-text="fmtAmt(getMonthTotal({{ $m }}))"></span>
-                            </td>
-                            @endfor
+
+                            <template x-for="col in visibleColumns()" :key="col.key">
+                                <td :class="{
+                                        'px-2 py-3 text-center text-xs font-bold': true,
+                                        'text-gray-800': col.type === 'month',
+                                        'bg-red-50': col.type === 'month' && col.mes === currentMonth,
+                                        'text-blue-700 bg-blue-50/60': col.type === 'entity',
+                                    }">
+                                    <template x-if="col.type === 'month'">
+                                        <span>Bs. <span x-text="fmtAmt(getMonthTotal(col.mes))"></span></span>
+                                    </template>
+                                    <template x-if="col.type === 'entity'">
+                                        <span x-text="fmtAmt(getEntityMonthTotal(col.entityId, col.mes))"></span>
+                                    </template>
+                                </td>
+                            </template>
+
                             <td class="px-4 py-3 text-right text-sm font-bold text-red-800 border-l border-gray-200">
                                 Bs. <span x-text="fmtAmt(getGrandTotal())"></span>
                             </td>
@@ -174,7 +339,7 @@ window._expConfig = {
     </div>
 
     {{-- ══════════════════════════════════════════════════════════════ --}}
-    {{-- MODAL CALENDARIO                                               --}}
+    {{-- MODAL CALENDARIO (usado para celdas de entidad)               --}}
     {{-- ══════════════════════════════════════════════════════════════ --}}
     <div x-show="calModal.open"
          x-transition:enter="transition ease-out duration-200"
@@ -196,7 +361,9 @@ window._expConfig = {
             {{-- Modal header --}}
             <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #e5e7eb;">
                 <div>
-                    <p style="font-size:0.7rem;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:0.05em;">Registro diario</p>
+                    <p style="font-size:0.7rem;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:0.05em;">
+                        Registro diario &mdash; <span x-text="calModal.entityName"></span>
+                    </p>
                     <h2 style="font-size:1rem;font-weight:700;color:#111827;margin-top:2px;">
                         <span x-text="calModal.item"></span>
                         &mdash;
@@ -213,7 +380,7 @@ window._expConfig = {
 
             {{-- Loading state --}}
             <div x-show="calModal.loading" style="display:flex;align-items:center;justify-content:center;padding:4rem 0;">
-                <svg style="width:2rem;height:2rem;color:#ef4444;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24">
+                <svg style="width:2rem;height:2rem;color:#3b82f6;animation:spin 1s linear infinite;" fill="none" viewBox="0 0 24 24">
                     <circle style="opacity:0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                     <path style="opacity:0.75;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
                 </svg>
@@ -229,48 +396,38 @@ window._expConfig = {
                     </template>
                 </div>
 
-                {{-- Calendar grid: fixed 7 columns, compact cells --}}
+                {{-- Calendar grid --}}
                 <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
-
-                    {{-- Offset empty cells --}}
                     <template x-for="off in calModal.startOffset" :key="'o' + off">
                         <div></div>
                     </template>
-
-                    {{-- Day cells --}}
                     <template x-for="day in calModal.daysInMonth" :key="day">
                         <button @click="selectDay(day)"
                                 style="position:relative;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:5px 6px;min-height:54px;border-radius:8px;border:1.5px solid;cursor:pointer;transition:all 0.12s;width:100%;text-align:left;"
                                 :style="calModal.selectedDay === day
-                                    ? 'border-color:#ef4444;background:#fff1f2;box-shadow:0 0 0 2px rgba(239,68,68,0.25);'
+                                    ? 'border-color:#3b82f6;background:#eff6ff;box-shadow:0 0 0 2px rgba(59,130,246,0.25);'
                                     : (getDayAmount(day) > 0
-                                        ? 'border-color:#fca5a5;background:#fff5f5;'
+                                        ? 'border-color:#93c5fd;background:#f0f9ff;'
                                         : 'border-color:#f3f4f6;background:#fff;')">
-
-                            {{-- Day number --}}
                             <span style="font-size:0.75rem;font-weight:700;line-height:1;"
-                                  :style="getDayAmount(day) > 0 ? 'color:#dc2626;' : 'color:#9ca3af;'"
+                                  :style="getDayAmount(day) > 0 ? 'color:#1d4ed8;' : 'color:#9ca3af;'"
                                   x-text="day"></span>
-
-                            {{-- Amount (abbreviated) --}}
                             <span x-show="getDayAmount(day) > 0"
-                                  style="font-size:0.65rem;font-weight:600;color:#dc2626;line-height:1;margin-top:auto;word-break:break-all;"
+                                  style="font-size:0.65rem;font-weight:600;color:#1d4ed8;line-height:1;margin-top:auto;word-break:break-all;"
                                   x-text="fmtShort(getDayAmount(day))"></span>
-
-                            {{-- Observation dot --}}
                             <span x-show="getDayObs(day)"
                                   style="position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:#f59e0b;border:1.5px solid #fff;"></span>
                         </button>
                     </template>
                 </div>
 
-                {{-- Edit panel (shown when a day is selected) --}}
+                {{-- Edit panel --}}
                 <div x-show="calModal.selectedDay !== null"
                      x-transition:enter="transition ease-out duration-150"
                      x-transition:enter-start="opacity-0 -translate-y-1"
                      x-transition:enter-end="opacity-100 translate-y-0"
                      id="day-edit-panel"
-                     style="margin-top:1rem;padding:1rem;background:#fff1f2;border:1.5px solid #fca5a5;border-radius:10px;">
+                     style="margin-top:1rem;padding:1rem;background:#eff6ff;border:1.5px solid #93c5fd;border-radius:10px;">
 
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
                         <p style="font-size:0.875rem;font-weight:700;color:#111827;">
@@ -297,7 +454,7 @@ window._expConfig = {
                                    @keydown.enter.prevent="saveDay(calModal.selectedDay)"
                                    @keydown.escape.prevent="cancelDayEdit()"
                                    style="width:7.5rem;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.8rem;outline:none;"
-                                   onfocus="this.style.borderColor='#ef4444';this.style.boxShadow='0 0 0 2px rgba(239,68,68,0.15)'"
+                                   onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 2px rgba(59,130,246,0.15)'"
                                    onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'">
                         </div>
                         <div style="flex:1;min-width:140px;">
@@ -309,15 +466,15 @@ window._expConfig = {
                                    @keydown.enter.prevent="saveDay(calModal.selectedDay)"
                                    @keydown.escape.prevent="cancelDayEdit()"
                                    style="width:100%;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.8rem;outline:none;"
-                                   onfocus="this.style.borderColor='#ef4444';this.style.boxShadow='0 0 0 2px rgba(239,68,68,0.15)'"
+                                   onfocus="this.style.borderColor='#3b82f6';this.style.boxShadow='0 0 0 2px rgba(59,130,246,0.15)'"
                                    onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'">
                         </div>
                     </div>
 
                     <div style="display:flex;gap:0.5rem;margin-top:0.625rem;">
                         <button @click="saveDay(calModal.selectedDay)" :disabled="calModal.saving"
-                                style="flex:1;padding:0.45rem 1rem;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:background 0.1s;"
-                                onmouseover="if(!this.disabled)this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">
+                                style="flex:1;padding:0.45rem 1rem;background:#2563eb;color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:background 0.1s;"
+                                onmouseover="if(!this.disabled)this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">
                             <span x-text="calModal.saving ? 'Guardando…' : 'Guardar'"></span>
                         </button>
                         <button @click="cancelDayEdit()"
@@ -330,8 +487,8 @@ window._expConfig = {
 
                 {{-- Month total --}}
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:0.75rem;border-top:1px solid #e5e7eb;">
-                    <span style="font-size:0.875rem;color:#6b7280;">Total del mes</span>
-                    <span style="font-size:1.125rem;font-weight:700;color:#dc2626;">
+                    <span style="font-size:0.875rem;color:#6b7280;">Total del mes (<span x-text="calModal.entityName" style="font-weight:600;"></span>)</span>
+                    <span style="font-size:1.125rem;font-weight:700;color:#1d4ed8;">
                         Bs. <span x-text="fmtAmt(calModal.monthTotal)"></span>
                     </span>
                 </div>
@@ -353,8 +510,8 @@ window._expConfig = {
 
             </div>
         </div>
-        </div>{{-- /centering wrapper --}}
-    </div>{{-- /modal --}}
+        </div>
+    </div>
 
 </div>{{-- /x-data --}}
 
@@ -366,8 +523,18 @@ function expenseGrid() {
         items:   cfg.items || [],
         gestion: cfg.gestion || new Date().getFullYear(),
 
-        monthFull: ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
-                    'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+        // Entity support
+        entities:          cfg.entities || [],
+        entityAmountsGrid: cfg.entityAmountsGrid || {},
+        expandedMonths:    [],
+        addingEntity:      false,
+        newEntityName:     '',
+        entityFilter:      '',  // '' = all, entity id (number/string) = specific entity
+
+        monthShort: ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'],
+        monthFull:  ['Enero','Febrero','Marzo','Abril','Mayo','Junio',
+                     'Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
+        currentMonth: cfg.currentMonth || new Date().getMonth() + 1,
 
         searchQuery:  '',
         newItemName:  '',
@@ -384,6 +551,8 @@ function expenseGrid() {
             saving:      false,
             item:        null,
             mes:         null,
+            entityId:    null,
+            entityName:  '',
             daysInMonth: [],
             startOffset: [],
             daysData:    {},
@@ -391,8 +560,51 @@ function expenseGrid() {
             selectedDay: null,
         },
 
+        // ── Column layout ─────────────────────────────────────────────────
+        visibleColumns() {
+            const cols = [];
+            for (let mes = 1; mes <= 12; mes++) {
+                const expanded = this.expandedMonths.includes(mes);
+                cols.push({
+                    key: `m${mes}`,
+                    type: 'month',
+                    mes,
+                    short: this.monthShort[mes - 1],
+                    expanded,
+                });
+                if (expanded) {
+                    for (const ent of this.entities) {
+                        cols.push({
+                            key: `m${mes}-e${ent.id}`,
+                            type: 'entity',
+                            mes,
+                            entityId: ent.id,
+                            entityName: ent.name,
+                        });
+                    }
+                }
+            }
+            return cols;
+        },
+
+        toggleMonth(mes) {
+            if (this.expandedMonths.includes(mes)) {
+                this.expandedMonths = this.expandedMonths.filter(m => m !== mes);
+            } else {
+                this.expandedMonths = [...this.expandedMonths, mes];
+            }
+        },
+
+        // ── Cell values ───────────────────────────────────────────────────
         getCellAmount(item, mes) {
+            if (this.entityFilter) {
+                return parseFloat(this.entityAmountsGrid[this.entityFilter]?.[item]?.[mes] ?? 0);
+            }
             return parseFloat(this.grid[item]?.[mes]?.amount ?? 0);
+        },
+
+        getEntityAmount(entityId, item, mes) {
+            return parseFloat(this.entityAmountsGrid[entityId]?.[item]?.[mes] ?? 0);
         },
 
         getItemTotal(item) {
@@ -403,6 +615,10 @@ function expenseGrid() {
 
         getMonthTotal(mes) {
             return this.filteredItems().reduce((t, item) => t + this.getCellAmount(item, mes), 0);
+        },
+
+        getEntityMonthTotal(entityId, mes) {
+            return this.filteredItems().reduce((t, item) => t + this.getEntityAmount(entityId, item, mes), 0);
         },
 
         getGrandTotal() {
@@ -426,8 +642,73 @@ function expenseGrid() {
             return Number.isInteger(n) ? n.toString() : n.toFixed(0);
         },
 
-        // ── Calendar modal ────────────────────────────────────────────────
-        async openCalendar(item, mes) {
+        // ── Entity management ─────────────────────────────────────────────
+        async addEntity() {
+            const name = this.newEntityName.trim();
+            if (!name) return;
+            if (this.entities.some(e => e.name === name)) {
+                alert('Ya existe una entidad con ese nombre.');
+                return;
+            }
+
+            const res = await fetch(cfg.entityStoreUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept':       'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ gestion: this.gestion, name }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.entities = [...this.entities, data.entity];
+                this.newEntityName = '';
+                this.addingEntity  = false;
+            }
+        },
+
+        async deleteEntity(entityId) {
+            if (!confirm('¿Eliminar esta entidad? Se perderán todos los montos registrados para la gestión ' + this.gestion + '.')) return;
+
+            const res = await fetch(cfg.entityDestroyBase + '/' + entityId, {
+                method: 'DELETE',
+                headers: {
+                    'Accept':       'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.entities = this.entities.filter(e => e.id !== entityId);
+                if (String(this.entityFilter) === String(entityId)) this.entityFilter = '';
+                const g = { ...this.entityAmountsGrid };
+                delete g[entityId];
+                this.entityAmountsGrid = g;
+
+                // Recalculate main grid
+                this._rebuildGrid();
+            }
+        },
+
+        _rebuildGrid() {
+            const g = {};
+            for (const item of this.items) {
+                g[item] = {};
+                for (let m = 1; m <= 12; m++) {
+                    let total = 0;
+                    for (const ent of this.entities) {
+                        total += this.getEntityAmount(ent.id, item, m);
+                    }
+                    if (total > 0) g[item][m] = { amount: total };
+                }
+            }
+            this.grid = g;
+        },
+
+        // ── Calendar modal (entity-based) ─────────────────────────────────
+        async openEntityCalendar(entityId, item, mes) {
+            const ent      = this.entities.find(e => e.id === entityId);
             const dim      = new Date(this.gestion, mes, 0).getDate();
             const firstDay = new Date(this.gestion, mes - 1, 1).getDay();
             const offset   = firstDay === 0 ? 6 : firstDay - 1;
@@ -438,23 +719,28 @@ function expenseGrid() {
                 saving:      false,
                 item,
                 mes,
+                entityId,
+                entityName:  ent ? ent.name : '',
                 daysInMonth: Array.from({ length: dim },    (_, i) => i + 1),
                 startOffset: Array.from({ length: offset }, (_, i) => i),
                 daysData:    {},
-                monthTotal:  this.getCellAmount(item, mes),
+                monthTotal:  this.getEntityAmount(entityId, item, mes),
                 selectedDay: null,
             };
 
             try {
-                const url  = cfg.detailUrl + '?item=' + encodeURIComponent(item)
-                           + '&mes=' + mes + '&gestion=' + this.gestion;
+                const url = cfg.entityDetailBase + '/' + entityId + '/month-detail'
+                          + '?item=' + encodeURIComponent(item)
+                          + '&mes=' + mes
+                          + '&gestion=' + this.gestion;
+
                 const res  = await fetch(url, { headers: { 'Accept': 'application/json' } });
                 const data = await res.json();
 
                 const daysData = {};
                 let total = 0;
                 for (const r of (data.records ?? [])) {
-                    daysData[r.dia] = { amount: r.amount, obs: r.obs, user: r.user };
+                    daysData[r.dia] = { amount: r.amount, obs: r.obs };
                     total += r.amount;
                 }
                 this.calModal.daysData   = daysData;
@@ -465,7 +751,7 @@ function expenseGrid() {
         },
 
         closeCalendar() {
-            this.calModal.open = false;
+            this.calModal.open       = false;
             this.calModal.selectedDay = null;
         },
 
@@ -500,21 +786,23 @@ function expenseGrid() {
             const obsEl  = document.getElementById('day-edit-obs');
             const amount = parseFloat(amtEl?.value) || 0;
             const obs    = obsEl?.value?.trim() ?? '';
-            const { item, mes } = this.calModal;
+            const { entityId, item, mes } = this.calModal;
 
             this.calModal.saving = true;
             try {
-                const res  = await fetch(cfg.upsertUrl, {
-                    method:  'POST',
+                const res = await fetch(cfg.entityAmountUrl, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept':       'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     },
                     body: JSON.stringify({
-                        item, mes, gestion: this.gestion,
-                        dia: day,
-                        [cfg.amountField]: amount,
+                        entity_id:   entityId,
+                        item, mes,
+                        gestion:     this.gestion,
+                        dia:         day,
+                        amount,
                         observation: obs || null,
                     }),
                 });
@@ -528,14 +816,38 @@ function expenseGrid() {
                     } else {
                         this.calModal.daysData = {
                             ...this.calModal.daysData,
-                            [day]: { amount, obs, user: data.user ?? '' },
+                            [day]: { amount, obs },
                         };
                     }
-                    this.calModal.monthTotal = data.month_total;
+
+                    const newEntityTotal = data.month_total;
+                    this.calModal.monthTotal = newEntityTotal;
+
+                    // Update entityAmountsGrid for this entity/item/mes
+                    const g = { ...this.entityAmountsGrid };
+                    if (!g[entityId]) g[entityId] = {};
+                    g[entityId] = {
+                        ...g[entityId],
+                        [item]: { ...(g[entityId][item] ?? {}), [mes]: newEntityTotal },
+                    };
+                    if (newEntityTotal === 0 && g[entityId][item]) {
+                        delete g[entityId][item][mes];
+                    }
+                    this.entityAmountsGrid = g;
+
+                    // Recalculate the main grid cell (sum across all entities)
+                    let crossTotal = 0;
+                    for (const ent of this.entities) {
+                        crossTotal += this.getEntityAmount(ent.id, item, mes);
+                    }
                     this.grid = {
                         ...this.grid,
-                        [item]: { ...this.grid[item], [mes]: { amount: data.month_total } },
+                        [item]: {
+                            ...(this.grid[item] ?? {}),
+                            [mes]: crossTotal > 0 ? { amount: crossTotal } : undefined,
+                        },
                     };
+
                     this.calModal.selectedDay = null;
                 }
             } finally {
@@ -565,6 +877,16 @@ function expenseGrid() {
             delete newGrid[item];
             this.grid  = newGrid;
             this.items = this.items.filter(i => i !== item);
+
+            // Remove from entityAmountsGrid
+            const eg = { ...this.entityAmountsGrid };
+            for (const eid of Object.keys(eg)) {
+                if (eg[eid][item]) {
+                    eg[eid] = { ...eg[eid] };
+                    delete eg[eid][item];
+                }
+            }
+            this.entityAmountsGrid = eg;
         },
 
         startRename(item) {
@@ -589,10 +911,22 @@ function expenseGrid() {
                 });
                 const data = await res.json();
                 if (data.success) {
+                    // Update grid keys
                     const newGrid = {};
                     for (const [k, v] of Object.entries(this.grid)) newGrid[k === oldItem ? newItem : k] = v;
                     this.grid  = newGrid;
                     this.items = this.items.map(i => i === oldItem ? newItem : i).sort((a, b) => a.localeCompare(b, 'es'));
+
+                    // Update entityAmountsGrid keys
+                    const eg = {};
+                    for (const [eid, entityData] of Object.entries(this.entityAmountsGrid)) {
+                        eg[eid] = {};
+                        for (const [k, v] of Object.entries(entityData)) {
+                            eg[eid][k === oldItem ? newItem : k] = v;
+                        }
+                    }
+                    this.entityAmountsGrid = eg;
+
                     this.cancelRename();
                 }
             } finally { this.renaming = false; }
@@ -612,7 +946,9 @@ function expenseGrid() {
                         added++;
                     }
                 }
-                this.importMsg = added > 0 ? (added + ' ítem(s) importado(s) de ' + fromGestion + '.') : ('Todos los ítems de ' + fromGestion + ' ya están presentes.');
+                this.importMsg = added > 0
+                    ? (added + ' ítem(s) importado(s) de ' + fromGestion + '.')
+                    : ('Todos los ítems de ' + fromGestion + ' ya están presentes.');
                 setTimeout(() => { this.importMsg = ''; }, 4000);
             } finally { this.importing = false; }
         },

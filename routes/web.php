@@ -41,6 +41,7 @@ use App\Http\Controllers\ProfessionController;
 use App\Http\Controllers\PaymentRequestController;
 use App\Http\Controllers\ManagementIncomeController;
 use App\Http\Controllers\ManagementExpenseController;
+use App\Http\Controllers\ManagementExpenseEntityController;
 use App\Http\Controllers\ManagementInvestmentController;
 use App\Http\Controllers\BackupController;
 use App\Models\ProgramAllocation;
@@ -402,12 +403,16 @@ Route::middleware('auth')->group(function () {
   Route::delete('management-investments/item',       [ManagementInvestmentController::class, 'destroyItem'])->name('management-investments.destroyItem');
 
   // Rutas para egresos por gestion
-  Route::get('management-expenses',               [ManagementExpenseController::class, 'index'])->name('management-expenses.index');
-  Route::get('management-expenses/items',         [ManagementExpenseController::class, 'getItemsForYear'])->name('management-expenses.items');
-  Route::get('management-expenses/month-detail',  [ManagementExpenseController::class, 'monthDetail'])->name('management-expenses.monthDetail');
-  Route::post('management-expenses/cell',         [ManagementExpenseController::class, 'upsertCell'])->name('management-expenses.cell');
-  Route::patch('management-expenses/item',        [ManagementExpenseController::class, 'renameItem'])->name('management-expenses.renameItem');
-  Route::delete('management-expenses/item',       [ManagementExpenseController::class, 'destroyItem'])->name('management-expenses.destroyItem');
+  Route::get('management-expenses',                      [ManagementExpenseController::class, 'index'])->name('management-expenses.index');
+  Route::get('management-expenses/items',                [ManagementExpenseController::class, 'getItemsForYear'])->name('management-expenses.items');
+  Route::get('management-expenses/month-detail',         [ManagementExpenseController::class, 'monthDetail'])->name('management-expenses.monthDetail');
+  Route::post('management-expenses/cell',                [ManagementExpenseController::class, 'upsertCell'])->name('management-expenses.cell');
+  Route::patch('management-expenses/item',               [ManagementExpenseController::class, 'renameItem'])->name('management-expenses.renameItem');
+  Route::delete('management-expenses/item',              [ManagementExpenseController::class, 'destroyItem'])->name('management-expenses.destroyItem');
+  Route::post('management-expenses/entity',                              [ManagementExpenseEntityController::class, 'store'])->name('management-expenses.entity.store');
+  Route::get('management-expenses/entity/{entity}/month-detail',        [ManagementExpenseEntityController::class, 'monthDetail'])->name('management-expenses.entity.monthDetail');
+  Route::delete('management-expenses/entity/{entity}',                  [ManagementExpenseEntityController::class, 'destroy'])->name('management-expenses.entity.destroy');
+  Route::post('management-expenses/entity-amount',                      [ManagementExpenseEntityController::class, 'upsertAmount'])->name('management-expenses.entity.upsertAmount');
 
   // Rutas para vinculación de asesores
   Route::middleware('permission:inscriptions.sync')->prefix('advisors')->name('advisors.')->group(function () {

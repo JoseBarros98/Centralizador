@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\ManagementExpense;
+use App\Models\ManagementExpenseEntity;
+use App\Models\ManagementExpenseEntityAmount;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -19,20 +21,47 @@ class ManagementExpenseController extends Controller
     {
         $gestion = (int) $request->get('gestion', date('Y'));
 
-        // Monthly totals: SUM per (item, mes)
-        $rows = ManagementExpense::where('gestion', $gestion)
-            ->selectRaw('item, mes, SUM(expense_amount) as total')
-            ->groupBy('item', 'mes')
-            ->get();
+        $entities = ManagementExpenseEntity::where('gestion', $gestion)
+            ->orderBy('display_order')
+            ->get(['id', 'name']);
 
-        $grid = [];
-        foreach ($rows as $row) {
-            $grid[$row->item][$row->mes] = ['amount' => (float) $row->total];
+        // Build grids from entity daily amounts (source of truth for totals)
+        $entityRows = ManagementExpenseEntityAmount::where('gestion', $gestion)->get();
+
+        // Per-entity monthly sums: {entityId: {item: {mes: total}}}
+        $entityAmountsGrid = [];
+        // Cross-entity monthly sums for the main grid: {item: {mes: total}}
+        $entityTotals = [];
+
+        foreach ($entityRows as $ea) {
+            $entityAmountsGrid[$ea->entity_id][$ea->item][$ea->mes] =
+                ($entityAmountsGrid[$ea->entity_id][$ea->item][$ea->mes] ?? 0) + (float) $ea->amount;
+
+            $entityTotals[$ea->item][$ea->mes] =
+                ($entityTotals[$ea->item][$ea->mes] ?? 0) + (float) $ea->amount;
         }
-        ksort($grid);
-        $items = array_keys($grid);
 
-        return view('management-expenses.index', compact('grid', 'items', 'gestion'));
+        // Item list: union of management_expenses items AND entity-amount items (both sources)
+        $itemsFromExpenses = ManagementExpense::where('gestion', $gestion)
+            ->distinct()->orderBy('item')->pluck('item')->toArray();
+        $itemsFromEntities = ManagementExpenseEntityAmount::where('gestion', $gestion)
+            ->distinct()->orderBy('item')->pluck('item')->toArray();
+        $items = array_values(array_unique(array_merge($itemsFromExpenses, $itemsFromEntities)));
+        sort($items);
+
+        // Main grid: entity totals, with all items present (even if zero)
+        $grid = [];
+        foreach ($items as $item) {
+            $grid[$item] = [];
+            for ($m = 1; $m <= 12; $m++) {
+                $total = $entityTotals[$item][$m] ?? 0;
+                if ($total > 0) {
+                    $grid[$item][$m] = ['amount' => $total];
+                }
+            }
+        }
+
+        return view('management-expenses.index', compact('grid', 'items', 'gestion', 'entities', 'entityAmountsGrid'));
     }
 
     /**
@@ -136,6 +165,10 @@ class ManagementExpenseController extends Controller
             ->where('gestion', $request->gestion)
             ->delete();
 
+        ManagementExpenseEntityAmount::where('item', $request->item)
+            ->where('gestion', $request->gestion)
+            ->delete();
+
         return response()->json(['success' => true]);
     }
 
@@ -160,6 +193,10 @@ class ManagementExpenseController extends Controller
         ]);
 
         ManagementExpense::where('item', $request->old_item)
+            ->where('gestion', $request->gestion)
+            ->update(['item' => $request->new_item]);
+
+        ManagementExpenseEntityAmount::where('item', $request->old_item)
             ->where('gestion', $request->gestion)
             ->update(['item' => $request->new_item]);
 
