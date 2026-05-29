@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('inscriptions')) return;
+
         Schema::create('inscriptions', function (Blueprint $table) {
             $table->id();
             $table->string('code')->unique(); //Código generado en base al nombre y ci

@@ -10,6 +10,8 @@ return new class extends Migration
     {
         Schema::dropIfExists('marketing_course_type_hidden_months');
 
+        if (Schema::hasTable('marketing_course_type_hidden_months')) return;
+
         Schema::create('marketing_course_type_hidden_months', function (Blueprint $table) {
             $table->id();
             $table->foreignId('course_type_id')->constrained('marketing_course_types')->onDelete('cascade');

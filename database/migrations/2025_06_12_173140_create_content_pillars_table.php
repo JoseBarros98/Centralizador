@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('content_pillars')) return;
+
         Schema::create('content_pillars', function (Blueprint $table) {
             $table->id();
             $table->string('name');

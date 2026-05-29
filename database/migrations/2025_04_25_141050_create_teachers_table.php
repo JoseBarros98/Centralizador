@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('teachers')) return;
+
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
             $table->string('external_id')->unique()->nullable()->comment('id_docente de la BD externa');

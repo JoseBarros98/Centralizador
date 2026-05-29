@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('type_of_art_files')) return;
+
         Schema::create('type_of_art_files', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('type_of_art_id');

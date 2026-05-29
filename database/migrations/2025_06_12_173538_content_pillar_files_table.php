@@ -11,6 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('content_pillar_files')) return;
+
         Schema::create('content_pillar_files', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('content_pillar_id');
