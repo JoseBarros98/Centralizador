@@ -46,7 +46,9 @@
       "Bash(php -l app/Http/Controllers/ParticipantQuotaController.php)",
       "Bash(php -l app/Http/Controllers/NominalAssignmentController.php)",
       "Bash(php -l app/Http/Controllers/NominalAssignmentController.php app/Models/AssignmentDetail.php routes/web.php)",
-      "Bash(php -l app/Http/Controllers/NominalAssignmentController.php app/Models/MonthlyAssignment.php routes/web.php)"
+      "Bash(php -l app/Http/Controllers/NominalAssignmentController.php app/Models/MonthlyAssignment.php routes/web.php)",
+      "Bash(php -l app/Services/NominalAssignmentService.php app/Http/Controllers/NominalAssignmentController.php routes/web.php)",
+      "Bash(php -l app/Http/Controllers/NominalAssignmentController.php routes/web.php)"
     ],
     "additionalDirectories": [
       "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"

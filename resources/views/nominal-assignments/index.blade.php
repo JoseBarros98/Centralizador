@@ -32,7 +32,7 @@
                 </div>
             </div>
 
-            <!-- Filtros: programa + navegación mes -->
+            <!-- Filtros: programa + responsable + navegación mes -->
             <div class="bg-white rounded-xl shadow-sm p-4 flex flex-col sm:flex-row sm:items-end gap-4"
                  x-data="programSearch({
                     programs: {{ json_encode($programs->map(fn($p) => ['id' => $p->id, 'name' => $p->name, 'status' => $p->status])) }},
@@ -44,6 +44,7 @@
                 <form method="GET" action="{{ route('nominal-assignments.index') }}" id="programForm" class="flex-1 min-w-0 relative" @submit.prevent>
                     <input type="hidden" name="mes" value="{{ $mes }}">
                     <input type="hidden" name="gestion" value="{{ $gestion }}">
+                    <input type="hidden" name="responsable_filter" value="{{ $responsableFilter }}">
                     <input type="hidden" name="program_id" :value="selectedId" id="programIdInput">
 
                     <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Programa</label>
@@ -101,9 +102,36 @@
                     <div x-show="selectedId && !open" class="mt-1.5 text-xs text-indigo-600 font-medium" x-text="selectedName"></div>
                 </form>
 
+                <!-- Filtro por Responsable -->
+                @if($accountants->isNotEmpty())
+                <div class="flex-shrink-0 min-w-[180px]">
+                    <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Responsable</label>
+                    <div class="relative">
+                        <select onchange="applyResponsableFilter(this.value)"
+                            class="w-full border border-gray-300 rounded-lg pl-8 pr-3 py-2 text-sm focus:ring-2 focus:ring-gray-800 focus:border-gray-800 appearance-none">
+                            <option value="">Todos</option>
+                            @foreach($accountants as $acc)
+                            <option value="{{ $acc->id }}" {{ $responsableFilter == $acc->id ? 'selected' : '' }}>
+                                {{ $acc->name }}
+                            </option>
+                            @endforeach
+                        </select>
+                        <svg class="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                    </div>
+                    @if($responsableFilter)
+                    <div class="mt-1.5">
+                        <a href="{{ route('nominal-assignments.index', ['mes' => $mes, 'gestion' => $gestion, 'program_id' => $program?->id]) }}"
+                           class="text-xs text-red-500 hover:text-red-700">× Quitar filtro</a>
+                    </div>
+                    @endif
+                </div>
+                @endif
+
                 <!-- Navegación mes/año -->
                 <div class="flex-shrink-0 flex items-center gap-2">
-                    <a href="{{ route('nominal-assignments.index', ['program_id' => $program?->id, 'mes' => $prevMes, 'gestion' => $prevGestion]) }}"
+                    <a href="{{ route('nominal-assignments.index', ['program_id' => $program?->id, 'mes' => $prevMes, 'gestion' => $prevGestion, 'responsable_filter' => $responsableFilter]) }}"
                        class="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
@@ -113,7 +141,7 @@
                         <div class="text-base font-bold text-gray-900">{{ $mesesNombres[$mes] }}</div>
                         <div class="text-sm text-gray-500">{{ $gestion }}</div>
                     </div>
-                    <a href="{{ route('nominal-assignments.index', ['program_id' => $program?->id, 'mes' => $nextMes, 'gestion' => $nextGestion]) }}"
+                    <a href="{{ route('nominal-assignments.index', ['program_id' => $program?->id, 'mes' => $nextMes, 'gestion' => $nextGestion, 'responsable_filter' => $responsableFilter]) }}"
                        class="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -150,79 +178,190 @@
 
             @else
 
-            <!-- Info de la asignación -->
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white rounded-xl shadow-sm px-5 py-4">
-                <div class="flex flex-wrap items-center gap-3">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium
-                        {{ $assignment->estado === 'finalizado' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800' }}">
-                        {{ ucfirst($assignment->estado) }}
-                    </span>
-                    <span class="text-sm text-gray-500">
-                        Generado por <strong>{{ $assignment->generator?->name ?? 'Sistema' }}</strong>
-                        — {{ $assignment->created_at->format('d/m/Y H:i') }}
-                        — {{ $details->count() }} participantes
-                    </span>
+            @php
+                $activeDetails           = $details->where('excluido', false);
+                $excluidosCount          = $details->where('excluido', true)->count();
+                // Totales por sección (solo inscritos activos)
+                $totalAsig               = $activeDetails->sum('total_asignacion');
+                $totalRetImporte         = $activeDetails->sum('cuotas_retrasadas_importe');
+                $totalRetCobrado         = $activeDetails->sum('cuotas_retrasadas_cobrado');
+                $totalRetSaldo           = max(0, $totalRetImporte - $totalRetCobrado);
+                $totalVigImporte         = $activeDetails->sum('cuota_vigente_importe');
+                $totalVigCobrado         = $activeDetails->sum('cuota_vigente_cobrado');
+                $totalVigSaldo           = max(0, $totalVigImporte - $totalVigCobrado);
+                $totalAdelantoImporte    = $activeDetails->sum('adelanto_importe');
+                $totalMatImporte         = $activeDetails->sum('matricula_importe');
+                $totalMatCobrado         = $activeDetails->sum('matricula_cobrado');
+                $totalMatSaldo           = max(0, $totalMatImporte - $totalMatCobrado);
+                $totalCerImporte         = $activeDetails->sum('certificacion_importe');
+                $totalCerCobrado         = $activeDetails->sum('certificacion_cobrado');
+                $totalCerSaldo           = max(0, $totalCerImporte - $totalCerCobrado);
+            @endphp
 
-                    <!-- Responsable de cobros -->
-                    @can('program_allocation.edit')
-                    <div class="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
-                        <svg class="h-3.5 w-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        <span class="text-xs text-gray-500 whitespace-nowrap">Responsable:</span>
-                        <select onchange="updateResponsable({{ $assignment->id }}, this.value)"
-                            class="text-xs text-gray-800 font-medium bg-transparent border-0 focus:ring-0 cursor-pointer py-0 pl-0 pr-5 max-w-[160px]">
-                            <option value="">Sin asignar</option>
-                            @foreach($accountants as $acc)
-                            <option value="{{ $acc->id }}" {{ $assignment->responsable_id == $acc->id ? 'selected' : '' }}>
-                                {{ $acc->name }}
-                            </option>
-                            @endforeach
-                        </select>
+            <!-- Info de la asignación + totales -->
+            <div class="bg-white rounded-xl shadow-sm px-5 pt-4 pb-4 space-y-4">
+
+                <!-- Fila superior: metadatos + responsable + acciones -->
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span class="text-sm text-gray-500">
+                            <strong>{{ $details->count() }}</strong> participantes
+                            @if($excluidosCount > 0)
+                            <span class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600">
+                                {{ $excluidosCount }} excluido{{ $excluidosCount > 1 ? 's' : '' }}
+                            </span>
+                            @endif
+                        </span>
+                        <span class="text-xs text-gray-400">
+                            Generado {{ $assignment->created_at->format('d/m/Y H:i') }}
+                            por {{ $assignment->generator?->name ?? 'Sistema' }}
+                        </span>
+
+                        <!-- Responsable -->
+                        @can('program_allocation.edit')
+                        <div class="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1">
+                            <svg class="h-3.5 w-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span class="text-xs text-gray-500 whitespace-nowrap">Responsable:</span>
+                            <select onchange="updateResponsable({{ $assignment->id }}, this.value)"
+                                class="text-xs text-gray-800 font-medium bg-transparent border-0 focus:ring-0 cursor-pointer py-0 pl-0 pr-5 max-w-[160px]">
+                                <option value="">Sin asignar</option>
+                                @foreach($accountants as $acc)
+                                <option value="{{ $acc->id }}" {{ $assignment->responsable_id == $acc->id ? 'selected' : '' }}>{{ $acc->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @elseif($assignment->responsable)
+                        <div class="flex items-center gap-1.5 text-xs text-gray-600">
+                            <svg class="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                            <span>{{ $assignment->responsable->name }}</span>
+                        </div>
+                        @endcan
                     </div>
-                    @else
-                    @if($assignment->responsable)
-                    <div class="flex items-center gap-1.5 text-sm text-gray-600">
-                        <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        <span>{{ $assignment->responsable->name }}</span>
+
+                    <!-- Botones acción -->
+                    <div class="flex items-center gap-1">
+                        @can('program_allocation.create')
+                        <button onclick="refreshAssignment({{ $assignment->id }}, this)"
+                            class="p-2 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Refrescar (añadir inscritos nuevos)">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            </svg>
+                        </button>
+                        @endcan
+                        @can('program_allocation.delete')
+                        <button onclick="deleteAssignment({{ $assignment->id }})"
+                            class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Eliminar asignación">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                        @endcan
                     </div>
-                    @endif
-                    @endcan
                 </div>
-                <div class="flex items-center gap-4">
-                    @php
-                        $activeDetails  = $details->where('excluido', false);
-                        $excluidosCount = $details->where('excluido', true)->count();
-                        $totalAsig   = $activeDetails->sum('total_asignacion');
-                        $totalCobRet = $activeDetails->sum('cuotas_retrasadas_cobrado');
-                        $totalCobVig = $activeDetails->sum('cuota_vigente_cobrado');
-                        $totalCobMat = $activeDetails->sum('matricula_cobrado');
-                        $totalCobCer = $activeDetails->sum('certificacion_cobrado');
-                    @endphp
-                    @if($excluidosCount > 0)
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
-                        {{ $excluidosCount }} excluido{{ $excluidosCount > 1 ? 's' : '' }}
-                    </span>
+
+                <!-- Totales desglosados -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-3 border-t border-gray-100">
+
+                    <!-- Total general -->
+                    <div class="bg-gray-50 rounded-xl px-4 py-3">
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Total Asignación</p>
+                        <p class="text-lg font-bold text-gray-900" id="summaryTotalAsig">{{ number_format($totalAsig, 2) }}</p>
+                    </div>
+
+                    <!-- Cuota Retrasada -->
+                    <div class="bg-red-50/60 rounded-xl px-4 py-3">
+                        <p class="text-xs font-semibold text-red-600 uppercase tracking-wide mb-2">Retrasada</p>
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-xs text-gray-500">Importe</span>
+                                <span class="text-xs font-semibold text-gray-800 font-mono" id="sumRetImporte">{{ number_format($totalRetImporte, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-xs text-gray-500">Cobrado</span>
+                                <span class="text-xs font-semibold text-green-700 font-mono" id="sumRetCobrado">{{ number_format($totalRetCobrado, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between items-baseline border-t border-red-100 pt-1">
+                                <span class="text-xs text-gray-600 font-medium">Saldo</span>
+                                <span class="text-xs font-bold text-red-600 font-mono" id="sumRetSaldo">{{ number_format($totalRetSaldo, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cuota Vigente -->
+                    <div class="bg-amber-50/60 rounded-xl px-4 py-3">
+                        <p class="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">Vigente</p>
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-xs text-gray-500">Importe</span>
+                                <span class="text-xs font-semibold text-gray-800 font-mono" id="sumVigImporte">{{ number_format($totalVigImporte, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-xs text-gray-500">Cobrado</span>
+                                <span class="text-xs font-semibold text-green-700 font-mono" id="sumVigCobrado">{{ number_format($totalVigCobrado, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between items-baseline border-t border-amber-100 pt-1">
+                                <span class="text-xs text-gray-600 font-medium">Saldo</span>
+                                <span class="text-xs font-bold text-amber-600 font-mono" id="sumVigSaldo">{{ number_format($totalVigSaldo, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adelanto -->
+                    <div class="bg-emerald-50/60 rounded-xl px-4 py-3">
+                        <p class="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-2">Adelanto</p>
+                        <div class="space-y-1">
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-xs text-gray-500">Total</span>
+                                <span class="text-xs font-bold text-emerald-700 font-mono" id="sumAdelanto">{{ number_format($totalAdelantoImporte, 2) }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Matrícula + Certificación (si tienen valores) -->
+                    @if($totalMatImporte > 0 || $totalCerImporte > 0)
+                    <div class="bg-indigo-50/60 rounded-xl px-4 py-3">
+                        <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Mat. / Certif.</p>
+                        <div class="space-y-1">
+                            @if($totalMatImporte > 0)
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-xs text-gray-500">Mat. Saldo</span>
+                                <span class="text-xs font-semibold text-indigo-700 font-mono" id="sumMatSaldo">{{ number_format($totalMatSaldo, 2) }}</span>
+                            </div>
+                            @endif
+                            @if($totalCerImporte > 0)
+                            <div class="flex justify-between items-baseline">
+                                <span class="text-xs text-gray-500">Certif. Saldo</span>
+                                <span class="text-xs font-semibold text-purple-700 font-mono" id="sumCerSaldo">{{ number_format($totalCerSaldo, 2) }}</span>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
                     @endif
-                    <div class="text-right">
-                        <p class="text-xs text-gray-500">Total Asignación</p>
-                        <p class="text-sm font-bold text-gray-900" id="summaryTotalAsig">{{ number_format($totalAsig, 2) }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-gray-500">Total Cobrado</p>
-                        <p class="text-sm font-bold text-green-700" id="summaryTotalCobrado">{{ number_format($totalCobRet + $totalCobVig + $totalCobMat + $totalCobCer, 2) }}</p>
-                    </div>
-                    @can('program_allocation.delete')
-                    <button onclick="deleteAssignment({{ $assignment->id }})"
-                        class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Eliminar asignación">
+                </div>
+            </div>
+
+            <!-- Buscador de inscritos -->
+            <div class="flex items-center gap-3">
+                <div class="relative flex-1 max-w-xs">
+                    <input type="text" id="participantSearch"
+                        oninput="filterParticipants(this.value)"
+                        placeholder="Buscar inscrito..."
+                        class="w-full border border-gray-300 rounded-lg pl-8 pr-8 py-1.5 text-sm focus:ring-2 focus:ring-gray-800 focus:border-gray-800">
+                    <svg class="absolute left-2.5 top-2 h-4 w-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                    <button onclick="clearParticipantSearch()" id="clearSearchBtn"
+                        class="hidden absolute right-2 top-2 text-gray-400 hover:text-gray-600">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
-                    @endcan
                 </div>
+                <span id="searchResultCount" class="text-xs text-gray-400 hidden"></span>
             </div>
 
             <!-- Tabla principal -->
@@ -476,11 +615,14 @@
                 this.search       = prog.name;
                 this.open         = false;
                 document.getElementById('programIdInput').value = prog.id;
-                // Navegar a la URL con el programa seleccionado
                 const url = new URL(window.location.href);
                 url.searchParams.set('program_id', prog.id);
                 url.searchParams.set('mes', mes);
                 url.searchParams.set('gestion', gestion);
+                // Preservar filtro de responsable
+                const rf = document.querySelector('[name="responsable_filter"]')?.value;
+                if (rf) url.searchParams.set('responsable_filter', rf);
+                else url.searchParams.delete('responsable_filter');
                 window.location.href = url.toString();
             },
 
@@ -519,6 +661,28 @@
         } else {
             alert(data.message || 'Error al generar');
             if (btn) { btn.disabled = false; btn.textContent = 'Generar Asignación'; }
+        }
+    }
+
+    // ——— Refrescar asignación (añadir inscritos nuevos) ———
+    async function refreshAssignment(assignmentId, btn) {
+        btn.disabled = true;
+        btn.querySelector('svg').classList.add('animate-spin');
+
+        const res  = await fetch(`/accounting/nominal-assignments/${assignmentId}/refresh`, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+        });
+        const data = await res.json();
+
+        btn.disabled = false;
+        btn.querySelector('svg').classList.remove('animate-spin');
+
+        if (data.success) {
+            showToast(data.message);
+            if (data.added > 0) setTimeout(() => location.reload(), 1200);
+        } else {
+            showToast('Error al refrescar', true);
         }
     }
 
@@ -697,6 +861,50 @@
         }
     }
 
+    // ——— Filtro por responsable ———
+    function applyResponsableFilter(userId) {
+        const url = new URL(window.location.href);
+        if (userId) url.searchParams.set('responsable_filter', userId);
+        else url.searchParams.delete('responsable_filter');
+        // Mantener programa y período actuales
+        url.searchParams.set('mes', mes);
+        url.searchParams.set('gestion', gestion);
+        if (programId) url.searchParams.set('program_id', programId);
+        window.location.href = url.toString();
+    }
+
+    // ——— Buscador de inscritos (client-side) ———
+    function filterParticipants(query) {
+        const rows       = document.querySelectorAll('#assignmentBody tr[data-detail-id]');
+        const q          = query.toLowerCase().trim();
+        const clearBtn   = document.getElementById('clearSearchBtn');
+        const countEl    = document.getElementById('searchResultCount');
+        let visible      = 0;
+
+        rows.forEach(row => {
+            const name   = row.querySelector('.participant-name')?.textContent?.toLowerCase() || '';
+            const match  = !q || name.includes(q);
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        clearBtn.classList.toggle('hidden', !q);
+
+        if (q) {
+            countEl.textContent = `${visible} de ${rows.length}`;
+            countEl.classList.remove('hidden');
+        } else {
+            countEl.classList.add('hidden');
+        }
+    }
+
+    function clearParticipantSearch() {
+        const input = document.getElementById('participantSearch');
+        input.value = '';
+        filterParticipants('');
+        input.focus();
+    }
+
     // ——— Responsable de cobros ———
     async function updateResponsable(assignmentId, userId) {
         const res = await fetch(`/accounting/nominal-assignments/${assignmentId}/responsable`, {
@@ -748,10 +956,20 @@
         }
 
         // Actualizar totales del encabezado
-        const asigEl    = document.getElementById('summaryTotalAsig');
-        const cobradoEl = document.getElementById('summaryTotalCobrado');
-        if (asigEl)    asigEl.textContent    = fmt(data.program_total_asignacion);
-        if (cobradoEl) cobradoEl.textContent = fmt(data.program_total_cobrado);
+        if (data.totals) {
+            const t = data.totals;
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = fmt(val); };
+            set('summaryTotalAsig', t.asignacion);
+            set('sumRetImporte',    t.ret_importe);
+            set('sumRetCobrado',    t.ret_cobrado);
+            set('sumRetSaldo',      t.ret_saldo);
+            set('sumVigImporte',    t.vig_importe);
+            set('sumVigCobrado',    t.vig_cobrado);
+            set('sumVigSaldo',      t.vig_saldo);
+            set('sumAdelanto',      t.adelanto);
+            set('sumMatSaldo',      t.mat_saldo);
+            set('sumCerSaldo',      t.cer_saldo);
+        }
 
         showToast(data.excluido ? 'Inscrito excluido de la asignación' : 'Inscrito reactivado');
     }

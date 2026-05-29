@@ -391,6 +391,7 @@ Route::middleware('auth')->group(function () {
       Route::post('/nominal-assignments/generate', [NominalAssignmentController::class, 'generate'])->name('generate');
       Route::patch('/nominal-assignments/detail/{detail}', [NominalAssignmentController::class, 'updateDetail'])->name('detail.update');
       Route::patch('/nominal-assignments/detail/{detail}/toggle-excluded', [NominalAssignmentController::class, 'toggleExcluded'])->name('detail.toggle-excluded');
+      Route::post('/nominal-assignments/{assignment}/refresh', [NominalAssignmentController::class, 'refresh'])->name('refresh');
       Route::patch('/nominal-assignments/{assignment}/responsable', [NominalAssignmentController::class, 'updateResponsable'])->name('update-responsable');
       Route::delete('/nominal-assignments/{assignment}', [NominalAssignmentController::class, 'destroy'])->name('destroy');
   });

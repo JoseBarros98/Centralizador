@@ -37,7 +37,42 @@ class NominalAssignmentService
 
         $currentMonthStart = Carbon::createFromDate($gestion, $mes, 1)->startOfMonth();
 
-        // Inscritos del programa: consulta directa al pivot + program_id directo (inscripciones locales)
+        $inscriptions = $this->getInscriptionsForProgram($program);
+
+        foreach ($inscriptions as $inscription) {
+            $data = $this->buildDetailData($assignment, $inscription, $currentMonthStart);
+            AssignmentDetail::create($data);
+        }
+
+        return $assignment->load('details');
+    }
+
+    /**
+     * Agrega a la asignación los inscritos nuevos que no estaban al momento de generarla.
+     * No modifica los detalles existentes. Retorna la cantidad de participantes añadidos.
+     */
+    public function refresh(MonthlyAssignment $assignment): int
+    {
+        $assignment->load('program');
+        $currentMonthStart = Carbon::createFromDate($assignment->gestion, $assignment->mes, 1)->startOfMonth();
+
+        $existingIds  = $assignment->details()->pluck('inscription_id')->toArray();
+        $inscriptions = $this->getInscriptionsForProgram($assignment->program);
+        $newOnes      = $inscriptions->whereNotIn('id', $existingIds);
+
+        foreach ($newOnes as $inscription) {
+            $data = $this->buildDetailData($assignment, $inscription, $currentMonthStart);
+            AssignmentDetail::create($data);
+        }
+
+        return $newOnes->count();
+    }
+
+    /**
+     * Obtiene todos los inscritos del programa por pivot y por program_id directo.
+     */
+    private function getInscriptionsForProgram(Program $program): Collection
+    {
         $pivotIds  = DB::table('inscription_program')
             ->where('program_id', $program->id)
             ->pluck('inscription_id');
@@ -46,14 +81,7 @@ class NominalAssignmentService
 
         $allIds = $pivotIds->merge($directIds)->unique()->values();
 
-        $inscriptions = Inscription::whereIn('id', $allIds)->get();
-
-        foreach ($inscriptions as $inscription) {
-            $data = $this->buildDetailData($assignment, $inscription, $currentMonthStart);
-            AssignmentDetail::create($data);
-        }
-
-        return $assignment->load('details');
+        return Inscription::whereIn('id', $allIds)->get();
     }
 
     /**

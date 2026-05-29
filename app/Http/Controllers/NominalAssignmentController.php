@@ -19,6 +19,7 @@ class NominalAssignmentController extends Controller
         $this->middleware('permission:program_allocation.view')->only(['index']);
         $this->middleware('permission:program_allocation.create')->only(['generate']);
         $this->middleware('permission:program_allocation.edit')->only(['updateDetail', 'updateResponsable', 'toggleExcluded']);
+        $this->middleware('permission:program_allocation.create')->only(['refresh']);
     }
 
     public function index(Request $request): View
@@ -27,16 +28,27 @@ class NominalAssignmentController extends Controller
         $gestion = (int) $request->get('gestion', date('Y'));
         $mes     = max(1, min(12, $mes));
 
-        $programs = Program::whereIn('status', ['INSCRIPCION', 'DESARROLLO', 'Inscripciones', 'Desarrollo'])
-            ->orderBy('name')
-            ->get();
+        $accountants      = User::active()->role('accountant')->orderBy('name')->get();
+        $responsableFilter = $request->get('responsable_filter');
+
+        $programsQuery = Program::whereIn('status', ['INSCRIPCION', 'DESARROLLO', 'Inscripciones', 'Desarrollo']);
+
+        // Si hay filtro por responsable, solo mostrar programas que tengan asignación con ese responsable en el período actual
+        if ($responsableFilter) {
+            $filteredProgramIds = MonthlyAssignment::where('mes', $mes)
+                ->where('gestion', $gestion)
+                ->where('responsable_id', $responsableFilter)
+                ->pluck('program_id');
+
+            $programsQuery->whereIn('id', $filteredProgramIds);
+        }
+
+        $programs = $programsQuery->orderBy('name')->get();
 
         $programId  = $request->get('program_id');
         $program    = null;
         $assignment = null;
         $details    = collect();
-
-        $accountants = User::active()->role('accountant')->orderBy('name')->get();
 
         if ($programId) {
             $program = Program::find($programId);
@@ -69,7 +81,7 @@ class NominalAssignmentController extends Controller
             'programs', 'program', 'assignment', 'details',
             'mes', 'gestion', 'mesesNombres',
             'prevMes', 'prevGestion', 'nextMes', 'nextGestion',
-            'accountants'
+            'accountants', 'responsableFilter'
         ));
     }
 
@@ -151,6 +163,19 @@ class NominalAssignmentController extends Controller
         ]);
     }
 
+    public function refresh(MonthlyAssignment $assignment): JsonResponse
+    {
+        $added = $this->service->refresh($assignment);
+
+        return response()->json([
+            'success' => true,
+            'added'   => $added,
+            'message' => $added > 0
+                ? "Se añadieron {$added} participante(s) nuevo(s) a la asignación."
+                : 'La asignación ya está actualizada. No hay participantes nuevos.',
+        ]);
+    }
+
     public function updateResponsable(Request $request, MonthlyAssignment $assignment): JsonResponse
     {
         $request->validate([
@@ -172,19 +197,23 @@ class NominalAssignmentController extends Controller
         $detail->save();
 
         // Totales del programa excluyendo los registros marcados
-        $activeDetails = $detail->monthlyAssignment->details()->where('excluido', false)->get();
+        $active = $detail->monthlyAssignment->details()->where('excluido', false)->get();
 
         return response()->json([
-            'success'                  => true,
-            'excluido'                 => $detail->excluido,
-            'program_total_asignacion' => round($activeDetails->sum('total_asignacion'), 2),
-            'program_total_cobrado'    => round(
-                $activeDetails->sum('cuotas_retrasadas_cobrado') +
-                $activeDetails->sum('cuota_vigente_cobrado') +
-                $activeDetails->sum('matricula_cobrado') +
-                $activeDetails->sum('certificacion_cobrado'),
-                2
-            ),
+            'success'  => true,
+            'excluido' => $detail->excluido,
+            'totals'   => [
+                'asignacion'      => round($active->sum('total_asignacion'), 2),
+                'ret_importe'     => round($active->sum('cuotas_retrasadas_importe'), 2),
+                'ret_cobrado'     => round($active->sum('cuotas_retrasadas_cobrado'), 2),
+                'ret_saldo'       => round($active->sum(fn($d) => max(0, $d->cuotas_retrasadas_importe - $d->cuotas_retrasadas_cobrado)), 2),
+                'vig_importe'     => round($active->sum('cuota_vigente_importe'), 2),
+                'vig_cobrado'     => round($active->sum('cuota_vigente_cobrado'), 2),
+                'vig_saldo'       => round($active->sum(fn($d) => max(0, $d->cuota_vigente_importe - $d->cuota_vigente_cobrado)), 2),
+                'adelanto'        => round($active->sum('adelanto_importe'), 2),
+                'mat_saldo'       => round($active->sum(fn($d) => max(0, $d->matricula_importe - $d->matricula_cobrado)), 2),
+                'cer_saldo'       => round($active->sum(fn($d) => max(0, $d->certificacion_importe - $d->certificacion_cobrado)), 2),
+            ],
         ]);
     }
 
