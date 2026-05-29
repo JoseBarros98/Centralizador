@@ -43,6 +43,9 @@ use App\Http\Controllers\ManagementIncomeController;
 use App\Http\Controllers\ManagementExpenseController;
 use App\Http\Controllers\ManagementExpenseEntityController;
 use App\Http\Controllers\ManagementInvestmentController;
+use App\Http\Controllers\NominalAssignmentController;
+use App\Http\Controllers\PaymentPlanController;
+use App\Http\Controllers\ParticipantQuotaController;
 use App\Http\Controllers\BackupController;
 use App\Models\ProgramAllocation;
 use Illuminate\Support\Facades\Route;
@@ -381,6 +384,36 @@ Route::middleware('auth')->group(function () {
   // Rutas para CITES de titulación
   Route::resource('graduation-cites', GraduationCiteController::class);
   Route::get('/api/graduation-cites/participants/search', [GraduationCiteController::class, 'searchParticipants'])->name('graduation-cites.participants.search');
+
+  // Rutas para Asignación Nominal (contabilidad)
+  Route::prefix('accounting')->name('nominal-assignments.')->group(function () {
+      Route::get('/nominal-assignments', [NominalAssignmentController::class, 'index'])->name('index');
+      Route::post('/nominal-assignments/generate', [NominalAssignmentController::class, 'generate'])->name('generate');
+      Route::patch('/nominal-assignments/detail/{detail}', [NominalAssignmentController::class, 'updateDetail'])->name('detail.update');
+      Route::patch('/nominal-assignments/detail/{detail}/toggle-excluded', [NominalAssignmentController::class, 'toggleExcluded'])->name('detail.toggle-excluded');
+      Route::patch('/nominal-assignments/{assignment}/responsable', [NominalAssignmentController::class, 'updateResponsable'])->name('update-responsable');
+      Route::delete('/nominal-assignments/{assignment}', [NominalAssignmentController::class, 'destroy'])->name('destroy');
+  });
+
+  Route::prefix('accounting')->name('payment-plans.')->group(function () {
+      Route::get('/payment-plans', [PaymentPlanController::class, 'index'])->name('index');
+      Route::post('/payment-plans', [PaymentPlanController::class, 'store'])->name('store');
+      Route::put('/payment-plans/{paymentPlan}', [PaymentPlanController::class, 'update'])->name('update');
+      Route::delete('/payment-plans/{paymentPlan}', [PaymentPlanController::class, 'destroy'])->name('destroy');
+  });
+
+  Route::prefix('accounting')->name('participant-quotas.')->group(function () {
+      Route::get('/participant-quotas', [ParticipantQuotaController::class, 'index'])->name('index.global');
+      Route::post('/participant-quotas', [ParticipantQuotaController::class, 'store'])->name('store');
+      Route::post('/participant-quotas/generate-from-plan', [ParticipantQuotaController::class, 'generateFromPlan'])->name('generate');
+      Route::post('/participant-quotas/discount', [ParticipantQuotaController::class, 'upsertDiscount'])->name('discount.upsert');
+      Route::delete('/participant-quotas/discount', [ParticipantQuotaController::class, 'destroyDiscount'])->name('discount.destroy');
+      Route::patch('/participant-quotas/{participantQuota}', [ParticipantQuotaController::class, 'update'])->name('update');
+      Route::delete('/participant-quotas/{participantQuota}', [ParticipantQuotaController::class, 'destroy'])->name('destroy');
+      Route::delete('/participant-quotas-all', [ParticipantQuotaController::class, 'destroyAll'])->name('destroyAll');
+  });
+
+  Route::get('/programs/{program}/nominal-quotas', [ParticipantQuotaController::class, 'index'])->name('participant-quotas.index');
 
   // Rutas para asignación por programa
   Route::resource('program-allocation', ProgramAllocationController::class)->only(['index', 'store', 'destroy']);

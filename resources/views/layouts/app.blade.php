@@ -341,7 +341,7 @@
 
                                 <!-- Contabilidad - Desplegable -->
                                 @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view'))
-                                <div x-data="{ open: {{ request()->routeIs('payment_requests.*') || request()->routeIs('graduation-cites.*') || request()->routeIs('program-allocation.*') || request()->routeIs('management-incomes.*') || request()->routeIs('management-investments.*') || request()->routeIs('management-expenses.*') ? 'true' : 'false' }} }">
+                                <div x-data="{ open: {{ request()->routeIs('payment_requests.*') || request()->routeIs('graduation-cites.*') || request()->routeIs('program-allocation.*') || request()->routeIs('management-incomes.*') || request()->routeIs('management-investments.*') || request()->routeIs('management-expenses.*') || request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Contabilidad" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M6 14h2m3 0h5M3 7v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1Z"/>
@@ -369,6 +369,16 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
                                             </svg>
                                             Titulación
+                                        </a>
+                                        @endcan
+
+                                        <!-- Asignación Nominal -->
+                                        @can('program_allocation.view')
+                                        <a href="{{ route('nominal-assignments.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                            </svg>
+                                            Asignación Nominal
                                         </a>
                                         @endcan
 
@@ -765,7 +775,7 @@
 
                             <!-- Contabilidad - Desplegable -->
                                 @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view'))
-                                <div x-data="{ open: {{ request()->routeIs('payment_requests.*') || request()->routeIs('graduation-cites.*') || request()->routeIs('program-allocation.*') || request()->routeIs('management-incomes.*') || request()->routeIs('management-investments.*') || request()->routeIs('management-expenses.*') ? 'true' : 'false' }} }">
+                                <div x-data="{ open: {{ request()->routeIs('payment_requests.*') || request()->routeIs('graduation-cites.*') || request()->routeIs('program-allocation.*') || request()->routeIs('management-incomes.*') || request()->routeIs('management-investments.*') || request()->routeIs('management-expenses.*') || request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M6 14h2m3 0h5M3 7v10a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1Z"/>
@@ -793,6 +803,16 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
                                             </svg>
                                             Titulación
+                                        </a>
+                                        @endcan
+
+                                        <!-- Asignación Nominal -->
+                                        @can('program_allocation.view')
+                                        <a href="{{ route('nominal-assignments.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+                                            <svg class="mr-3 h-5 w-5 {{ request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                            </svg>
+                                            Asignación Nominal
                                         </a>
                                         @endcan
 

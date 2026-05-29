@@ -37,7 +37,16 @@
       "Bash(Get-ChildItem *)",
       "Skill(impeccable)",
       "Bash(node *)",
-      "Bash(powershell *)"
+      "Bash(powershell *)",
+      "Bash(php -l app/Models/PaymentPlan.php app/Models/ParticipantDiscount.php app/Models/ParticipantQuota.php app/Models/MonthlyAssignment.php app/Models/AssignmentDetail.php app/Services/NominalAssignmentService.php app/Http/Controllers/NominalAssignmentController.php app/Http/Controllers/PaymentPlanController.php app/Http/Controllers/ParticipantQuotaController.php)",
+      "Bash(php -l routes/web.php)",
+      "Bash(php -l app/Services/NominalAssignmentService.php app/Models/AssignmentDetail.php app/Models/PaymentPlan.php app/Http/Controllers/NominalAssignmentController.php app/Http/Controllers/PaymentPlanController.php)",
+      "Bash(php -l app/Services/NominalAssignmentService.php)",
+      "Bash(php -l app/Services/NominalAssignmentService.php app/Http/Controllers/NominalAssignmentController.php)",
+      "Bash(php -l app/Http/Controllers/ParticipantQuotaController.php)",
+      "Bash(php -l app/Http/Controllers/NominalAssignmentController.php)",
+      "Bash(php -l app/Http/Controllers/NominalAssignmentController.php app/Models/AssignmentDetail.php routes/web.php)",
+      "Bash(php -l app/Http/Controllers/NominalAssignmentController.php app/Models/MonthlyAssignment.php routes/web.php)"
     ],
     "additionalDirectories": [
       "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"
