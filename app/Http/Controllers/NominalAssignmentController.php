@@ -164,14 +164,17 @@ class NominalAssignmentController extends Controller
 
     public function refresh(MonthlyAssignment $assignment): JsonResponse
     {
-        $added = $this->service->refresh($assignment);
+        $result = $this->service->refresh($assignment);
+        $added  = $result['added'];
+
+        $message = $added > 0
+            ? "Asignación actualizada: {$added} participante(s) nuevo(s) añadido(s) y saldos recalculados."
+            : 'Asignación actualizada: saldos recalculados con los pagos de meses anteriores.';
 
         return response()->json([
             'success' => true,
             'added'   => $added,
-            'message' => $added > 0
-                ? "Se añadieron {$added} participante(s) nuevo(s) a la asignación."
-                : 'La asignación ya está actualizada. No hay participantes nuevos.',
+            'message' => $message,
         ]);
     }
 

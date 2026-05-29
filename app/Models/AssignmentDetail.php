@@ -47,6 +47,8 @@ class AssignmentDetail extends Model
         'total_asignacion' => 'decimal:2',
         'excluido'         => 'boolean',
         'oculto'           => 'boolean',
+        'cuota_vigente_numero'  => 'integer',
+        'adelanto_numero_cuota' => 'integer',
     ];
 
     public function monthlyAssignment()

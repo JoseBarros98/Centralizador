@@ -48,24 +48,66 @@ class NominalAssignmentService
     }
 
     /**
-     * Agrega a la asignación los inscritos nuevos que no estaban al momento de generarla.
-     * No modifica los detalles existentes. Retorna la cantidad de participantes añadidos.
+     * Actualiza la asignación:
+     *  1. Agrega los inscritos nuevos que no estaban al generarla.
+     *  2. Recalcula los importes retrasada/vigente/matrícula/certificación de TODOS los
+     *     detalles existentes con base en los pagos actualizados de meses anteriores,
+     *     preservando los cobros y ajustes ya registrados en el mes actual.
+     *
+     * Retorna ['added' => int, 'recalculated' => int].
      */
-    public function refresh(MonthlyAssignment $assignment): int
+    public function refresh(MonthlyAssignment $assignment): array
     {
         $assignment->load('program');
         $currentMonthStart = Carbon::createFromDate($assignment->gestion, $assignment->mes, 1)->startOfMonth();
 
+        // 1. Añadir inscritos nuevos
         $existingIds  = $assignment->details()->pluck('inscription_id')->toArray();
         $inscriptions = $this->getInscriptionsForProgram($assignment->program);
         $newOnes      = $inscriptions->whereNotIn('id', $existingIds);
 
         foreach ($newOnes as $inscription) {
-            $data = $this->buildDetailData($assignment, $inscription, $currentMonthStart);
-            AssignmentDetail::create($data);
+            AssignmentDetail::create($this->buildDetailData($assignment, $inscription, $currentMonthStart));
         }
 
-        return $newOnes->count();
+        // 2. Recalcular importes de los detalles existentes (preservando cobros del mes actual)
+        $recalculated = 0;
+        foreach ($assignment->details()->get() as $detail) {
+            $this->recalculateDetail($detail, $assignment, $currentMonthStart);
+            $recalculated++;
+        }
+
+        return ['added' => $newOnes->count(), 'recalculated' => $recalculated];
+    }
+
+    /**
+     * Recalcula los importes de un detalle existente con base en el estado actual de los
+     * meses anteriores. Preserva los cobros del mes actual, adelantos, observaciones y flags.
+     */
+    private function recalculateDetail(AssignmentDetail $detail, MonthlyAssignment $assignment, Carbon $currentMonthStart): void
+    {
+        $allQuotas = ParticipantQuota::where('inscription_id', $detail->inscription_id)
+            ->where('program_id', $assignment->program_id)
+            ->orderBy('numero_cuota')
+            ->get();
+
+        $previousDetails = $this->getPreviousDetails($detail->inscription_id, $assignment->program_id, $assignment);
+
+        [$retrasadaImporte, $retrasadaNumeros] = $this->calcularRetrasada($allQuotas, $previousDetails, $currentMonthStart);
+        [$vigenteNumero, $vigenteImporte]      = $this->calcularVigente($allQuotas, $previousDetails, $currentMonthStart);
+        [$matriculaImporte, $certificacionImporte] = $this->calcularMatriculaCertificacion($detail->inscription_id, $assignment->program_id, $previousDetails);
+
+        // Actualizar SOLO los importes calculados; los cobros y ajustes se preservan
+        $detail->cuotas_retrasadas_numeros = !empty($retrasadaNumeros) ? $retrasadaNumeros : null;
+        $detail->cuotas_retrasadas_importe = $retrasadaImporte;
+        $detail->cuota_vigente_numero      = $vigenteNumero;
+        $detail->cuota_vigente_importe     = $vigenteImporte;
+        $detail->matricula_importe         = $matriculaImporte;
+        $detail->certificacion_importe     = $certificacionImporte;
+        $detail->save();
+
+        // Recalcular el total con base en los saldos (importe - cobrado)
+        $detail->recalcularTotal();
     }
 
     /**
