@@ -243,24 +243,15 @@
                     </div>
 
                     <!-- Botones acción -->
-                    <div class="flex items-center gap-1">
-                        @can('program_allocation.create')
-                        <button onclick="refreshAssignment({{ $assignment->id }}, this)"
-                            class="p-2 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition" title="Refrescar (añadir inscritos nuevos)">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                            </svg>
-                        </button>
-                        @endcan
-                        @can('program_allocation.delete')
-                        <button onclick="deleteAssignment({{ $assignment->id }})"
-                            class="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Eliminar asignación">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                        </button>
-                        @endcan
-                    </div>
+                    @can('program_allocation.create')
+                    <button id="refreshBtn" onclick="refreshAssignment({{ $assignment->id }})"
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition" title="Actualizar asignación (añadir inscritos nuevos)">
+                        <svg id="refreshIcon" class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                        Actualizar
+                    </button>
+                    @endcan
                 </div>
 
                 <!-- Totales desglosados -->
@@ -344,8 +335,19 @@
                 </div>
             </div>
 
-            <!-- Buscador de inscritos -->
+            <!-- Buscador de inscritos + toggle ocultos -->
             <div class="flex items-center gap-3">
+                @php $ocultosCount = $details->where('oculto', true)->count(); @endphp
+                @if($ocultosCount > 0)
+                <button onclick="toggleShowHidden(this)"
+                    id="showHiddenBtn"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition">
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21"/>
+                    </svg>
+                    <span id="showHiddenLabel">Mostrar {{ $ocultosCount }} oculto{{ $ocultosCount > 1 ? 's' : '' }}</span>
+                </button>
+                @endif
                 <div class="relative flex-1 max-w-xs">
                     <input type="text" id="participantSearch"
                         oninput="filterParticipants(this.value)"
@@ -403,30 +405,15 @@
                                 $cerSaldo  = max(0, (float)$detail->certificacion_importe - (float)$detail->certificacion_cobrado);
                                 $numRet    = $detail->cuotas_retrasadas_numeros;
                             @endphp
-                            <tr class="transition-colors {{ $detail->excluido ? 'opacity-50' : 'hover:bg-gray-50' }}"
+                            <tr class="transition-colors {{ $detail->excluido ? 'opacity-50' : 'hover:bg-gray-50' }} {{ $detail->oculto ? 'oculto-row' : '' }}"
                                 data-detail-id="{{ $detail->id }}"
-                                data-excluido="{{ $detail->excluido ? '1' : '0' }}">
+                                data-excluido="{{ $detail->excluido ? '1' : '0' }}"
+                                data-oculto="{{ $detail->oculto ? '1' : '0' }}">
 
                                 <!-- Participante (sticky) -->
-                                <td class="px-4 py-3 sticky left-0 z-10 border-r border-gray-100 min-w-[190px] {{ $detail->excluido ? 'bg-red-50/60' : 'bg-white hover:bg-gray-50' }}">
-                                    <div class="flex items-start gap-2">
-                                        <!-- Botón excluir / reactivar -->
-                                        @can('program_allocation.edit')
-                                        <button onclick="toggleExcluded({{ $detail->id }}, this)"
-                                            title="{{ $detail->excluido ? 'Reactivar inscrito' : 'Excluir de la asignación' }}"
-                                            class="flex-shrink-0 mt-0.5 p-0.5 rounded transition-colors exclude-btn
-                                                {{ $detail->excluido ? 'text-red-400 hover:text-green-600' : 'text-gray-300 hover:text-red-500' }}">
-                                            @if($detail->excluido)
-                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                                            </svg>
-                                            @else
-                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
-                                            </svg>
-                                            @endif
-                                        </button>
-                                        @endcan
+                                <td class="px-3 py-2.5 sticky left-0 z-10 border-r border-gray-100 min-w-[210px] {{ $detail->excluido ? 'bg-red-50/60' : 'bg-white hover:bg-gray-50' }}">
+                                    <div class="flex items-center gap-2">
+                                        <!-- Nombre e info -->
                                         <div class="flex-1 min-w-0">
                                             <p class="font-semibold text-xs leading-tight participant-name {{ $detail->excluido ? 'text-gray-400 line-through' : 'text-gray-900' }}">
                                                 {{ $detail->nombre_completo }}
@@ -435,16 +422,38 @@
                                             @if($detail->telefono)
                                             <p class="text-gray-400 text-xs">{{ $detail->telefono }}</p>
                                             @endif
-                                            @if($detail->excluido)
-                                            <span class="excluded-badge inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600 mt-1">
+                                            <span class="excluded-badge {{ $detail->excluido ? '' : 'hidden' }} inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600 mt-1">
                                                 Excluido
                                             </span>
-                                            @else
-                                            <span class="excluded-badge hidden inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-600 mt-1">
-                                                Excluido
-                                            </span>
-                                            @endif
                                         </div>
+                                        <!-- Botones de acción (derecha) -->
+                                        @can('program_allocation.edit')
+                                        <div class="flex-shrink-0 flex flex-col gap-1 items-center">
+                                            <!-- Excluir de totales -->
+                                            <button onclick="toggleExcluded({{ $detail->id }}, this)"
+                                                title="{{ $detail->excluido ? 'Reactivar inscrito' : 'Excluir de la asignación' }}"
+                                                class="p-1 rounded hover:bg-gray-100 transition-colors exclude-btn {{ $detail->excluido ? 'text-red-400' : 'text-gray-300 hover:text-red-500' }}">
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                                                </svg>
+                                            </button>
+                                            <!-- Ocultar de la vista -->
+                                            <button onclick="toggleHidden({{ $detail->id }}, this)"
+                                                title="{{ $detail->oculto ? 'Mostrar en la vista' : 'Ocultar de la vista' }}"
+                                                class="p-1 rounded hover:bg-gray-100 transition-colors hide-btn {{ $detail->oculto ? 'text-blue-400' : 'text-gray-300 hover:text-blue-400' }}">
+                                                @if($detail->oculto)
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21"/>
+                                                </svg>
+                                                @else
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                </svg>
+                                                @endif
+                                            </button>
+                                        </div>
+                                        @endcan
                                     </div>
                                 </td>
 
@@ -664,37 +673,38 @@
         }
     }
 
-    // ——— Refrescar asignación (añadir inscritos nuevos) ———
-    async function refreshAssignment(assignmentId, btn) {
-        btn.disabled = true;
-        btn.querySelector('svg').classList.add('animate-spin');
+    // ——— Actualizar asignación (añadir inscritos nuevos) ———
+    async function refreshAssignment(assignmentId) {
+        const btn  = document.getElementById('refreshBtn');
+        const icon = document.getElementById('refreshIcon');
+        if (btn) btn.disabled = true;
+        if (icon) icon.classList.add('animate-spin');
 
-        const res  = await fetch(`/accounting/nominal-assignments/${assignmentId}/refresh`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-        });
-        const data = await res.json();
+        try {
+            const res = await fetch(`/accounting/nominal-assignments/${assignmentId}/refresh`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+            });
 
-        btn.disabled = false;
-        btn.querySelector('svg').classList.remove('animate-spin');
+            if (!res.ok) {
+                const errText = await res.text();
+                showToast(`Error ${res.status}: ${res.statusText}`, true);
+                return;
+            }
 
-        if (data.success) {
-            showToast(data.message);
-            if (data.added > 0) setTimeout(() => location.reload(), 1200);
-        } else {
-            showToast('Error al refrescar', true);
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message);
+                if (data.added > 0) setTimeout(() => location.reload(), 1200);
+            } else {
+                showToast(data.message || 'Error al actualizar', true);
+            }
+        } catch (e) {
+            showToast('Error de conexión al actualizar', true);
+        } finally {
+            if (btn) btn.disabled = false;
+            if (icon) icon.classList.remove('animate-spin');
         }
-    }
-
-    // ——— Eliminar asignación ———
-    async function deleteAssignment(id) {
-        if (!confirm('¿Eliminar esta asignación? Se perderán todos los datos registrados.')) return;
-        const res  = await fetch(`/accounting/nominal-assignments/${id}`, {
-            method: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
-        });
-        const data = await res.json();
-        if (data.success) location.reload();
     }
 
     // Campos cobrado: el usuario ingresa el INCREMENTO (nuevo pago), el servidor acumula
@@ -915,6 +925,85 @@
         const data = await res.json();
         if (data.success) showToast(data.responsable_name ? `Responsable: ${data.responsable_name}` : 'Sin responsable asignado');
         else showToast('Error al actualizar responsable', true);
+    }
+
+    // ——— Ocultar / mostrar inscrito en la vista ———
+    let showingHidden = false;
+
+    // Al cargar la página, ocultar las filas marcadas como ocultas
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('tr.oculto-row').forEach(r => r.style.display = 'none');
+    });
+
+    async function toggleHidden(detailId, btn) {
+        const res = await fetch(`/accounting/nominal-assignments/detail/${detailId}/toggle-hidden`, {
+            method: 'PATCH',
+            headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+        });
+        const data = await res.json();
+        if (!data.success) { showToast('Error', true); return; }
+
+        const row = document.querySelector(`tr[data-detail-id="${detailId}"]`);
+
+        if (data.oculto) {
+            row.setAttribute('data-oculto', '1');
+            row.classList.add('oculto-row');
+            // Solo ocultar si el modo "mostrar ocultos" NO está activo
+            if (!showingHidden) row.style.display = 'none';
+            btn.classList.add('text-blue-400', 'hover:text-blue-600');
+            btn.classList.remove('text-gray-300', 'hover:text-blue-400');
+            btn.title = 'Mostrar en la vista';
+            // Actualizar icono a ojo-tachado
+            btn.innerHTML = `<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 4.411m0 0L21 21"/>
+            </svg>`;
+        } else {
+            row.setAttribute('data-oculto', '0');
+            row.classList.remove('oculto-row');
+            row.style.display = '';
+            btn.classList.remove('text-blue-400', 'hover:text-blue-600');
+            btn.classList.add('text-gray-300', 'hover:text-blue-400');
+            btn.title = 'Ocultar de la vista';
+            btn.innerHTML = `<svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>`;
+        }
+
+        // Actualizar botón global y contador
+        const label = document.getElementById('showHiddenLabel');
+        const showBtn = document.getElementById('showHiddenBtn');
+        if (label && showBtn) {
+            const n = data.hidden_count;
+            if (n > 0) {
+                label.textContent = showingHidden
+                    ? `Ocultar ${n} oculto${n > 1 ? 's' : ''}`
+                    : `Mostrar ${n} oculto${n > 1 ? 's' : ''}`;
+                showBtn.classList.remove('hidden');
+            } else {
+                showBtn.classList.add('hidden');
+            }
+        }
+
+        showToast(data.oculto ? 'Inscrito oculto de la vista' : 'Inscrito visible');
+    }
+
+    function toggleShowHidden(btn) {
+        showingHidden = !showingHidden;
+        const rows  = document.querySelectorAll('tr.oculto-row');
+        const label = document.getElementById('showHiddenLabel');
+        const n     = rows.length;
+
+        rows.forEach(r => r.style.display = showingHidden ? '' : 'none');
+
+        if (label) {
+            label.textContent = showingHidden
+                ? `Ocultar ${n} oculto${n > 1 ? 's' : ''}`
+                : `Mostrar ${n} oculto${n > 1 ? 's' : ''}`;
+        }
+
+        btn.classList.toggle('bg-blue-100', showingHidden);
+        btn.classList.toggle('border-blue-400', showingHidden);
     }
 
     // ——— Excluir / reactivar inscrito ———

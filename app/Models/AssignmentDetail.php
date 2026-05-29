@@ -30,6 +30,7 @@ class AssignmentDetail extends Model
         'total_asignacion',
         'observaciones',
         'excluido',
+        'oculto',
     ];
 
     protected $casts = [
@@ -45,6 +46,7 @@ class AssignmentDetail extends Model
         'certificacion_cobrado' => 'decimal:2',
         'total_asignacion' => 'decimal:2',
         'excluido'         => 'boolean',
+        'oculto'           => 'boolean',
     ];
 
     public function monthlyAssignment()

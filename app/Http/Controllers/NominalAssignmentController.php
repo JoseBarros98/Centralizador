@@ -17,9 +17,8 @@ class NominalAssignmentController extends Controller
     public function __construct(private NominalAssignmentService $service)
     {
         $this->middleware('permission:program_allocation.view')->only(['index']);
-        $this->middleware('permission:program_allocation.create')->only(['generate']);
-        $this->middleware('permission:program_allocation.edit')->only(['updateDetail', 'updateResponsable', 'toggleExcluded']);
-        $this->middleware('permission:program_allocation.create')->only(['refresh']);
+        $this->middleware('permission:program_allocation.create')->only(['generate', 'refresh']);
+        $this->middleware('permission:program_allocation.edit')->only(['updateDetail', 'updateResponsable', 'toggleExcluded', 'toggleHidden']);
     }
 
     public function index(Request $request): View
@@ -191,6 +190,20 @@ class NominalAssignmentController extends Controller
         ]);
     }
 
+    public function toggleHidden(AssignmentDetail $detail): JsonResponse
+    {
+        $detail->oculto = !$detail->oculto;
+        $detail->save();
+
+        $hiddenCount = $detail->monthlyAssignment->details()->where('oculto', true)->count();
+
+        return response()->json([
+            'success'      => true,
+            'oculto'       => $detail->oculto,
+            'hidden_count' => $hiddenCount,
+        ]);
+    }
+
     public function toggleExcluded(AssignmentDetail $detail): JsonResponse
     {
         $detail->excluido = !$detail->excluido;
@@ -215,11 +228,5 @@ class NominalAssignmentController extends Controller
                 'cer_saldo'       => round($active->sum(fn($d) => max(0, $d->certificacion_importe - $d->certificacion_cobrado)), 2),
             ],
         ]);
-    }
-
-    public function destroy(MonthlyAssignment $assignment): JsonResponse
-    {
-        $assignment->delete();
-        return response()->json(['success' => true]);
     }
 }
