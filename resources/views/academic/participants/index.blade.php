@@ -216,6 +216,7 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                     data-program-id="{{ $row->program_id }}"
                                     data-inscription-id="{{ $row->inscription_id }}"
                                     data-requirement="{{ $field }}"
+                                    data-pct-group="insc"
                                     {{ $row->{$field} ? 'checked' : '' }}>
                                 @else
                                     @if($row->{$field})
@@ -227,8 +228,11 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                             </td>
                             @endforeach
                             {{-- % Req. Inscripción --}}
-                            <td class="px-3 py-3 whitespace-nowrap text-center font-semibold
-                                {{ $reqInscPct == 100 ? 'text-green-600' : ($reqInscPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}">
+                            <td class="px-3 py-3 whitespace-nowrap text-center font-semibold {{ $reqInscPct == 100 ? 'text-green-600' : ($reqInscPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}"
+                                data-pct-cell="insc"
+                                data-inscription-id="{{ $row->inscription_id }}"
+                                data-program-id="{{ $row->program_id }}"
+                                data-total="4">
                                 {{ $reqInscPct }}%
                             </td>
 
@@ -248,6 +252,7 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                         data-program-id="{{ $row->program_id }}"
                                         data-inscription-id="{{ $row->inscription_id }}"
                                         data-requirement="{{ $boolF }}"
+                                        data-pct-group="tit"
                                         {{ $row->{$boolF} ? 'checked' : '' }}>
                                     <input type="date"
                                         class="req-date-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
@@ -269,8 +274,11 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                             </td>
                             @endforeach
                             {{-- % Req. Titulación --}}
-                            <td class="px-3 py-3 whitespace-nowrap text-center font-semibold
-                                {{ $reqTitPct == 100 ? 'text-green-600' : ($reqTitPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}">
+                            <td class="px-3 py-3 whitespace-nowrap text-center font-semibold {{ $reqTitPct == 100 ? 'text-green-600' : ($reqTitPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}"
+                                data-pct-cell="tit"
+                                data-inscription-id="{{ $row->inscription_id }}"
+                                data-program-id="{{ $row->program_id }}"
+                                data-total="5">
                                 {{ $reqTitPct }}%
                             </td>
 
@@ -289,6 +297,7 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                             data-program-id="{{ $row->program_id }}"
                                             data-inscription-id="{{ $row->inscription_id }}"
                                             data-requirement="{{ $boolF }}"
+                                            data-pct-group="tf"
                                             {{ $row->{$boolF} ? 'checked' : '' }}>
                                         <input type="date"
                                             class="req-date-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
@@ -309,8 +318,11 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                     </div>
                                 </td>
                                 @endforeach
-                                <td class="px-3 py-3 whitespace-nowrap text-center font-semibold border-l border-gray-100
-                                    {{ $tfPct == 100 ? 'text-green-600' : ($tfPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}">
+                                <td class="px-3 py-3 whitespace-nowrap text-center font-semibold border-l border-gray-100 {{ $tfPct == 100 ? 'text-green-600' : ($tfPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}"
+                                    data-pct-cell="tf"
+                                    data-inscription-id="{{ $row->inscription_id }}"
+                                    data-program-id="{{ $row->program_id }}"
+                                    data-total="2">
                                     {{ $tfPct }}%
                                 </td>
                             @elseif($isMaestria)
@@ -327,6 +339,7 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                             data-program-id="{{ $row->program_id }}"
                                             data-inscription-id="{{ $row->inscription_id }}"
                                             data-requirement="{{ $boolF }}"
+                                            data-pct-group="tf"
                                             {{ ($row->{$boolF} ?? false) ? 'checked' : '' }}>
                                         <input type="date"
                                             class="req-date-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
@@ -347,8 +360,11 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                     </div>
                                 </td>
                                 @endforeach
-                                <td class="px-3 py-3 whitespace-nowrap text-center font-semibold border-l border-gray-100
-                                    {{ $tfPct == 100 ? 'text-green-600' : ($tfPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}">
+                                <td class="px-3 py-3 whitespace-nowrap text-center font-semibold border-l border-gray-100 {{ $tfPct == 100 ? 'text-green-600' : ($tfPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}"
+                                    data-pct-cell="tf"
+                                    data-inscription-id="{{ $row->inscription_id }}"
+                                    data-program-id="{{ $row->program_id }}"
+                                    data-total="2">
                                     {{ $tfPct }}%
                                 </td>
                             @else
@@ -370,6 +386,7 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                         data-program-id="{{ $row->program_id }}"
                                         data-inscription-id="{{ $row->inscription_id }}"
                                         data-requirement="{{ $boolF }}"
+                                        data-pct-group="est"
                                         {{ $row->{$boolF} ? 'checked' : '' }}>
                                     <input type="date"
                                         class="req-date-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
@@ -391,8 +408,11 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                             </td>
                             @endforeach
                             {{-- % Estado Titulación --}}
-                            <td class="px-3 py-3 whitespace-nowrap text-center font-semibold
-                                {{ $estTitPct == 100 ? 'text-green-600' : ($estTitPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}">
+                            <td class="px-3 py-3 whitespace-nowrap text-center font-semibold {{ $estTitPct == 100 ? 'text-green-600' : ($estTitPct >= 50 ? 'text-yellow-600' : 'text-red-600') }}"
+                                data-pct-cell="est"
+                                data-inscription-id="{{ $row->inscription_id }}"
+                                data-program-id="{{ $row->program_id }}"
+                                data-total="4">
                                 {{ $estTitPct }}%
                             </td>
                         </tr>
@@ -444,12 +464,38 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 2000);
     }
 
+    function updatePctCell(group, inscriptionId, programId) {
+        const checkboxes = document.querySelectorAll(
+            `.requirement-checkbox[data-pct-group="${group}"][data-inscription-id="${inscriptionId}"][data-program-id="${programId}"]`
+        );
+        const cell = document.querySelector(
+            `[data-pct-cell="${group}"][data-inscription-id="${inscriptionId}"][data-program-id="${programId}"]`
+        );
+        if (!cell || !checkboxes.length) return;
+
+        const total = parseInt(cell.dataset.total, 10);
+        const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const pct = Math.round(checked / total * 100);
+
+        cell.textContent = pct + '%';
+        cell.classList.remove('text-green-600', 'text-yellow-600', 'text-red-600');
+        if (pct === 100) cell.classList.add('text-green-600');
+        else if (pct >= 50) cell.classList.add('text-yellow-600');
+        else cell.classList.add('text-red-600');
+    }
+
     // Checkboxes de requisitos
     document.querySelectorAll('.requirement-checkbox').forEach(cb => {
         cb.addEventListener('change', function () {
-            saveRequirement(this.dataset.programId, this.dataset.inscriptionId, this.dataset.requirement, this.checked)
+            const group = this.dataset.pctGroup;
+            const inscriptionId = this.dataset.inscriptionId;
+            const programId = this.dataset.programId;
+
+            saveRequirement(programId, inscriptionId, this.dataset.requirement, this.checked)
                 .then(data => {
-                    if (!data.success) {
+                    if (data.success) {
+                        if (group) updatePctCell(group, inscriptionId, programId);
+                    } else {
                         this.checked = !this.checked;
                         alert('Error al guardar: ' + (data.message ?? ''));
                     }
