@@ -54,7 +54,10 @@
       "Bash(Grep -r \"updateDetail\\\\|actualizar.*pago\\\\|pago.*actualizar\" \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\" --include=\"*.php\")",
       "Bash(Grep -n \"NominalAssignment\\\\|assignment\" \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\routes\\\\web.php\")",
       "Bash(Grep *)",
-      "Bash(Select-Object -First 20 FullName)"
+      "Bash(Select-Object -First 20 FullName)",
+      "Bash(xargs -I{} sh -c 'grep -l \"Schema::table\" \"{}\" && grep -c \"hasColumn\\\\|hasIndex\\\\|SHOW INDEX\\\\|try {\" \"{}\"')",
+      "Bash(awk -F'\\\\t' '$2 == \"0\" {print \"NO GUARDS: \"$1}')",
+      "Bash(php -r ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"

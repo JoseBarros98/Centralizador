@@ -9,14 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('assignment_details', function (Blueprint $table) {
-            $table->boolean('oculto')->default(false)->after('excluido');
+            if (!Schema::hasColumn('assignment_details', 'oculto')) {
+                $table->boolean('oculto')->default(false)->after('excluido');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('assignment_details', function (Blueprint $table) {
-            $table->dropColumn('oculto');
+            if (Schema::hasColumn('assignment_details', 'oculto')) {
+                $table->dropColumn('oculto');
+            }
         });
     }
 };
