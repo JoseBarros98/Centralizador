@@ -339,7 +339,7 @@
                                         <th scope="colgroup" colspan="4" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Contable Interno</th>
                                         <th scope="colgroup" colspan="4" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Contable Externo</th>
                                     </tr>
-                                    <tr class="bg-gray-700 text-white border-t border-gray-600">
+                                    <tr class="bg-gray-600 text-white border-t border-gray-500">
                                         @foreach($modules as $module)
                                             <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Mod. {{ $loop->iteration }}</th>
                                         @endforeach
@@ -395,11 +395,11 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <div class="flex gap-1 items-center">
                                                     <input type="text"
-                                                           value="{{ $participant->location ?? '' }}"
+                                                           value="{{ $participant->extension ?? '' }}"
                                                            class="w-20 px-2 py-1 border border-gray-300 rounded text-sm req-text-field"
                                                            data-program-id="{{ $program->id }}"
                                                            data-inscription-id="{{ $participant->id }}"
-                                                           data-requirement="location"
+                                                           data-requirement="extension"
                                                            placeholder="-">
                                                     <button type="button"
                                                             class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-req-text-btn"

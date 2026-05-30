@@ -49,6 +49,7 @@ class Inscription extends Model
         'gender',
         'residence',
         'location',
+        'extension',
         'notes',
         'certification',
         'created_by',

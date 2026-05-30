@@ -325,7 +325,7 @@ public function uploadForm(Program $program, Module $module)
                 'full_name' => $fullName,
                 'name' => trim($name) ?: $fullName, // Si el parsing resulta vacío, usar completo
                 'ci' => $inscription->ci ?? '',
-                'location' => $inscription->location ?? '',
+                'extension' => $inscription->extension ?? '',
                 'paternal_surname' => trim($paternal),
                 'maternal_surname' => $maternal,
                 'phone' => $inscription->phone,
@@ -618,7 +618,7 @@ public function uploadForm(Program $program, Module $module)
             'external_accounting_registration', 'external_accounting_enrollment',
             'external_accounting_tuition', 'external_accounting_degrees',
             'has_pre_defense', 'has_defense', 'has_defense_accounting_status',
-            'graduation_procedure_type', 'location',
+            'graduation_procedure_type', 'location', 'extension',
             // Fechas y observaciones — Requisitos de Titulación
             'legalized_degree_title_date', 'legalized_degree_title_obs',
             'legalized_academic_diploma_date', 'legalized_academic_diploma_obs',
@@ -746,7 +746,7 @@ public function uploadForm(Program $program, Module $module)
                 'full_name' => $fullName,
                 'name' => trim($name) ?: $fullName,
                 'ci' => $inscription->ci ?? '',
-                'location' => $inscription->location ?? '',
+                'extension' => $inscription->extension ?? '',
                 'paternal_surname' => trim($paternal),
                 'maternal_surname' => $maternal,
                 'phone' => $inscription->phone,
@@ -1075,7 +1075,7 @@ public function uploadForm(Program $program, Module $module)
             // Datos básicos
             $sheet->setCellValueByColumnAndRow($colIndex++, $row, $index + 1);
             $sheet->setCellValueByColumnAndRow($colIndex++, $row, $participant->ci);
-            $sheet->setCellValueByColumnAndRow($colIndex++, $row, $participant->location);
+            $sheet->setCellValueByColumnAndRow($colIndex++, $row, $participant->extension);
             $sheet->setCellValueByColumnAndRow($colIndex++, $row, $participant->name);
             $sheet->setCellValueByColumnAndRow($colIndex++, $row, $participant->paternal_surname);
             $sheet->setCellValueByColumnAndRow($colIndex++, $row, $participant->maternal_surname);

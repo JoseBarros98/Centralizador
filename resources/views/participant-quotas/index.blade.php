@@ -56,12 +56,12 @@
                         </div>
                         <div class="flex items-center gap-2 flex-shrink-0" onclick="event.stopPropagation()">
                             @if($discount)
-                            <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-800 font-medium">
+                            <span class="inline-flex items-center px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
                                 Descuento: {{ $discount->tipo === 'porcentaje' ? $discount->valor.'%' : number_format($discount->valor, 2) }}
                             </span>
                             @endif
                             <button onclick="openDiscountModal({{ $inscription->id }}, {{ $program->id }}, {{ json_encode($discount) }})"
-                                class="text-xs px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition">
+                                class="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                                 {{ $discount ? 'Editar Descuento' : 'Agregar Descuento' }}
                             </button>
                             <button onclick="openGenerateModal({{ $inscription->id }}, {{ $program->id }}, '{{ addslashes($inscription->getFullName()) }}')"
@@ -218,7 +218,7 @@
                 <button onclick="document.getElementById('discountModal').classList.add('hidden')"
                     class="px-3 py-1.5 text-xs text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">Cancelar</button>
                 <button onclick="saveDiscount()"
-                    class="px-3 py-1.5 text-xs bg-amber-600 text-white rounded-lg hover:bg-amber-700">Guardar</button>
+                    class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700">Guardar</button>
             </div>
         </div>
     </div>
