@@ -1,4 +1,40 @@
-﻿<x-app-layout>
+﻿<style>
+/* Reducción global de padding en la tabla de resumen de programa */
+#program-summary-table th,
+#program-summary-table td {
+    padding-left:   0.5rem;
+    padding-right:  0.5rem;
+    padding-top:    0.375rem;
+    padding-bottom: 0.375rem;
+    font-size: 0.75rem;
+}
+
+/* Columnas sticky */
+#program-summary-table .s-col { position: sticky; z-index: 2; }
+#program-summary-table .s1 { left: 0;       min-width: 2.25rem; }
+#program-summary-table .s2 { left: 2.25rem; min-width: 4.5rem;  }
+#program-summary-table .s3 { left: 6.75rem; min-width: 7rem;    }
+#program-summary-table .s4 { left: 13.75rem; min-width: 7.5rem; }
+#program-summary-table .s5 { left: 21.25rem; min-width: 7.5rem; }
+#program-summary-table .s6 { left: 28.75rem; min-width: 7.5rem; box-shadow: 4px 0 6px -2px rgba(0,0,0,0.15); }
+
+/* Fondos por contexto */
+#program-summary-table thead tr:first-child  .s-col { background: #1f2937; }
+#program-summary-table thead tr:nth-child(2) .s-col { background: #4b5563; }
+#program-summary-table tbody tr              .s-col { background: #ffffff; }
+#program-summary-table tbody tr:hover        .s-col { background: #f9fafb; }
+
+/* Inputs más compactos dentro de la tabla */
+#program-summary-table input[type="text"],
+#program-summary-table input[type="number"],
+#program-summary-table input[type="date"],
+#program-summary-table select {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.25rem;
+}
+</style>
+
+<x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-white leading-tight">
             {{ __('Resumen de Calificaciones del Programa') }}
@@ -308,15 +344,15 @@
                     
                     @if(count($participants ?? []) > 0)
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-100">
+                            <table id="program-summary-table" class="min-w-full divide-y divide-gray-100">
                                 <thead>
                                     <tr class="bg-gray-800 text-white text-xs">
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">N°</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Carnet</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Extensión</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nombre</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Ap. Paterno</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Ap. Materno</th>
+                                        <th scope="col" rowspan="2" class="s-col s1 text-left font-medium text-white uppercase tracking-wider">N°</th>
+                                        <th scope="col" rowspan="2" class="s-col s2 text-left font-medium text-white uppercase tracking-wider">Carnet</th>
+                                        <th scope="col" rowspan="2" class="s-col s3 text-left font-medium text-white uppercase tracking-wider">Extensión</th>
+                                        <th scope="col" rowspan="2" class="s-col s4 text-left font-medium text-white uppercase tracking-wider">Nombre</th>
+                                        <th scope="col" rowspan="2" class="s-col s5 text-left font-medium text-white uppercase tracking-wider">Ap. Paterno</th>
+                                        <th scope="col" rowspan="2" class="s-col s6 text-left font-medium text-white uppercase tracking-wider">Ap. Materno</th>
                                         <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Celular</th>
                                         <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Correo Electrónico</th>
                                         <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Género</th>
@@ -390,65 +426,59 @@
                                 <tbody class="divide-y divide-gray-100">
                                     @foreach($participants as $participant)
                                         <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $loop->iteration }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $participant->ci ?? '-' }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td class="s-col s1 whitespace-nowrap font-medium text-gray-900">{{ $loop->iteration }}</td>
+                                            <td class="s-col s2 whitespace-nowrap text-gray-500">{{ $participant->ci ?? '-' }}</td>
+                                            <td class="s-col s3 whitespace-nowrap text-gray-500">
                                                 <div class="flex gap-1 items-center">
                                                     <input type="text"
                                                            value="{{ $participant->extension ?? '' }}"
-                                                           class="w-20 px-2 py-1 border border-gray-300 rounded text-sm req-text-field"
+                                                           class="w-14 px-1 py-0.5 border border-gray-300 rounded text-xs req-text-field"
                                                            data-program-id="{{ $program->id }}"
                                                            data-inscription-id="{{ $participant->id }}"
                                                            data-requirement="extension"
                                                            placeholder="-">
                                                     <button type="button"
-                                                            class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-req-text-btn"
+                                                            class="px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-req-text-btn"
                                                             title="Guardar extensión">✓</button>
                                                 </div>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                            <td class="s-col s4 whitespace-nowrap font-medium text-gray-900">
                                                 <div class="flex gap-1 items-center">
-                                                    <input type="text" 
-                                                           value="{{ $participant->name ?? '' }}" 
-                                                           class="px-2 py-1 border border-gray-300 rounded text-sm participant-name" 
+                                                    <input type="text"
+                                                           value="{{ $participant->name ?? '' }}"
+                                                           class="w-20 px-1 py-0.5 border border-gray-300 rounded text-xs participant-name"
                                                            data-program-id="{{ $program->id }}"
                                                            data-inscription-id="{{ $participant->id ?? '' }}"
                                                            placeholder="-">
-                                                    <button type="button" 
-                                                            class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-name-field"
-                                                            title="Guardar nombre">
-                                                        ✓
-                                                    </button>
+                                                    <button type="button"
+                                                            class="px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-name-field"
+                                                            title="Guardar nombre">✓</button>
                                                 </div>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td class="s-col s5 whitespace-nowrap text-gray-500">
                                                 <div class="flex gap-1 items-center">
-                                                    <input type="text" 
-                                                           value="{{ $participant->paternal_surname ?? '' }}" 
-                                                           class="px-2 py-1 border border-gray-300 rounded text-sm participant-paternal" 
+                                                    <input type="text"
+                                                           value="{{ $participant->paternal_surname ?? '' }}"
+                                                           class="w-20 px-1 py-0.5 border border-gray-300 rounded text-xs participant-paternal"
                                                            data-program-id="{{ $program->id }}"
                                                            data-inscription-id="{{ $participant->id ?? '' }}"
                                                            placeholder="-">
-                                                    <button type="button" 
-                                                            class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-paternal-field"
-                                                            title="Guardar apellido paterno">
-                                                        ✓
-                                                    </button>
+                                                    <button type="button"
+                                                            class="px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-paternal-field"
+                                                            title="Guardar apellido paterno">✓</button>
                                                 </div>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td class="s-col s6 whitespace-nowrap text-gray-500">
                                                 <div class="flex gap-1 items-center">
-                                                    <input type="text" 
-                                                           value="{{ $participant->maternal_surname ?? '' }}" 
-                                                           class="px-2 py-1 border border-gray-300 rounded text-sm participant-maternal" 
+                                                    <input type="text"
+                                                           value="{{ $participant->maternal_surname ?? '' }}"
+                                                           class="w-20 px-1 py-0.5 border border-gray-300 rounded text-xs participant-maternal"
                                                            data-program-id="{{ $program->id }}"
                                                            data-inscription-id="{{ $participant->id ?? '' }}"
                                                            placeholder="-">
-                                                    <button type="button" 
-                                                            class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-maternal-field"
-                                                            title="Guardar apellido materno">
-                                                        ✓
-                                                    </button>
+                                                    <button type="button"
+                                                            class="px-1.5 py-0.5 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-maternal-field"
+                                                            title="Guardar apellido materno">✓</button>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $participant->phone ?? '-' }}</td>
