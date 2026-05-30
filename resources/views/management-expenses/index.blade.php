@@ -194,15 +194,15 @@ window._expConfig = {
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm border-collapse">
                     <thead>
-                        <tr class="bg-gray-50 border-b-2 border-gray-200">
-                            <th class="sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px] border-r border-gray-200">Ítem</th>
+                        <tr class="bg-gray-800 text-white text-xs">
+                            <th class="sticky left-0 z-20 bg-gray-800 px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider min-w-[200px] border-r border-gray-200">Ítem</th>
 
                             <template x-for="col in visibleColumns()" :key="col.key">
                                 <th :class="{
                                         'px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider min-w-[82px] select-none': true,
                                         'bg-red-50 text-red-700': col.type === 'month' && col.mes === currentMonth && !col.expanded,
                                         'bg-red-50 text-red-600': col.type === 'month' && col.mes === currentMonth && col.expanded,
-                                        'bg-gray-50 text-gray-600 cursor-pointer hover:bg-gray-100': col.type === 'month',
+                                        'bg-gray-50 text-white cursor-pointer hover:bg-gray-100': col.type === 'month',
                                         'bg-blue-50 text-blue-700 min-w-[90px]': col.type === 'entity',
                                     }">
 
@@ -240,7 +240,7 @@ window._expConfig = {
                                 </th>
                             </template>
 
-                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[110px] border-l border-gray-200">Total ítem</th>
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider min-w-[110px] border-l border-gray-200">Total ítem</th>
                             <th class="px-3 py-3 min-w-[48px]"></th>
                         </tr>
                     </thead>

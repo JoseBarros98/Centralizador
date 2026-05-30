@@ -98,15 +98,15 @@
 
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 border border-gray-200 rounded-lg overflow-hidden">
-                <thead class="bg-gray-100">
-                    <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre Completo</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CI</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Programa</th>
-                        <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
+                <thead>
+                    <tr class="bg-gray-800 text-white text-xs">
+                        <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Nombre Completo</th>
+                        <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">CI</th>
+                        <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Programa</th>
+                        <th class="px-4 py-3 text-right font-medium text-white uppercase tracking-wider">Acción</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-100">
                     <template x-if="selectedParticipants.length === 0">
                         <tr>
                             <td colspan="4" class="px-4 py-4 text-sm text-center text-gray-500">No hay participantes seleccionados.</td>

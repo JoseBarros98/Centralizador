@@ -137,38 +137,37 @@
                     </div>
 
                     <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200 text-xs">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-3 py-2 text-center font-medium text-gray-500 uppercase tracking-wider">Opciones</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">N°</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Sede</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Mes</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">N° Planilla</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Fecha Solicitud</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Cod. Contable</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Programa</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Fecha Inicio</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Fecha Fin</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Área</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">N° de Estudiantes</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Docente</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Carnet</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Factura</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">N° Factura</th>
-                                    <th scope="col" class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wider">Importe Total</th>
-                                    <th scope="col" class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wider">Base 70% (ESAM)</th>
-                                    <th scope="col" class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wider">RET ESAM</th>
-                                    <th scope="col" class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wider">Total Retención</th>
-                                    <th scope="col" class="px-3 py-2 text-right font-medium text-gray-500 uppercase tracking-wider">Líquido Pagable</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Banco</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">N° Cuenta</th>
-                                    <th scope="col" class="px-3 py-2 text-left font-medium text-gray-500 uppercase tracking-wider">Observaciones</th>
+                        <table class="min-w-full divide-y divide-gray-100 text-xs">
+                            <thead>\n                                <tr class="bg-gray-800 text-white text-xs">
+                                    <th scope="col" class="px-3 py-2 text-center font-medium text-white uppercase tracking-wider">Opciones</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Estado</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">N°</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Sede</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Mes</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">N° Planilla</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Fecha Solicitud</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Cod. Contable</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Programa</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Módulo</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Fecha Inicio</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Fecha Fin</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Área</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">N° de Estudiantes</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Docente</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Carnet</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Factura</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">N° Factura</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-medium text-white uppercase tracking-wider">Importe Total</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-medium text-white uppercase tracking-wider">Base 70% (ESAM)</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-medium text-white uppercase tracking-wider">RET ESAM</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-medium text-white uppercase tracking-wider">Total Retención</th>
+                                    <th scope="col" class="px-3 py-2 text-right font-medium text-white uppercase tracking-wider">Líquido Pagable</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Banco</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">N° Cuenta</th>
+                                    <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Observaciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                            <tbody class="divide-y divide-gray-100">
                                 @forelse($paymentRequests as $request)
                                     <tr>
                                         <td class="px-3 py-2 whitespace-nowrap text-center">

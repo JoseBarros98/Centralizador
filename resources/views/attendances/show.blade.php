@@ -72,15 +72,14 @@
             <h3 class="text-lg leading-6 font-medium text-gray-900">Lista de Asistencia</h3>
         </div>
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+            <table class="min-w-full divide-y divide-gray-100">
+                <thead>\n                    <tr class="bg-gray-800 text-white text-xs">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estudiante</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Documento</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="divide-y divide-gray-100">
                     @foreach($attendances as $attendance)
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap">

@@ -75,17 +75,16 @@
                     <div class="participant-body-{{ $inscription->id }} hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">N° Cuota</th>
-                                        <th class="px-4 py-2 text-right text-xs font-semibold text-gray-500">Importe Base</th>
-                                        <th class="px-4 py-2 text-right text-xs font-semibold text-gray-500">Descuento</th>
-                                        <th class="px-4 py-2 text-right text-xs font-semibold text-gray-500">Importe Final</th>
-                                        <th class="px-4 py-2 text-center text-xs font-semibold text-gray-500">Fecha Venc.</th>
+                                <thead>\n                                    <tr class="bg-gray-800 text-white text-xs">
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-white">N° Cuota</th>
+                                        <th class="px-4 py-2 text-right text-xs font-semibold text-white">Importe Base</th>
+                                        <th class="px-4 py-2 text-right text-xs font-semibold text-white">Descuento</th>
+                                        <th class="px-4 py-2 text-right text-xs font-semibold text-white">Importe Final</th>
+                                        <th class="px-4 py-2 text-center text-xs font-semibold text-white">Fecha Venc.</th>
                                         <th class="px-4 py-2"></th>
                                     </tr>
                                 </thead>
-                                <tbody class="quota-body-{{ $inscription->id }} divide-y divide-gray-50">
+                                <tbody class="quota-body-{{ $inscription->id }} divide-y divide-gray-100">
                                     @foreach($inscQuotas as $quota)
                                     <tr data-quota-id="{{ $quota->id }}">
                                         <td class="px-4 py-2 text-center text-gray-700">{{ $quota->numero_cuota }}</td>

@@ -1,6 +1,6 @@
 ﻿<x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-white leading-tight">AsignaciÃ³n Nominal</h2>
+        <h2 class="font-semibold text-xl text-white leading-tight">Asignación Nominal</h2>
     </x-slot>
 
     <div class="py-8">
@@ -9,7 +9,7 @@
             <!-- Cabecera -->
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">AsignaciÃ³n Nominal</h1>
+                    <h1 class="text-2xl font-bold text-gray-900">Asignación Nominal</h1>
                     <p class="mt-1 text-sm text-gray-500">Seguimiento mensual de cuotas por participante</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-3">
@@ -167,7 +167,7 @@
                 <svg class="h-12 w-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
-                <p class="text-gray-900 font-semibold mb-1">No hay asignaciÃ³n para {{ $mesesNombres[$mes] }} {{ $gestion }}</p>
+                <p class="text-gray-900 font-semibold mb-1">No hay asignación para {{ $mesesNombres[$mes] }} {{ $gestion }}</p>
                 <p class="text-gray-500 text-sm mb-6">Programa: <strong>{{ $program->name }}</strong></p>
                 @can('nominal_assignment.create')
                 <button onclick="generateAssignment()"
@@ -175,7 +175,7 @@
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Generar AsignaciÃ³n
+                    Generar Asignación
                 </button>
                 @endcan
             </div>
@@ -185,7 +185,7 @@
             @php
                 $activeDetails           = $details->where('excluido', false);
                 $excluidosCount          = $details->where('excluido', true)->count();
-                // Totales por secciÃ³n (solo inscritos activos)
+                // Totales por sección (solo inscritos activos)
                 $totalAsig               = $activeDetails->sum('total_asignacion');
                 $totalRetImporte         = $activeDetails->sum('cuotas_retrasadas_importe');
                 $totalRetCobrado         = $activeDetails->sum('cuotas_retrasadas_cobrado');
@@ -202,7 +202,7 @@
                 $totalCerSaldo           = max(0, $totalCerImporte - $totalCerCobrado);
             @endphp
 
-            <!-- Info de la asignaciÃ³n + totales -->
+            <!-- Info de la asignación + totales -->
             <div class="bg-white rounded-xl shadow-sm px-5 pt-4 pb-4 space-y-4">
 
                 <!-- Fila superior: metadatos + responsable + acciones -->
@@ -249,7 +249,7 @@
                     <!-- Botones acciÃ³n -->
                     @can('nominal_assignment.create')
                     <button id="refreshBtn" onclick="refreshAssignment({{ $assignment->id }})"
-                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition" title="Actualizar asignaciÃ³n (aÃ±adir inscritos nuevos)">
+                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition" title="Actualizar asignación (añadir inscritos nuevos)">
                         <svg id="refreshIcon" class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
@@ -263,7 +263,7 @@
 
                     <!-- Total general -->
                     <div class="bg-gray-50 rounded-xl px-4 py-3">
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Total AsignaciÃ³n</p>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Total Asignación</p>
                         <p class="text-lg font-bold text-gray-900" id="summaryTotalAsig">{{ number_format($totalAsig, 2) }}</p>
                     </div>
 
@@ -316,7 +316,7 @@
                         </div>
                     </div>
 
-                    <!-- MatrÃ­cula + CertificaciÃ³n (si tienen valores) -->
+                    <!-- Matrícula + Certificación (si tienen valores) -->
                     @if($totalMatImporte > 0 || $totalCerImporte > 0)
                     <div class="bg-indigo-50/60 rounded-xl px-4 py-3">
                         <p class="text-xs font-semibold text-indigo-600 uppercase tracking-wide mb-2">Mat. / Certif.</p>
@@ -379,22 +379,22 @@
                         <thead>
                             <tr class="bg-gray-800 text-white text-xs">
                                 <th class="px-4 py-2 text-left sticky left-0 bg-gray-800 z-10 border-r border-gray-700" rowspan="2">Participante</th>
-                                <th class="px-3 py-2 text-right border-r border-gray-700" rowspan="2">Total<br>AsignaciÃ³n</th>
+                                <th class="px-3 py-2 text-right border-r border-gray-700" rowspan="2">Total<br>Asignación</th>
                                 <th class="px-3 py-2 text-center border-r border-gray-700 bg-red-900/40" colspan="3">Cuota Retrasada</th>
                                 <th class="px-3 py-2 text-center border-r border-gray-700 bg-amber-900/40" colspan="3">Cuota Vigente</th>
                                 <th class="px-3 py-2 text-center border-r border-gray-700 bg-emerald-900/40" colspan="2">Adelanto</th>
-                                <th class="px-3 py-2 text-center border-r border-gray-700 bg-indigo-900/40" colspan="2">MatrÃ­cula</th>
-                                <th class="px-3 py-2 text-center border-r border-gray-700 bg-purple-900/40" colspan="2">CertificaciÃ³n</th>
+                                <th class="px-3 py-2 text-center border-r border-gray-700 bg-indigo-900/40" colspan="2">Matrícula</th>
+                                <th class="px-3 py-2 text-center border-r border-gray-700 bg-purple-900/40" colspan="2">Certificación</th>
                                 <th class="px-3 py-2 text-left" rowspan="2">Observaciones</th>
                             </tr>
                             <tr class="bg-gray-700 text-gray-200 text-xs">
-                                <th class="px-3 py-1.5 text-center border-r border-gray-600 bg-red-900/30">NÂ° Cuota</th>
+                                <th class="px-3 py-1.5 text-center border-r border-gray-600 bg-red-900/30">N° Cuota</th>
                                 <th class="px-3 py-1.5 text-right border-r border-gray-600 bg-red-900/30">Cobrado</th>
                                 <th class="px-3 py-1.5 text-right border-r border-gray-600 bg-red-900/30">Saldo</th>
-                                <th class="px-3 py-1.5 text-center border-r border-gray-600 bg-amber-900/30">NÂ° Cuota</th>
+                                <th class="px-3 py-1.5 text-center border-r border-gray-600 bg-amber-900/30">N° Cuota</th>
                                 <th class="px-3 py-1.5 text-right border-r border-gray-600 bg-amber-900/30">Cobrado</th>
                                 <th class="px-3 py-1.5 text-right border-r border-gray-600 bg-amber-900/30">Saldo</th>
-                                <th class="px-3 py-1.5 text-center border-r border-gray-600 bg-emerald-900/30">NÂ° Cuota</th>
+                                <th class="px-3 py-1.5 text-center border-r border-gray-600 bg-emerald-900/30">N° Cuota</th>
                                 <th class="px-3 py-1.5 text-right border-r border-gray-600 bg-emerald-900/30">Importe</th>
                                 <th class="px-3 py-1.5 text-right border-r border-gray-600 bg-indigo-900/30">Cobrado</th>
                                 <th class="px-3 py-1.5 text-right border-r border-gray-600 bg-indigo-900/30">Saldo</th>
@@ -424,7 +424,7 @@
                                             <p class="font-semibold text-xs leading-tight participant-name {{ $detail->excluido ? 'text-gray-400 line-through' : 'text-gray-900' }}">
                                                 {{ $detail->nombre_completo }}
                                             </p>
-                                            <p class="text-gray-400 text-xs mt-0.5">{{ $detail->plan_pago_nombre ?: 'â€”' }}</p>
+                                            <p class="text-gray-400 text-xs mt-0.5">{{ $detail->plan_pago_nombre ?: '-' }}</p>
                                             @if($detail->telefono)
                                             <p class="text-gray-400 text-xs">{{ $detail->telefono }}</p>
                                             @endif
@@ -432,12 +432,12 @@
                                                 Excluido
                                             </span>
                                         </div>
-                                        <!-- Botones de acciÃ³n (derecha) -->
+                                        <!-- Botones de acción (derecha) -->
                                         @can('nominal_assignment.edit')
                                         <div class="flex-shrink-0 flex flex-col gap-1 items-center">
                                             <!-- Excluir de totales -->
                                             <button onclick="toggleExcluded({{ $detail->id }}, this)"
-                                                title="{{ $detail->excluido ? 'Reactivar inscrito' : 'Excluir de la asignaciÃ³n' }}"
+                                                title="{{ $detail->excluido ? 'Reactivar inscrito' : 'Excluir de la asignación' }}"
                                                 class="p-1 rounded hover:bg-gray-100 transition-colors exclude-btn {{ $detail->excluido ? 'text-red-400' : 'text-gray-300 hover:text-red-500' }}">
                                                 <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
@@ -473,7 +473,7 @@
                                 <!-- Cuota Retrasada: NÂ° -->
                                 <td class="px-3 py-3 text-center border-r border-gray-100 text-gray-600 text-xs bg-red-50/30">
                                     @if(!empty($numRet)) {{ implode(', ', $numRet) }}
-                                    @else <span class="text-gray-300">â€”</span> @endif
+                                    @else <span class="text-gray-300">-</span> @endif
                                 </td>
 
                                 <!-- Cuota Retrasada: Cobrado (editable) -->
@@ -483,7 +483,7 @@
                                           onclick="startEdit(this, 'cuotas_retrasadas_cobrado', {{ $detail->id }}, {{ (float)$detail->cuotas_retrasadas_cobrado }})">
                                         {{ number_format($detail->cuotas_retrasadas_cobrado, 2) }}
                                     </span>
-                                    @else <span class="text-gray-300 text-xs">â€”</span> @endif
+                                    @else <span class="text-gray-300 text-xs">-</span> @endif
                                 </td>
 
                                 <!-- Cuota Retrasada: Saldo -->
@@ -493,9 +493,9 @@
                                     </span>
                                 </td>
 
-                                <!-- Cuota Vigente: NÂ° -->
+                                <!-- Cuota Vigente: N° -->
                                 <td class="px-3 py-3 text-center border-r border-gray-100 text-gray-600 text-xs bg-amber-50/30">
-                                    {{ $detail->cuota_vigente_numero ?? 'â€”' }}
+                                    {{ $detail->cuota_vigente_numero ?? '-' }}
                                 </td>
 
                                 <!-- Cuota Vigente: Cobrado (editable) -->
@@ -505,7 +505,7 @@
                                           onclick="startEdit(this, 'cuota_vigente_cobrado', {{ $detail->id }}, {{ (float)$detail->cuota_vigente_cobrado }})">
                                         {{ number_format($detail->cuota_vigente_cobrado, 2) }}
                                     </span>
-                                    @else <span class="text-gray-300 text-xs">â€”</span> @endif
+                                    @else <span class="text-gray-300 text-xs">-</span> @endif
                                 </td>
 
                                 <!-- Cuota Vigente: Saldo -->
@@ -515,11 +515,11 @@
                                     </span>
                                 </td>
 
-                                <!-- Adelanto: NÂ° Cuota (editable) -->
+                                <!-- Adelanto: N° Cuota (editable) -->
                                 <td class="px-3 py-3 text-center border-r border-gray-100 bg-emerald-50/30">
                                     <span class="editable-cell cursor-pointer hover:bg-emerald-100 rounded px-1 py-0.5 transition text-xs adel-num-display-{{ $detail->id }}"
                                           onclick="startEdit(this, 'adelanto_numero_cuota', {{ $detail->id }}, {{ $detail->adelanto_numero_cuota ?? 0 }})">
-                                        {{ $detail->adelanto_numero_cuota ?? 'â€”' }}
+                                        {{ $detail->adelanto_numero_cuota ?? '-' }}
                                     </span>
                                 </td>
 
@@ -527,24 +527,24 @@
                                 <td class="px-3 py-3 text-right border-r border-gray-100 bg-emerald-50/30">
                                     <span class="editable-cell cursor-pointer hover:bg-emerald-100 rounded px-1 py-0.5 transition font-mono text-xs adel-imp-display-{{ $detail->id }}"
                                           onclick="startEdit(this, 'adelanto_importe', {{ $detail->id }}, {{ (float)$detail->adelanto_importe }})">
-                                        {{ $detail->adelanto_importe > 0 ? number_format($detail->adelanto_importe, 2) : 'â€”' }}
+                                        {{ $detail->adelanto_importe > 0 ? number_format($detail->adelanto_importe, 2) : '-' }}
                                     </span>
                                 </td>
 
-                                <!-- MatrÃ­cula: Cobrado (editable) -->
+                                <!-- Matrí cula: Cobrado (editable) -->
                                 <td class="px-3 py-3 text-right border-r border-gray-100 bg-indigo-50/30">
                                     @if($detail->matricula_importe > 0)
                                     <span class="editable-cell cursor-pointer hover:bg-indigo-100 rounded px-1 py-0.5 transition font-mono text-xs mat-cobrado-display-{{ $detail->id }}"
                                           onclick="startEdit(this, 'matricula_cobrado', {{ $detail->id }}, {{ (float)$detail->matricula_cobrado }})">
                                         {{ number_format($detail->matricula_cobrado, 2) }}
                                     </span>
-                                    @else <span class="text-gray-300 text-xs">â€”</span> @endif
+                                    @else <span class="text-gray-300 text-xs">—</span> @endif
                                 </td>
 
                                 <!-- MatrÃ­cula: Saldo -->
                                 <td class="px-3 py-3 text-right border-r border-gray-100 bg-indigo-50/30">
                                     <span class="mat-saldo-{{ $detail->id }} font-mono text-xs {{ $matSaldo > 0 ? 'text-indigo-600 font-semibold' : 'text-gray-400' }}">
-                                        {{ $matSaldo > 0 ? number_format($matSaldo, 2) : 'â€”' }}
+                                        {{ $matSaldo > 0 ? number_format($matSaldo, 2) : '-' }}
                                     </span>
                                 </td>
 
@@ -555,13 +555,13 @@
                                           onclick="startEdit(this, 'certificacion_cobrado', {{ $detail->id }}, {{ (float)$detail->certificacion_cobrado }})">
                                         {{ number_format($detail->certificacion_cobrado, 2) }}
                                     </span>
-                                    @else <span class="text-gray-300 text-xs">â€”</span> @endif
+                                    @else <span class="text-gray-300 text-xs">—</span> @endif
                                 </td>
 
                                 <!-- CertificaciÃ³n: Saldo -->
                                 <td class="px-3 py-3 text-right border-r border-gray-100 bg-purple-50/30">
                                     <span class="cer-saldo-{{ $detail->id }} font-mono text-xs {{ $cerSaldo > 0 ? 'text-purple-600 font-semibold' : 'text-gray-400' }}">
-                                        {{ $cerSaldo > 0 ? number_format($cerSaldo, 2) : 'â€”' }}
+                                        {{ $cerSaldo > 0 ? number_format($cerSaldo, 2) : '—' }}
                                     </span>
                                 </td>
 
@@ -569,14 +569,14 @@
                                 <td class="px-3 py-3 min-w-[150px]">
                                     <span class="editable-cell cursor-pointer hover:bg-gray-100 rounded px-1 py-0.5 transition text-xs text-gray-500 obs-display-{{ $detail->id }}"
                                           onclick="startEdit(this, 'observaciones', {{ $detail->id }}, {{ json_encode($detail->observaciones ?? '') }})">
-                                        {{ $detail->observaciones ?: 'â€”' }}
+                                        {{ $detail->observaciones ?: '—' }}
                                     </span>
                                 </td>
                             </tr>
                             @empty
                             <tr>
                                 <td colspan="16" class="px-4 py-10 text-center text-gray-400">
-                                    No hay participantes en esta asignaciÃ³n.
+                                    No hay participantes en esta asignación.
                                 </td>
                             </tr>
                             @endforelse
@@ -600,7 +600,7 @@
     const mes       = {{ $mes }};
     const gestion   = {{ $gestion }};
 
-    // â€”â€”â€” Buscador de programas (Alpine component) â€”â€”â€”
+    // ——— Buscador de programas (Alpine component) ———
     function programSearch(config) {
         return {
             search: config.selectedName || '',
@@ -658,7 +658,7 @@
         };
     }
 
-    // â€”â€”â€” Generar asignaciÃ³n â€”â€”â€”
+    // ——— Generar asignación ———
     async function generateAssignment() {
         const btn = document.querySelector('[onclick="generateAssignment()"]');
         if (btn) { btn.disabled = true; btn.textContent = 'Generando...'; }
@@ -671,15 +671,15 @@
         const data = await res.json();
 
         if (data.success) {
-            showToast(`AsignaciÃ³n generada â€” ${data.count} participantes`);
+            showToast(`Asignación generada - ${data.count} participantes`);
             setTimeout(() => location.reload(), 900);
         } else {
             alert(data.message || 'Error al generar');
-            if (btn) { btn.disabled = false; btn.textContent = 'Generar AsignaciÃ³n'; }
+            if (btn) { btn.disabled = false; btn.textContent = 'Generar Asignación'; }
         }
     }
 
-    // â€”â€”â€” Actualizar asignaciÃ³n (aÃ±adir inscritos nuevos) â€”â€”â€”
+    // ——— Actualizar asignación (añadir inscritos nuevos) ———
     async function refreshAssignment(assignmentId) {
         const btn  = document.getElementById('refreshBtn');
         const icon = document.getElementById('refreshIcon');
@@ -707,7 +707,7 @@
                 showToast(data.message || 'Error al actualizar', true);
             }
         } catch (e) {
-            showToast('Error de conexiÃ³n al actualizar', true);
+            showToast('Error de conexión al actualizar', true);
         } finally {
             if (btn) btn.disabled = false;
             if (icon) icon.classList.remove('animate-spin');
@@ -720,7 +720,7 @@
         'matricula_cobrado', 'certificacion_cobrado'
     ]);
 
-    // Mapa: campo cobrado â†’ clave en la respuesta del servidor con el acumulado
+    // Mapa: campo cobrado clave en la respuesta del servidor con el acumulado
     const COBRADO_SERVER_KEY = {
         'cuotas_retrasadas_cobrado': 'cuotas_retrasadas_cobrado',
         'cuota_vigente_cobrado':     'cuota_vigente_cobrado',
@@ -729,11 +729,11 @@
     };
 
     const fmt = (n) => {
-        if (n === null || n === undefined) return 'â€”';
+        if (n === null || n === undefined) return '-';
         return parseFloat(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     };
 
-    // â€”â€”â€” EdiciÃ³n inline â€”â€”â€”
+    // ——— Edición inline ———
     let activeInput = null;
 
     function startEdit(el, field, detailId, currentVal) {
@@ -748,7 +748,7 @@
         if (!isText && !isInt) { input.step = '0.01'; input.min = '0'; }
         if (isInt)             { input.step = '1';    input.min = '1'; }
 
-        // Cobrado: input vacÃ­o â€” el usuario ingresa solo el nuevo pago recibido
+        // Cobrado: input vací­o - el usuario ingresa solo el nuevo pago recibido
         // Otros campos: muestra el valor actual para editarlo directamente
         if (isCobrado) {
             input.value       = '';
@@ -787,7 +787,7 @@
         const rawVal = input.value.trim();
         const isCobrado = COBRADO_FIELDS.has(field);
 
-        // Si es cobrado y el campo estÃ¡ vacÃ­o, no enviar nada
+        // Si es cobrado y el campo está vací­o, no enviar nada
         if (isCobrado && !rawVal) {
             input.replaceWith(input._origEl);
             return;
@@ -823,7 +823,7 @@
             }
         } catch (e) {
             tempSpan.replaceWith(origEl);
-            showToast('Error de conexiÃ³n', true);
+            showToast('Error de conexión', true);
         }
     }
 
@@ -866,19 +866,19 @@
         if (!displayEl) return;
 
         if (field === 'observaciones') {
-            displayEl.textContent = val || 'â€”';
+            displayEl.textContent = val || '-';
         } else if (field === 'adelanto_numero_cuota') {
-            displayEl.textContent = val || 'â€”';
+            displayEl.textContent = val || '-';
         } else if (COBRADO_FIELDS.has(field)) {
             // Usar el valor ACUMULADO devuelto por el servidor (no el incremento ingresado)
             const accumulated = data[COBRADO_SERVER_KEY[field]];
-            displayEl.textContent = accumulated > 0 ? fmt(accumulated) : 'â€”';
+            displayEl.textContent = accumulated > 0 ? fmt(accumulated) : '-';
         } else {
-            displayEl.textContent = val > 0 ? fmt(val) : 'â€”';
+            displayEl.textContent = val > 0 ? fmt(val) : '-';
         }
     }
 
-    // â€”â€”â€” Filtro por responsable â€”â€”â€”
+    //   Filtro por responsable     
     function applyResponsableFilter(userId) {
         const url = new URL(window.location.href);
         if (userId) url.searchParams.set('responsable_filter', userId);
@@ -890,7 +890,7 @@
         window.location.href = url.toString();
     }
 
-    // â€”â€”â€” Buscador de inscritos (client-side) â€”â€”â€”
+    // --- Buscador de inscritos (client-side) ---
     function filterParticipants(query) {
         const rows       = document.querySelectorAll('#assignmentBody tr[data-detail-id]');
         const q          = query.toLowerCase().trim();
@@ -922,7 +922,7 @@
         input.focus();
     }
 
-    // â€”â€”â€” Responsable de cobros â€”â€”â€”
+    // ——— Responsable de cobros ———
     async function updateResponsable(assignmentId, userId) {
         const res = await fetch(`/accounting/nominal-assignments/${assignmentId}/responsable`, {
             method: 'PATCH',
@@ -934,10 +934,10 @@
         else showToast('Error al actualizar responsable', true);
     }
 
-    // â€”â€”â€” Ocultar / mostrar inscrito en la vista â€”â€”â€”
+    // ——— Ocultar / mostrar inscrito en la vista ———
     let showingHidden = false;
 
-    // Al cargar la pÃ¡gina, ocultar las filas marcadas como ocultas
+    // Al cargar la página, ocultar las filas marcadas como ocultas
     document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('tr.oculto-row').forEach(r => r.style.display = 'none');
     });
@@ -955,7 +955,7 @@
         if (data.oculto) {
             row.setAttribute('data-oculto', '1');
             row.classList.add('oculto-row');
-            // Solo ocultar si el modo "mostrar ocultos" NO estÃ¡ activo
+            // Solo ocultar si el modo "mostrar ocultos" NO está activo
             if (!showingHidden) row.style.display = 'none';
             btn.classList.add('text-blue-400', 'hover:text-blue-600');
             btn.classList.remove('text-gray-300', 'hover:text-blue-400');
@@ -977,7 +977,7 @@
             </svg>`;
         }
 
-        // Actualizar botÃ³n global y contador
+        // Actualizar botón global y contador
         const label = document.getElementById('showHiddenLabel');
         const showBtn = document.getElementById('showHiddenBtn');
         if (label && showBtn) {
@@ -1013,7 +1013,7 @@
         btn.classList.toggle('border-blue-400', showingHidden);
     }
 
-    // â€”â€”â€” Excluir / reactivar inscrito â€”â€”â€”
+    // ——— Excluir / reactivar inscrito ———
     async function toggleExcluded(detailId, btn) {
         const res = await fetch(`/accounting/nominal-assignments/detail/${detailId}/toggle-excluded`, {
             method: 'PATCH',
@@ -1067,7 +1067,7 @@
             set('sumCerSaldo',      t.cer_saldo);
         }
 
-        showToast(data.excluido ? 'Inscrito excluido de la asignaciÃ³n' : 'Inscrito reactivado');
+        showToast(data.excluido ? 'Inscrito excluido de la asignación' : 'Inscrito reactivado');
     }
 
     let toastTimer;

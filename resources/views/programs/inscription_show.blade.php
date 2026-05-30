@@ -245,15 +245,15 @@
             </div>
             <div class="mb-4">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                    <table class="min-w-full divide-y divide-gray-100">
+                        <thead>
+                            <tr class="bg-gray-800 text-white text-xs">
+                                <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Tipo</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Descripción</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
+                        <tbody class="divide-y divide-gray-100">
                             @foreach($inscription->documents as $document)
                                 <tr>
                                     <td class="px-4 py-2 align-top">

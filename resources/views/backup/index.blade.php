@@ -113,17 +113,16 @@
                         <p class="text-sm text-gray-500">No hay backups almacenados aún.</p>
                     @else
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Archivo</th>
-                                        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                                        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Tamaño</th>
-                                        <th class="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                        <th class="px-4 py-3 text-right font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            <table class="min-w-full divide-y divide-gray-100 text-sm">
+                                <thead>\n                                    <tr class="bg-gray-800 text-white text-xs">
+                                        <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Archivo</th>
+                                        <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Tipo</th>
+                                        <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Tamaño</th>
+                                        <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Fecha</th>
+                                        <th class="px-4 py-3 text-right font-medium text-white uppercase tracking-wider">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-gray-100">
                                     @foreach($files as $file)
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-4 py-3 text-gray-800 font-mono text-xs">{{ $file['name'] }}</td>

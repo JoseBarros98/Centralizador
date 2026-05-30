@@ -610,7 +610,7 @@ public function uploadForm(Program $program, Module $module)
     {
         $requirement = $request->input('requirement');
         
-        // Campos de texto (no booleanos)
+        // Campos de texto y fecha (no booleanos)
         $textRequirements = [
             'participant_status', 'participant_justification', 'payment_plan',
             'internal_accounting_billing_status', 'internal_accounting_amount_due',
@@ -618,15 +618,36 @@ public function uploadForm(Program $program, Module $module)
             'external_accounting_registration', 'external_accounting_enrollment',
             'external_accounting_tuition', 'external_accounting_degrees',
             'has_pre_defense', 'has_defense', 'has_defense_accounting_status',
-            'graduation_procedure_type'
+            'graduation_procedure_type', 'location',
+            // Fechas y observaciones — Requisitos de Titulación
+            'legalized_degree_title_date', 'legalized_degree_title_obs',
+            'legalized_academic_diploma_date', 'legalized_academic_diploma_obs',
+            'identity_card_graduation_date', 'identity_card_graduation_obs',
+            'birth_certificate_original_date', 'birth_certificate_original_obs',
+            'photos_date', 'photos_obs',
+            // Fechas y observaciones — Trabajo Final (Diplomado)
+            'monograph_elaboration_date', 'monograph_elaboration_obs',
+            'monograph_received_date', 'monograph_received_obs',
+            // Fechas y observaciones — Trabajo Final (Maestría)
+            'degree_work_presentation_date', 'degree_work_presentation_obs',
+            'tutor_approval_report_date', 'tutor_approval_report_obs',
+            'pre_defense_obs', 'defense_obs', 'defense_accounting_status_obs',
+            // Fechas y observaciones — Estado de Titulación
+            'graduation_procedure_date', 'graduation_procedure_obs',
+            'graduation_received_date', 'graduation_received_obs',
+            'documents_delivered_date', 'documents_delivered_obs',
+            'diplomas_delivered_date', 'diplomas_delivered_obs',
         ];
 
         if (in_array($requirement, $textRequirements)) {
             $validated = $request->validate([
-                'requirement' => 'required|in:participant_status,participant_justification,payment_plan,internal_accounting_billing_status,internal_accounting_amount_due,internal_accounting_graduation_payment,external_accounting_registration,external_accounting_enrollment,external_accounting_tuition,external_accounting_degrees,has_pre_defense,has_defense,has_defense_accounting_status,graduation_procedure_type',
-                'value' => 'nullable|string|max:255',
+                'requirement' => 'required|string',
+                'value' => 'nullable|string|max:500',
             ]);
-            $inscription->{$validated['requirement']} = $validated['value'];
+            if (!in_array($validated['requirement'], $textRequirements)) {
+                return response()->json(['success' => false, 'message' => 'Campo no permitido'], 422);
+            }
+            $inscription->{$validated['requirement']} = $validated['value'] ?: null;
         } else {
             $validated = $request->validate([
                 'requirement' => 'required|in:has_degree_title,has_academic_diploma,has_identity_card,has_birth_certificate,has_legalized_degree_title,has_legalized_academic_diploma,has_identity_card_graduation,has_birth_certificate_original,has_photos,has_monograph_elaboration,has_monograph_received,has_degree_work_presentation,has_tutor_approval_report,has_graduation_procedure,has_graduation_received,has_documents_delivered,has_diplomas_delivered',

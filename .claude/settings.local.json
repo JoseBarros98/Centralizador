@@ -57,7 +57,8 @@
       "Bash(Select-Object -First 20 FullName)",
       "Bash(xargs -I{} sh -c 'grep -l \"Schema::table\" \"{}\" && grep -c \"hasColumn\\\\|hasIndex\\\\|SHOW INDEX\\\\|try {\" \"{}\"')",
       "Bash(awk -F'\\\\t' '$2 == \"0\" {print \"NO GUARDS: \"$1}')",
-      "Bash(php -r ' *)"
+      "Bash(php -r ' *)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ],
     "additionalDirectories": [
       "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"

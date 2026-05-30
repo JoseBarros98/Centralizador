@@ -142,23 +142,23 @@
                     
                     @if(count($modules ?? []) > 0)
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Módulo</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre Módulo/Asignatura</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carga Horaria Presencial</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carga Horaria No Presencial</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre Docente</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profesión</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fechas (Inicio - Fin)</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hoja de Vida</th>
-                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Curriculum Documentado</th>
+                            <table class="min-w-full divide-y divide-gray-100">
+                                <thead>
+                                    <tr class="bg-gray-800 text-white text-xs">
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Acciones</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Módulo</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nombre Módulo/Asignatura</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Carga Horaria Presencial</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Carga Horaria No Presencial</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nombre Docente</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Profesión</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Fechas (Inicio - Fin)</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Hoja de Vida</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Curriculum Documentado</th>
                                         
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-gray-100">
                                     @foreach($modules as $module)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm space-x-2">
@@ -308,91 +308,104 @@
                     
                     @if(count($participants ?? []) > 0)
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N°</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Carnet</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Extensión</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ap. Paterno</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ap. Materno</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Celular</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Correo Electrónico</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Género</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Universidad de Titulación</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profesión</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha de Nacimiento</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Edad</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ciudad de Residencia</th>
-                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asesor</th>
-                                        <th scope="colgroup" colspan="{{ count($modules) + 2 }}" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Notas</th>
-                                        <th scope="colgroup" colspan="2" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Estado Participantes</th>
-                                        <th scope="colgroup" colspan="5" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Requisitos de Inscripción</th>
-                                        <th scope="colgroup" colspan="7" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Requisitos de Titulación</th>
+                            <table class="min-w-full divide-y divide-gray-100">
+                                <thead>
+                                    <tr class="bg-gray-800 text-white text-xs">
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">N°</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Carnet</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Extensión</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nombre</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Ap. Paterno</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Ap. Materno</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Celular</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Correo Electrónico</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Género</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Universidad de Titulación</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Profesión</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Fecha de Nacimiento</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Edad</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Ciudad de Residencia</th>
+                                        <th scope="col" rowspan="2" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Asesor</th>
+                                        <th scope="colgroup" colspan="{{ count($modules) + 2 }}" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Notas</th>
+                                        <th scope="colgroup" colspan="2" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Estado Participantes</th>
+                                        <th scope="colgroup" colspan="5" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Requisitos de Inscripción</th>
+                                        <th scope="colgroup" colspan="7" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Requisitos de Titulación</th>
                                         @if(str_starts_with($program->name, 'Diplomado'))
-                                            <th scope="colgroup" colspan="3" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Trabajo Final</th>
+                                            <th scope="colgroup" colspan="3" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Trabajo Final</th>
                                         @elseif(str_starts_with($program->name, 'Maestría'))
-                                            <th scope="colgroup" colspan="6" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Fase de Trabajo de Grado</th>
+                                            <th scope="colgroup" colspan="6" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Fase de Trabajo de Grado</th>
                                         @endif
-                                        <th scope="colgroup" colspan="5" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Estado de Titulación</th>
-                                        <th scope="colgroup" colspan="4" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Contable Interno</th>
-                                        <th scope="colgroup" colspan="4" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider border-l border-gray-300">Contable Externo</th>
+                                        <th scope="colgroup" colspan="5" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Estado de Titulación</th>
+                                        <th scope="colgroup" colspan="4" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Contable Interno</th>
+                                        <th scope="colgroup" colspan="4" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Contable Externo</th>
                                     </tr>
                                     <tr class="border-t border-gray-200">
                                         @foreach($modules as $module)
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Mod. {{ $loop->iteration }}</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Mod. {{ $loop->iteration }}</th>
                                         @endforeach
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Notas Finales</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Nivelación</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Observaciones/Link Justificación</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Título Academico</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Título en Provisión Nacional</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Cedula de Identidad</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Certificado de Nacimiento</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Requisitos Completos</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Título Academico Legalizado</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Título en Provisión Nacional Legalizado</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Cedula de Identidad</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Certificado de Nacimiento Original</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Fotos</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Requisitos Completos</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Trámite</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Notas Finales</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Nivelación</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Estado</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Observaciones/Link Justificación</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Título Academico</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Título en Provisión Nacional</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Cedula de Identidad</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Certificado de Nacimiento</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Requisitos Completos</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Título Academico Legalizado</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Título en Provisión Nacional Legalizado</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Cedula de Identidad</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Certificado de Nacimiento Original</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Fotos</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Requisitos Completos</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Tipo de Trámite</th>
                                         @if(str_starts_with($program->name, 'Diplomado'))
                                             
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Elaboración de Monografía</th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Monografía Recepcionada en Sede</th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Trabajo Final</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Elaboración de Monografía</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Monografía Recepcionada en Sede</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Trabajo Final</th>
                                         @elseif(str_starts_with($program->name, 'Maestría'))
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Presentación Trabajo de Grado</th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Informe de Aprobación del Tutor</th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Predefensa</th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Defensa</th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado Contable de Defensa</th>
-                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Fase Trabajo de Grado</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Presentación Trabajo de Grado</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Informe de Aprobación del Tutor</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Predefensa</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Defensa</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Estado Contable de Defensa</th>
+                                            <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Fase Trabajo de Grado</th>
                                         @endif
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Tramite</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Titulados/Recepcionados</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Entrega de Documentos</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Entrega de Diplomas</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado de Titulación</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo de Plan</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado de Cobranzas</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Saldo por Cobrar</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Pago Titulación</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Inscripción</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Matrícula</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Colegiatura</th>
-                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Titulaciones</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Tramite</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Titulados/Recepcionados</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Entrega de Documentos</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Entrega de Diplomas</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Estado de Titulación</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Tipo de Plan</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Estado de Cobranzas</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Saldo por Cobrar</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Pago Titulación</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Inscripción</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Matrícula</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Colegiatura</th>
+                                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Titulaciones</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-gray-100">
                                     @foreach($participants as $participant)
                                         <tr>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $loop->iteration }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $participant->ci ?? '-' }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $participant->location ?? '-' }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                <div class="flex gap-1 items-center">
+                                                    <input type="text"
+                                                           value="{{ $participant->location ?? '' }}"
+                                                           class="w-20 px-2 py-1 border border-gray-300 rounded text-sm req-text-field"
+                                                           data-program-id="{{ $program->id }}"
+                                                           data-inscription-id="{{ $participant->id }}"
+                                                           data-requirement="location"
+                                                           placeholder="-">
+                                                    <button type="button"
+                                                            class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 save-req-text-btn"
+                                                            title="Guardar extensión">✓</button>
+                                                </div>
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 <div class="flex gap-1 items-center">
                                                     <input type="text" 
@@ -576,46 +589,41 @@
                                                     text-red-600
                                                 @endif
                                             ">{{ intval($requirementsPercentage) }}%</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_legalized_degree_title"
-                                                       {{ $participant->has_legalized_degree_title ? 'checked' : '' }}>
+                                            @php
+                                                $reqTitItems = [
+                                                    ['has_legalized_degree_title', 'legalized_degree_title_date', 'legalized_degree_title_obs'],
+                                                    ['has_legalized_academic_diploma', 'legalized_academic_diploma_date', 'legalized_academic_diploma_obs'],
+                                                    ['has_identity_card_graduation', 'identity_card_graduation_date', 'identity_card_graduation_obs'],
+                                                    ['has_birth_certificate_original', 'birth_certificate_original_date', 'birth_certificate_original_obs'],
+                                                    ['has_photos', 'photos_date', 'photos_obs'],
+                                                ];
+                                            @endphp
+                                            @foreach($reqTitItems as [$boolField, $dateField, $obsField])
+                                            <td class="px-3 py-2 text-sm text-center">
+                                                <div class="flex flex-col items-center gap-1 min-w-[110px]">
+                                                    <input type="checkbox"
+                                                           class="requirement-checkbox"
+                                                           data-program-id="{{ $program->id }}"
+                                                           data-inscription-id="{{ $participant->id }}"
+                                                           data-requirement="{{ $boolField }}"
+                                                           {{ $participant->{$boolField} ? 'checked' : '' }}>
+                                                    <input type="date"
+                                                           class="req-date-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                           data-program-id="{{ $program->id }}"
+                                                           data-inscription-id="{{ $participant->id }}"
+                                                           data-requirement="{{ $dateField }}"
+                                                           value="{{ $participant->{$dateField} ?? '' }}"
+                                                           title="Fecha de entrega">
+                                                    <input type="text"
+                                                           class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                           data-program-id="{{ $program->id }}"
+                                                           data-inscription-id="{{ $participant->id }}"
+                                                           data-requirement="{{ $obsField }}"
+                                                           value="{{ $participant->{$obsField} ?? '' }}"
+                                                           placeholder="Observaciones">
+                                                </div>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_legalized_academic_diploma"
-                                                       {{ $participant->has_legalized_academic_diploma ? 'checked' : '' }}>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_identity_card_graduation"
-                                                       {{ $participant->has_identity_card_graduation ? 'checked' : '' }}>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_birth_certificate_original"
-                                                       {{ $participant->has_birth_certificate_original ? 'checked' : '' }}>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_photos"
-                                                       {{ $participant->has_photos ? 'checked' : '' }}>
-                                            </td>
+                                            @endforeach
                                             @php
                                                 $completedGraduationRequirements = 0;
                                                 if ($participant->has_legalized_degree_title) $completedGraduationRequirements++;
@@ -644,22 +652,38 @@
                                                 </select>
                                             </td>
                                             @if(str_starts_with($program->name, 'Diplomado'))
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <input type="checkbox" 
-                                                           class="requirement-checkbox" 
-                                                           data-program-id="{{ $program->id }}"
-                                                           data-inscription-id="{{ $participant->id }}"
-                                                           data-requirement="has_monograph_elaboration"
-                                                           {{ $participant->has_monograph_elaboration ? 'checked' : '' }}>
+                                                @php
+                                                    $monographItems = [
+                                                        ['has_monograph_elaboration', 'monograph_elaboration_date', 'monograph_elaboration_obs'],
+                                                        ['has_monograph_received', 'monograph_received_date', 'monograph_received_obs'],
+                                                    ];
+                                                @endphp
+                                                @foreach($monographItems as [$boolField, $dateField, $obsField])
+                                                <td class="px-3 py-2 text-sm text-center">
+                                                    <div class="flex flex-col items-center gap-1 min-w-[110px]">
+                                                        <input type="checkbox"
+                                                               class="requirement-checkbox"
+                                                               data-program-id="{{ $program->id }}"
+                                                               data-inscription-id="{{ $participant->id }}"
+                                                               data-requirement="{{ $boolField }}"
+                                                               {{ $participant->{$boolField} ? 'checked' : '' }}>
+                                                        <input type="date"
+                                                               class="req-date-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                               data-program-id="{{ $program->id }}"
+                                                               data-inscription-id="{{ $participant->id }}"
+                                                               data-requirement="{{ $dateField }}"
+                                                               value="{{ $participant->{$dateField} ?? '' }}"
+                                                               title="Fecha de entrega">
+                                                        <input type="text"
+                                                               class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                               data-program-id="{{ $program->id }}"
+                                                               data-inscription-id="{{ $participant->id }}"
+                                                               data-requirement="{{ $obsField }}"
+                                                               value="{{ $participant->{$obsField} ?? '' }}"
+                                                               placeholder="Observaciones">
+                                                    </div>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <input type="checkbox" 
-                                                           class="requirement-checkbox" 
-                                                           data-program-id="{{ $program->id }}"
-                                                           data-inscription-id="{{ $participant->id }}"
-                                                           data-requirement="has_monograph_received"
-                                                           {{ $participant->has_monograph_received ? 'checked' : '' }}>
-                                                </td>
+                                                @endforeach
                                                 @php
                                                     $completedMonographRequirements = 0;
                                                     if ($participant->has_monograph_elaboration) $completedMonographRequirements++;
@@ -676,46 +700,63 @@
                                                     @endif
                                                 ">{{ intval($monographRequirementsPercentage) }}%</td>
                                             @elseif(str_starts_with($program->name, 'Maestría'))
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <input type="checkbox" 
-                                                           class="requirement-checkbox" 
-                                                           data-program-id="{{ $program->id }}"
-                                                           data-inscription-id="{{ $participant->id }}"
-                                                           data-requirement="has_degree_work_presentation"
-                                                           {{ ($participant->has_degree_work_presentation ?? false) ? 'checked' : '' }}>
+                                                @php
+                                                    $masterCheckItems = [
+                                                        ['has_degree_work_presentation', 'degree_work_presentation_date', 'degree_work_presentation_obs'],
+                                                        ['has_tutor_approval_report', 'tutor_approval_report_date', 'tutor_approval_report_obs'],
+                                                    ];
+                                                    $masterTextItems = [
+                                                        ['has_pre_defense', 'pre_defense_obs', 'Predefensa'],
+                                                        ['has_defense', 'defense_obs', 'Defensa'],
+                                                        ['has_defense_accounting_status', 'defense_accounting_status_obs', 'Estado Contable'],
+                                                    ];
+                                                @endphp
+                                                @foreach($masterCheckItems as [$boolField, $dateField, $obsField])
+                                                <td class="px-3 py-2 text-sm text-center">
+                                                    <div class="flex flex-col items-center gap-1 min-w-[110px]">
+                                                        <input type="checkbox"
+                                                               class="requirement-checkbox"
+                                                               data-program-id="{{ $program->id }}"
+                                                               data-inscription-id="{{ $participant->id }}"
+                                                               data-requirement="{{ $boolField }}"
+                                                               {{ ($participant->{$boolField} ?? false) ? 'checked' : '' }}>
+                                                        <input type="date"
+                                                               class="req-date-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                               data-program-id="{{ $program->id }}"
+                                                               data-inscription-id="{{ $participant->id }}"
+                                                               data-requirement="{{ $dateField }}"
+                                                               value="{{ $participant->{$dateField} ?? '' }}"
+                                                               title="Fecha de entrega">
+                                                        <input type="text"
+                                                               class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                               data-program-id="{{ $program->id }}"
+                                                               data-inscription-id="{{ $participant->id }}"
+                                                               data-requirement="{{ $obsField }}"
+                                                               value="{{ $participant->{$obsField} ?? '' }}"
+                                                               placeholder="Observaciones">
+                                                    </div>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <input type="checkbox" 
-                                                           class="requirement-checkbox" 
-                                                           data-program-id="{{ $program->id }}"
-                                                           data-inscription-id="{{ $participant->id }}"
-                                                           data-requirement="has_tutor_approval_report"
-                                                           {{ ($participant->has_tutor_approval_report ?? false) ? 'checked' : '' }}>
+                                                @endforeach
+                                                @foreach($masterTextItems as [$textField, $obsField, $label])
+                                                <td class="px-3 py-2 text-sm text-center">
+                                                    <div class="flex flex-col items-center gap-1 min-w-[110px]">
+                                                        <input type="text"
+                                                               class="requirement-text-input w-full px-1 py-0.5 text-xs border border-gray-300 rounded"
+                                                               data-program-id="{{ $program->id }}"
+                                                               data-inscription-id="{{ $participant->id }}"
+                                                               data-requirement="{{ $textField }}"
+                                                               value="{{ $participant->{$textField} ?? '' }}"
+                                                               placeholder="{{ $label }}">
+                                                        <input type="text"
+                                                               class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                               data-program-id="{{ $program->id }}"
+                                                               data-inscription-id="{{ $participant->id }}"
+                                                               data-requirement="{{ $obsField }}"
+                                                               value="{{ $participant->{$obsField} ?? '' }}"
+                                                               placeholder="Observaciones">
+                                                    </div>
                                                 </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <input type="text" 
-                                                           class="requirement-text-input w-full px-2 py-1 text-sm border border-gray-300 rounded" 
-                                                           data-program-id="{{ $program->id }}"
-                                                           data-inscription-id="{{ $participant->id }}"
-                                                           data-requirement="has_pre_defense"
-                                                           value="{{ $participant->has_pre_defense ?? '' }}">
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <input type="text" 
-                                                           class="requirement-text-input w-full px-2 py-1 text-sm border border-gray-300 rounded" 
-                                                           data-program-id="{{ $program->id }}"
-                                                           data-inscription-id="{{ $participant->id }}"
-                                                           data-requirement="has_defense"
-                                                           value="{{ $participant->has_defense ?? '' }}">
-                                                </td>
-                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                    <input type="text" 
-                                                           class="requirement-text-input w-full px-2 py-1 text-sm border border-gray-300 rounded" 
-                                                           data-program-id="{{ $program->id }}"
-                                                           data-inscription-id="{{ $participant->id }}"
-                                                           data-requirement="has_defense_accounting_status"
-                                                           value="{{ $participant->has_defense_accounting_status ?? '' }}">
-                                                </td>
+                                                @endforeach
                                                 @php
                                                     $completedMasterDegreeRequirements = 0;
                                                     if ($participant->has_degree_work_presentation ?? false) $completedMasterDegreeRequirements++;
@@ -732,38 +773,40 @@
                                                     @endif
                                                 ">{{ intval($masterDegreePercentage) }}%</td>
                                             @endif
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_graduation_procedure"
-                                                       {{ $participant->has_graduation_procedure ? 'checked' : '' }}>
+                                            @php
+                                                $estadoItems = [
+                                                    ['has_graduation_procedure', 'graduation_procedure_date', 'graduation_procedure_obs'],
+                                                    ['has_graduation_received', 'graduation_received_date', 'graduation_received_obs'],
+                                                    ['has_documents_delivered', 'documents_delivered_date', 'documents_delivered_obs'],
+                                                    ['has_diplomas_delivered', 'diplomas_delivered_date', 'diplomas_delivered_obs'],
+                                                ];
+                                            @endphp
+                                            @foreach($estadoItems as [$boolField, $dateField, $obsField])
+                                            <td class="px-3 py-2 text-sm text-center">
+                                                <div class="flex flex-col items-center gap-1 min-w-[110px]">
+                                                    <input type="checkbox"
+                                                           class="requirement-checkbox"
+                                                           data-program-id="{{ $program->id }}"
+                                                           data-inscription-id="{{ $participant->id }}"
+                                                           data-requirement="{{ $boolField }}"
+                                                           {{ $participant->{$boolField} ? 'checked' : '' }}>
+                                                    <input type="date"
+                                                           class="req-date-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                           data-program-id="{{ $program->id }}"
+                                                           data-inscription-id="{{ $participant->id }}"
+                                                           data-requirement="{{ $dateField }}"
+                                                           value="{{ $participant->{$dateField} ?? '' }}"
+                                                           title="Fecha">
+                                                    <input type="text"
+                                                           class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                                           data-program-id="{{ $program->id }}"
+                                                           data-inscription-id="{{ $participant->id }}"
+                                                           data-requirement="{{ $obsField }}"
+                                                           value="{{ $participant->{$obsField} ?? '' }}"
+                                                           placeholder="Observaciones">
+                                                </div>
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_graduation_received"
-                                                       {{ $participant->has_graduation_received ? 'checked' : '' }}>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_documents_delivered"
-                                                       {{ $participant->has_documents_delivered ? 'checked' : '' }}>
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                                                <input type="checkbox" 
-                                                       class="requirement-checkbox" 
-                                                       data-program-id="{{ $program->id }}"
-                                                       data-inscription-id="{{ $participant->id }}"
-                                                       data-requirement="has_diplomas_delivered"
-                                                       {{ $participant->has_diplomas_delivered ? 'checked' : '' }}>
-                                            </td>
+                                            @endforeach
                                             @php
                                                 $completedEstadoCount = 0;
                                                 if ($participant->has_graduation_procedure) $completedEstadoCount++;
@@ -1626,6 +1669,50 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Handler para Extensión y otros campos de texto con botón guardar
+    document.querySelectorAll('.save-req-text-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const input = this.previousElementSibling;
+            saveRequirement(input, this);
+        });
+    });
+
+    // Handler para fechas y observaciones de requisitos (blur)
+    document.querySelectorAll('.req-date-field, .req-obs-field').forEach(input => {
+        input.addEventListener('change', function() { saveRequirement(this); });
+        input.addEventListener('blur', function() { saveRequirement(this); });
+    });
+
+    function saveRequirement(input, btn) {
+        const programId = input.dataset.programId;
+        const inscriptionId = input.dataset.inscriptionId;
+        const requirement = input.dataset.requirement;
+        const value = input.value;
+
+        fetch(`/programs/${programId}/inscriptions/${inscriptionId}/update-requirement`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: JSON.stringify({ requirement, value })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                input.style.borderColor = '#10b981';
+                if (btn) { btn.style.backgroundColor = '#10b981'; btn.textContent = '✓'; }
+                setTimeout(() => {
+                    input.style.borderColor = '';
+                    if (btn) { btn.style.backgroundColor = '#3b82f6'; }
+                }, 2000);
+            } else {
+                input.style.borderColor = '#ef4444';
+            }
+        })
+        .catch(() => { input.style.borderColor = '#ef4444'; });
+    }
 
     // Handler para recalcular todas las notas finales
     const recalculateFinalGradesBtn = document.getElementById('recalculateFinalGradesBtn');

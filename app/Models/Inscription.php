@@ -64,29 +64,29 @@ class Inscription extends Model
         'document_observations',
 
         //Requisitos de Titulación
-        'has_legalized_degree_title',
-        'has_legalized_academic_diploma',
-        'has_identity_card_graduation',
-        'has_birth_certificate_original',
-        'has_photos',
+        'has_legalized_degree_title', 'legalized_degree_title_date', 'legalized_degree_title_obs',
+        'has_legalized_academic_diploma', 'legalized_academic_diploma_date', 'legalized_academic_diploma_obs',
+        'has_identity_card_graduation', 'identity_card_graduation_date', 'identity_card_graduation_obs',
+        'has_birth_certificate_original', 'birth_certificate_original_date', 'birth_certificate_original_obs',
+        'has_photos', 'photos_date', 'photos_obs',
         'graduation_procedure_type',
 
         //Trabajo Final / Monografía
-        'has_monograph_elaboration',
-        'has_monograph_received',
+        'has_monograph_elaboration', 'monograph_elaboration_date', 'monograph_elaboration_obs',
+        'has_monograph_received', 'monograph_received_date', 'monograph_received_obs',
 
         // Maestría - Fase de trabajo de grado
-        'has_degree_work_presentation',
-        'has_tutor_approval_report',
-        'has_pre_defense',
-        'has_defense',
-        'has_defense_accounting_status',
+        'has_degree_work_presentation', 'degree_work_presentation_date', 'degree_work_presentation_obs',
+        'has_tutor_approval_report', 'tutor_approval_report_date', 'tutor_approval_report_obs',
+        'has_pre_defense', 'pre_defense_obs',
+        'has_defense', 'defense_obs',
+        'has_defense_accounting_status', 'defense_accounting_status_obs',
 
         //Estado de Titulación
-        'has_graduation_procedure',
-        'has_graduation_received',
-        'has_documents_delivered',
-        'has_diplomas_delivered',
+        'has_graduation_procedure', 'graduation_procedure_date', 'graduation_procedure_obs',
+        'has_graduation_received', 'graduation_received_date', 'graduation_received_obs',
+        'has_documents_delivered', 'documents_delivered_date', 'documents_delivered_obs',
+        'has_diplomas_delivered', 'diplomas_delivered_date', 'diplomas_delivered_obs',
 
         //Contable Interno
         'internal_accounting_billing_status',

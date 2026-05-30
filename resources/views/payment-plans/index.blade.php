@@ -23,16 +23,15 @@
             <div class="bg-white shadow-sm rounded-xl overflow-hidden">
                 <div class="overflow-x-auto">
                 <table class="w-full text-sm" style="min-width: 900px;">
-                    <thead class="bg-gray-50 border-b border-gray-200">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Nombre</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Tipo</th>
-                            <th class="px-4 py-3 text-right font-semibold text-gray-600">N° Cuotas</th>
-                            <th class="px-4 py-3 text-right font-semibold text-gray-600">Importe / Cuota</th>
-                            <th class="px-4 py-3 text-right font-semibold text-gray-600">Matrícula</th>
-                            <th class="px-4 py-3 text-right font-semibold text-gray-600">Certificación</th>
-                            <th class="px-4 py-3 text-left font-semibold text-gray-600">Descripción</th>
-                            <th class="px-4 py-3 text-center font-semibold text-gray-600">Estado</th>
+                    <thead>\n                        <tr class="bg-gray-800 text-white text-xs">
+                            <th class="px-4 py-3 text-left font-semibold text-white">Nombre</th>
+                            <th class="px-4 py-3 text-left font-semibold text-white">Tipo</th>
+                            <th class="px-4 py-3 text-right font-semibold text-white">N° Cuotas</th>
+                            <th class="px-4 py-3 text-right font-semibold text-white">Importe / Cuota</th>
+                            <th class="px-4 py-3 text-right font-semibold text-white">Matrícula</th>
+                            <th class="px-4 py-3 text-right font-semibold text-white">Certificación</th>
+                            <th class="px-4 py-3 text-left font-semibold text-white">Descripción</th>
+                            <th class="px-4 py-3 text-center font-semibold text-white">Estado</th>
                             <th class="px-4 py-3"></th>
                         </tr>
                     </thead>

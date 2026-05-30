@@ -96,17 +96,17 @@ window._incConfig = {
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm border-collapse">
                     <thead>
-                        <tr class="bg-gray-50 border-b-2 border-gray-200">
-                            <th class="sticky left-0 z-20 bg-gray-50 px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px] border-r border-gray-200">
+                        <tr class="bg-gray-800 text-white text-xs">
+                            <th class="sticky left-0 z-20 bg-gray-800 px-4 py-3 text-left text-xs font-semibold text-white uppercase tracking-wider min-w-[200px] border-r border-gray-200">
                                 Item
                             </th>
                             @foreach(['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'] as $i => $short)
-                            <th class="px-2 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px]
+                            <th class="px-2 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider min-w-[80px]
                                        {{ (int)date('n') === $i + 1 ? 'bg-indigo-50 text-indigo-700' : '' }}">
                                 {{ $short }}
                             </th>
                             @endforeach
-                            <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[110px] border-l border-gray-200">
+                            <th class="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider min-w-[110px] border-l border-gray-200">
                                 Total item
                             </th>
                             <th class="px-3 py-3 min-w-[48px]"></th>

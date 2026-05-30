@@ -326,18 +326,18 @@
                         <div class="border-t border-gray-200 pt-4">
                             @if($inscription->paymentHistory->count() > 0)
                                 <div class="overflow-x-auto">
-                                    <table class="min-w-full divide-y divide-gray-200 bg-white">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha del Cambio</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado Anterior</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nuevo Estado</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto Pagado</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cambió por</th>
-                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                    <table class="min-w-full divide-y divide-gray-100 bg-white">
+                                        <thead>
+                                            <tr class="bg-gray-800 text-white text-xs">
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Fecha del Cambio</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado Anterior</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nuevo Estado</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Monto Pagado</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Cambió por</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Acciones</th>
                                             </tr>
                                         </thead>
-                                        <tbody class="divide-y divide-gray-200">
+                                        <tbody class="divide-y divide-gray-100">
                                             @foreach($inscription->paymentHistory->sortByDesc('status_date') as $history)
                                             <tr>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -481,15 +481,15 @@
                 @if($inscription->documents->count() > 0)
                     <div class="mb-4">
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Acciones</th>
+                            <table class="min-w-full divide-y divide-gray-100">
+                                <thead>
+                                    <tr class="bg-gray-800 text-white text-xs">
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Tipo</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Descripción</th>
+                                        <th class="px-4 py-2 text-left text-xs font-medium text-white uppercase">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="divide-y divide-gray-100">
                                     @foreach($inscription->documents as $document)
                                         <tr>
                                             <td class="px-4 py-2 align-top">

@@ -64,7 +64,7 @@
                 <h2 class="text-lg font-semibold text-gray-900">Todas las notificaciones</h2>
             </div>
             
-            <div class="divide-y divide-gray-200">
+            <div class="divide-y divide-gray-100">
                 @forelse($notifications as $notification)
                     <div class="notification-item p-6 hover:bg-gray-50 {{ $notification->isUnread() ? 'bg-blue-50 border-l-4 border-blue-500' : '' }}" 
                          data-notification-id="{{ $notification->id }}">

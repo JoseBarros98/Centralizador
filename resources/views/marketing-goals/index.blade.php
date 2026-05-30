@@ -231,7 +231,7 @@
                     @endphp
 
                     {{-- Each goal in its own <tbody> with x-data for expand/collapse --}}
-                    <tbody x-data="{ expanded: false }" class="divide-y divide-gray-200">
+                    <tbody x-data="{ expanded: false }" class="divide-y divide-gray-100">
 
                         <tr class="hover:bg-gray-50 cursor-pointer" data-goal-id="{{ $goal->id }}">
 

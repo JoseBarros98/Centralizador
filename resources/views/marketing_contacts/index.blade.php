@@ -78,9 +78,8 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead>\n                        <tr class="bg-gray-800 text-white text-xs">
                             <x-table-heading>Nombre</x-table-heading>
                             <x-table-heading>Teléfono</x-table-heading>
                             <x-table-heading>Programa</x-table-heading>
@@ -94,7 +93,7 @@
                             <x-table-heading>Acciones</x-table-heading>
                         </tr>
                     </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tbody class="divide-y divide-gray-100">
                         @forelse($contacts as $contact)
                         <tr class="hover:bg-gray-50">
                             <td class="px-4 py-3 text-sm font-medium text-gray-900">{{ $contact->nombre }}</td>
