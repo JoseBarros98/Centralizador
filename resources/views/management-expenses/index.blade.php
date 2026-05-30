@@ -200,10 +200,10 @@ window._expConfig = {
                             <template x-for="col in visibleColumns()" :key="col.key">
                                 <th :class="{
                                         'px-2 py-3 text-center text-xs font-semibold uppercase tracking-wider min-w-[82px] select-none': true,
-                                        'bg-red-50 text-red-700': col.type === 'month' && col.mes === currentMonth && !col.expanded,
-                                        'bg-red-50 text-red-600': col.type === 'month' && col.mes === currentMonth && col.expanded,
-                                        'bg-gray-50 text-white cursor-pointer hover:bg-gray-100': col.type === 'month',
-                                        'bg-blue-50 text-blue-700 min-w-[90px]': col.type === 'entity',
+                                        'bg-red-700 !text-white ring-2 ring-inset ring-red-400': col.type === 'month' && col.mes === currentMonth && !col.expanded,
+                                        'bg-red-700 !text-white ring-2 ring-inset ring-red-400': col.type === 'month' && col.mes === currentMonth && col.expanded,
+                                        'cursor-pointer hover:bg-gray-700': col.type === 'month',
+                                        'bg-blue-700 !text-white min-w-[90px]': col.type === 'entity',
                                     }">
 
                                     {{-- Month column header — click to expand --}}

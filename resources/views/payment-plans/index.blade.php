@@ -23,7 +23,8 @@
             <div class="bg-white shadow-sm rounded-xl overflow-hidden">
                 <div class="overflow-x-auto">
                 <table class="w-full text-sm" style="min-width: 900px;">
-                    <thead>\n                        <tr class="bg-gray-800 text-white text-xs">
+                    <thead>
+                        <tr class="bg-gray-800 text-white text-xs">
                             <th class="px-4 py-3 text-left font-semibold text-white">Nombre</th>
                             <th class="px-4 py-3 text-left font-semibold text-white">Tipo</th>
                             <th class="px-4 py-3 text-right font-semibold text-white">N° Cuotas</th>

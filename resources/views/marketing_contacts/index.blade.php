@@ -79,7 +79,8 @@
 
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-100">
-                    <thead>\n                        <tr class="bg-gray-800 text-white text-xs">
+                    <thead>
+                        <tr class="bg-gray-800 text-white text-xs">
                             <x-table-heading>Nombre</x-table-heading>
                             <x-table-heading>Teléfono</x-table-heading>
                             <x-table-heading>Programa</x-table-heading>

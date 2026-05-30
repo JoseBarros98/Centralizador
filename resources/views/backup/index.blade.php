@@ -114,7 +114,8 @@
                     @else
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-100 text-sm">
-                                <thead>\n                                    <tr class="bg-gray-800 text-white text-xs">
+                                <thead>
+                                    <tr class="bg-gray-800 text-white text-xs">
                                         <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Archivo</th>
                                         <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Tipo</th>
                                         <th class="px-4 py-3 text-left font-medium text-white uppercase tracking-wider">Tamaño</th>

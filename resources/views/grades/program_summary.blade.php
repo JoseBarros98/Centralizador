@@ -339,7 +339,7 @@
                                         <th scope="colgroup" colspan="4" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Contable Interno</th>
                                         <th scope="colgroup" colspan="4" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider border-l border-gray-300">Contable Externo</th>
                                     </tr>
-                                    <tr class="border-t border-gray-200">
+                                    <tr class="bg-gray-700 text-white border-t border-gray-600">
                                         @foreach($modules as $module)
                                             <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Mod. {{ $loop->iteration }}</th>
                                         @endforeach

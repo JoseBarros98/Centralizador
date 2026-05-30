@@ -102,7 +102,7 @@ window._incConfig = {
                             </th>
                             @foreach(['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'] as $i => $short)
                             <th class="px-2 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider min-w-[80px]
-                                       {{ (int)date('n') === $i + 1 ? 'bg-indigo-50 text-indigo-700' : '' }}">
+                                       {{ (int)date('n') === $i + 1 ? 'bg-indigo-600 !text-white ring-2 ring-inset ring-indigo-300' : '' }}">
                                 {{ $short }}
                             </th>
                             @endforeach

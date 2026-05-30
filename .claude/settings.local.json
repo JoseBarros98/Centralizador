@@ -58,7 +58,12 @@
       "Bash(xargs -I{} sh -c 'grep -l \"Schema::table\" \"{}\" && grep -c \"hasColumn\\\\|hasIndex\\\\|SHOW INDEX\\\\|try {\" \"{}\"')",
       "Bash(awk -F'\\\\t' '$2 == \"0\" {print \"NO GUARDS: \"$1}')",
       "Bash(php -r ' *)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(grep -rn \"thead>\\\\\\\\\\\\\\\\n\\\\|\\\\\\\\\\\\\\\\n.*<tr class\" resources/views/ --include=\"*.blade.php\")",
+      "Bash(grep -rl \"thead>\\\\\\\\\\\\\\\\n\" resources/views/ --include=\"*.blade.php\")",
+      "Bash(grep -rl '<thead>\\\\\\\\n' C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views --include=\"*.blade.php\")",
+      "Bash(python3 *)",
+      "Bash(npm run *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"

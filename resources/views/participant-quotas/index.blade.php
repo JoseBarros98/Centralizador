@@ -61,11 +61,11 @@
                             </span>
                             @endif
                             <button onclick="openDiscountModal({{ $inscription->id }}, {{ $program->id }}, {{ json_encode($discount) }})"
-                                class="text-xs px-3 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition">
+                                class="text-xs px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition">
                                 {{ $discount ? 'Editar Descuento' : 'Agregar Descuento' }}
                             </button>
                             <button onclick="openGenerateModal({{ $inscription->id }}, {{ $program->id }}, '{{ addslashes($inscription->getFullName()) }}')"
-                                class="text-xs px-3 py-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition">
+                                class="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition">
                                 Generar desde Plan
                             </button>
                         </div>
@@ -75,7 +75,8 @@
                     <div class="participant-body-{{ $inscription->id }} hidden">
                         <div class="overflow-x-auto">
                             <table class="w-full text-sm">
-                                <thead>\n                                    <tr class="bg-gray-800 text-white text-xs">
+                                <thead>
+                                    <tr class="bg-gray-800 text-white text-xs">
                                         <th class="px-4 py-2 text-center text-xs font-semibold text-white">N° Cuota</th>
                                         <th class="px-4 py-2 text-right text-xs font-semibold text-white">Importe Base</th>
                                         <th class="px-4 py-2 text-right text-xs font-semibold text-white">Descuento</th>

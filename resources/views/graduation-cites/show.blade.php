@@ -59,7 +59,8 @@
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-100">
-                            <thead>\n                                <tr class="bg-gray-800 text-white text-xs">
+                            <thead>
+                                <tr class="bg-gray-800 text-white text-xs">
                                     <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Nombre Completo</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">CI</th>
                                     <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Programa</th>

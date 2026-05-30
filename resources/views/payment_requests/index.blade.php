@@ -138,7 +138,8 @@
 
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-100 text-xs">
-                            <thead>\n                                <tr class="bg-gray-800 text-white text-xs">
+                            <thead>
+                                <tr class="bg-gray-800 text-white text-xs">
                                     <th scope="col" class="px-3 py-2 text-center font-medium text-white uppercase tracking-wider">Opciones</th>
                                     <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">Estado</th>
                                     <th scope="col" class="px-3 py-2 text-left font-medium text-white uppercase tracking-wider">N°</th>
