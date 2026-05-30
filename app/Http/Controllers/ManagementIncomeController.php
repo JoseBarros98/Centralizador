@@ -12,7 +12,8 @@ class ManagementIncomeController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:program_allocation.view');
+        $this->middleware('permission:management_income.view')->only(['index', 'getItemsForYear']);
+        $this->middleware('permission:management_income.edit')->only(['upsertCell', 'destroyItem', 'renameItem']);
     }
 
     public function index(Request $request): View

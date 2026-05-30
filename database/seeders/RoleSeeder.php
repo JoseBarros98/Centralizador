@@ -52,6 +52,16 @@ class RoleSeeder extends Seeder
 
             'program_allocation.view', 'program_allocation.create', 'program_allocation.edit', 'program_allocation.edit_own', 'program_allocation.delete', 'program_allocation.delete_own',
 
+            'nominal_assignment.view', 'nominal_assignment.create', 'nominal_assignment.edit',
+
+            'payment_plan.view', 'payment_plan.create', 'payment_plan.edit', 'payment_plan.delete',
+
+            'participant_quota.view', 'participant_quota.create', 'participant_quota.edit', 'participant_quota.delete',
+
+            'management_income.view', 'management_income.edit',
+            'management_expense.view', 'management_expense.edit',
+            'management_investment.view', 'management_investment.edit',
+
             'role.view', 'role.create', 'role.edit', 'role.delete',
 
             'marketing_contact.view', 'marketing_contact.view_own', 'marketing_contact.view_team',
@@ -117,6 +127,12 @@ class RoleSeeder extends Seeder
             'payment_request.view', 'payment_request.create', 'payment_request.edit', 'payment_request.delete',
             'graduation_cite.view', 'graduation_cite.create', 'graduation_cite.edit', 'graduation_cite.delete',
             'program_allocation.view', 'program_allocation.create', 'program_allocation.edit', 'program_allocation.delete',
+            'nominal_assignment.view', 'nominal_assignment.create', 'nominal_assignment.edit',
+            'payment_plan.view', 'payment_plan.create', 'payment_plan.edit', 'payment_plan.delete',
+            'participant_quota.view', 'participant_quota.create', 'participant_quota.edit', 'participant_quota.delete',
+            'management_income.view', 'management_income.edit',
+            'management_expense.view', 'management_expense.edit',
+            'management_investment.view', 'management_investment.edit',
         ]);
     }
 }

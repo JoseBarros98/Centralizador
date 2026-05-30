@@ -12,7 +12,8 @@ class ManagementExpenseEntityController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:program_allocation.view');
+        $this->middleware('permission:management_expense.view')->only(['monthDetail']);
+        $this->middleware('permission:management_expense.edit')->only(['store', 'rename', 'destroy', 'upsertAmount']);
     }
 
     public function store(Request $request): JsonResponse

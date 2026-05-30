@@ -48,7 +48,13 @@
       "Bash(php -l app/Http/Controllers/NominalAssignmentController.php app/Models/AssignmentDetail.php routes/web.php)",
       "Bash(php -l app/Http/Controllers/NominalAssignmentController.php app/Models/MonthlyAssignment.php routes/web.php)",
       "Bash(php -l app/Services/NominalAssignmentService.php app/Http/Controllers/NominalAssignmentController.php routes/web.php)",
-      "Bash(php -l app/Http/Controllers/NominalAssignmentController.php routes/web.php)"
+      "Bash(php -l app/Http/Controllers/NominalAssignmentController.php routes/web.php)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\" -Recurse -Directory | Select-Object -First 20 | ForEach-Object { $_.FullName })",
+      "Bash(Find \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\" -name \"*Provider*\" -o -name \"*ServiceProvider*\")",
+      "Bash(Grep -r \"updateDetail\\\\|actualizar.*pago\\\\|pago.*actualizar\" \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\" --include=\"*.php\")",
+      "Bash(Grep -n \"NominalAssignment\\\\|assignment\" \"C:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\routes\\\\web.php\")",
+      "Bash(Grep *)",
+      "Bash(Select-Object -First 20 FullName)"
     ],
     "additionalDirectories": [
       "C:\\Users\\PC\\Downloads\\backup_full_2026_05_26_155329"

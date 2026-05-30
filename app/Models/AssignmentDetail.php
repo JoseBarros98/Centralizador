@@ -83,10 +83,10 @@ class AssignmentDetail extends Model
 
     public function recalcularTotal(): void
     {
-        $this->total_asignacion = $this->cuotas_retrasadas_saldo
-            + $this->cuota_vigente_saldo
-            + $this->matricula_saldo
-            + $this->certificacion_saldo;
+        $this->total_asignacion = (float)$this->cuotas_retrasadas_importe
+            + (float)$this->cuota_vigente_importe
+            + (float)$this->matricula_importe
+            + (float)$this->certificacion_importe;
         $this->saveQuietly();
     }
 

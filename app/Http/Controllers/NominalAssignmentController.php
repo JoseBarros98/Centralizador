@@ -16,9 +16,9 @@ class NominalAssignmentController extends Controller
 {
     public function __construct(private NominalAssignmentService $service)
     {
-        $this->middleware('permission:program_allocation.view')->only(['index']);
-        $this->middleware('permission:program_allocation.create')->only(['generate', 'refresh']);
-        $this->middleware('permission:program_allocation.edit')->only(['updateDetail', 'updateResponsable', 'toggleExcluded', 'toggleHidden']);
+        $this->middleware('permission:nominal_assignment.view')->only(['index']);
+        $this->middleware('permission:nominal_assignment.create')->only(['generate', 'refresh']);
+        $this->middleware('permission:nominal_assignment.edit')->only(['updateDetail', 'updateResponsable', 'toggleExcluded', 'toggleHidden']);
     }
 
     public function index(Request $request): View

@@ -340,7 +340,7 @@
                                 @endif
 
                                 <!-- Contabilidad - Desplegable -->
-                                @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view'))
+                                @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view') || auth()->user()->can('nominal_assignment.view') || auth()->user()->can('management_income.view') || auth()->user()->can('management_expense.view') || auth()->user()->can('management_investment.view'))
                                 <div x-data="{ open: {{ request()->routeIs('payment_requests.*') || request()->routeIs('graduation-cites.*') || request()->routeIs('program-allocation.*') || request()->routeIs('management-incomes.*') || request()->routeIs('management-investments.*') || request()->routeIs('management-expenses.*') || request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" title="Contabilidad" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -373,7 +373,7 @@
                                         @endcan
 
                                         <!-- Asignación Nominal -->
-                                        @can('program_allocation.view')
+                                        @can('nominal_assignment.view')
                                         <a href="{{ route('nominal-assignments.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -392,21 +392,25 @@
                                         </a>
                                         @endcan
 
-                                        @can('program_allocation.view')
+                                        @can('management_income.view')
                                         <a href="{{ route('management-incomes.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('management-incomes.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('management-incomes.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Ingresos por Gestión
                                         </a>
+                                        @endcan
 
+                                        @can('management_expense.view')
                                         <a href="{{ route('management-expenses.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('management-expenses.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('management-expenses.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Egresos por Gestión
                                         </a>
+                                        @endcan
 
+                                        @can('management_investment.view')
                                         <a href="{{ route('management-investments.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('management-investments.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('management-investments.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 17l6-6 4 4 8-8M14 7h7v7" />
@@ -774,7 +778,7 @@
                             @endif
 
                             <!-- Contabilidad - Desplegable -->
-                                @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view'))
+                                @if(auth()->user()->can('payment_request.view') || auth()->user()->can('graduation_cite.view') || auth()->user()->can('program_allocation.view') || auth()->user()->can('nominal_assignment.view') || auth()->user()->can('management_income.view') || auth()->user()->can('management_expense.view') || auth()->user()->can('management_investment.view'))
                                 <div x-data="{ open: {{ request()->routeIs('payment_requests.*') || request()->routeIs('graduation-cites.*') || request()->routeIs('program-allocation.*') || request()->routeIs('management-incomes.*') || request()->routeIs('management-investments.*') || request()->routeIs('management-expenses.*') || request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'true' : 'false' }} }">
                                     <button @click="open = !open" class="group w-full flex items-center px-2 py-2 text-sm font-medium rounded-md text-white hover:bg-gray-800 focus:outline-none">
                                         <svg class="mr-3 h-5 w-5 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -807,7 +811,7 @@
                                         @endcan
 
                                         <!-- Asignación Nominal -->
-                                        @can('program_allocation.view')
+                                        @can('nominal_assignment.view')
                                         <a href="{{ route('nominal-assignments.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('nominal-assignments.*') || request()->routeIs('payment-plans.*') || request()->routeIs('participant-quotas.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -826,21 +830,25 @@
                                         </a>
                                         @endcan
 
-                                        @can('program_allocation.view')
+                                        @can('management_income.view')
                                         <a href="{{ route('management-incomes.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('management-incomes.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('management-incomes.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Ingresos por Gestión
                                         </a>
+                                        @endcan
 
+                                        @can('management_expense.view')
                                         <a href="{{ route('management-expenses.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('management-expenses.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('management-expenses.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                             </svg>
                                             Egresos por Gestión
                                         </a>
+                                        @endcan
 
+                                        @can('management_investment.view')
                                         <a href="{{ route('management-investments.index') }}" class="group flex items-center pl-8 pr-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('management-investments.*') ? 'bg-gray-700 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
                                             <svg class="mr-3 h-5 w-5 {{ request()->routeIs('management-investments.*') ? 'text-indigo-400' : 'text-gray-400 group-hover:text-white' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 17l6-6 4 4 8-8M14 7h7v7" />

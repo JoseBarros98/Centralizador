@@ -12,7 +12,8 @@ class ManagementInvestmentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:program_allocation.view');
+        $this->middleware('permission:management_investment.view')->only(['index', 'monthDetail', 'getItemsForYear']);
+        $this->middleware('permission:management_investment.edit')->only(['upsertCell', 'destroyItem', 'renameItem']);
     }
 
     public function index(Request $request): View

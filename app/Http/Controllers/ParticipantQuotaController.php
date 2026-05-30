@@ -18,10 +18,10 @@ class ParticipantQuotaController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:program_allocation.view')->only(['index']);
-        $this->middleware('permission:program_allocation.create')->only(['store', 'generateFromPlan']);
-        $this->middleware('permission:program_allocation.edit')->only(['update', 'upsertDiscount']);
-        $this->middleware('permission:program_allocation.delete')->only(['destroy', 'destroyAll']);
+        $this->middleware('permission:participant_quota.view')->only(['index']);
+        $this->middleware('permission:participant_quota.create')->only(['store', 'generateFromPlan']);
+        $this->middleware('permission:participant_quota.edit')->only(['update', 'upsertDiscount']);
+        $this->middleware('permission:participant_quota.delete')->only(['destroy', 'destroyAll']);
     }
 
     public function index(Program $program): View

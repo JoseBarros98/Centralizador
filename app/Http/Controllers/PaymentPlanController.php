@@ -12,10 +12,10 @@ class PaymentPlanController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:program_allocation.view')->only(['index']);
-        $this->middleware('permission:program_allocation.create')->only(['store']);
-        $this->middleware('permission:program_allocation.edit')->only(['update']);
-        $this->middleware('permission:program_allocation.delete')->only(['destroy']);
+        $this->middleware('permission:payment_plan.view')->only(['index']);
+        $this->middleware('permission:payment_plan.create')->only(['store']);
+        $this->middleware('permission:payment_plan.edit')->only(['update']);
+        $this->middleware('permission:payment_plan.delete')->only(['destroy']);
     }
 
     public function index(): View
