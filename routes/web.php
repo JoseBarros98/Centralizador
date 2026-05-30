@@ -82,6 +82,11 @@ Route::middleware('auth')->group(function () {
   // Rutas para roles
   Route::resource('roles', RoleController::class);
 
+  // Rutas para participantes (vista global académica)
+  Route::get('/academic/participants', [App\Http\Controllers\AcademicParticipantsController::class, 'index'])
+      ->name('academic.participants.index')
+      ->middleware('permission:participants.view');
+
   // Rutas para programas
   Route::resource('programs', ProgramController::class);
   Route::patch('/programs/{program}/state', [ProgramController::class, 'updateState'])->name('programs.updateState');

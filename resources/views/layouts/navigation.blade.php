@@ -25,7 +25,13 @@
                         {{ __('Programas') }}
                     </x-nav-link>
                     @endcan
-                    
+
+                    @can('participants.view')
+                    <x-nav-link :href="route('academic.participants.index')" :active="request()->routeIs('academic.participants.*')">
+                        {{ __('Participantes') }}
+                    </x-nav-link>
+                    @endcan
+
                     @can('class.view')
                     <x-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.*')">
                         {{ __('Calendario') }}
@@ -221,7 +227,13 @@
                 {{ __('Programas') }}
             </x-responsive-nav-link>
             @endcan
-            
+
+            @can('participants.view')
+            <x-responsive-nav-link :href="route('academic.participants.index')" :active="request()->routeIs('academic.participants.*')">
+                {{ __('Participantes') }}
+            </x-responsive-nav-link>
+            @endcan
+
             @can('class.view')
             <x-responsive-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.*')">
                 {{ __('Calendario') }}

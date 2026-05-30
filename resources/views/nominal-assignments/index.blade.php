@@ -159,7 +159,7 @@
                 <svg class="h-12 w-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                 </svg>
-                <p class="text-gray-500 text-sm">Busca y selecciona un programa para ver la asignaciÃ³n nominal</p>
+                <p class="text-gray-500 text-sm">Busca y selecciona un programa para ver la asignación nominal</p>
             </div>
 
             @elseif(!$assignment)

@@ -71,6 +71,8 @@ class RoleSeeder extends Seeder
 
             'system.view_logs',
             'system.backup',
+
+            'participants.view', 'participants.edit',
         ];
 
         // Solo crear permisos que no existan
@@ -115,6 +117,7 @@ class RoleSeeder extends Seeder
             'program.request_teacher_payments',
             'calendar.view',
             'teacher.view', 'teacher.create', 'teacher.edit', 'teacher.delete',
+            'participants.view', 'participants.edit',
             'marketing.view', 'marketing.create', 'marketing.edit', 'marketing.delete',
             'marketing.manage_teams', 'marketing.manage_goals', 'marketing.view_reports',
         ]);
