@@ -57,6 +57,26 @@
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Proyección de Cierre Anual</h3>
                 <canvas id="annualProjectionChart"></canvas>
             </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
+                <div class="flex flex-wrap items-center justify-between mb-4 gap-3">
+                    <h3 class="text-lg font-semibold text-gray-900" id="topItemsTitle">Top Ítems — Ingresos</h3>
+                    <div class="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+                        <button id="tab-top-income" onclick="switchTopItemsTab('income')"
+                                class="px-4 py-1.5 font-medium bg-indigo-600 text-white transition-colors">Ingresos</button>
+                        <button id="tab-top-expense" onclick="switchTopItemsTab('expense')"
+                                class="px-4 py-1.5 font-medium text-gray-600 hover:bg-gray-50 transition-colors">Egresos</button>
+                    </div>
+                </div>
+                <div class="relative" style="height:260px;">
+                    <div id="panel-top-income" class="absolute inset-0">
+                        <canvas id="topIncomeChart" class="w-full h-full"></canvas>
+                    </div>
+                    <div id="panel-top-expense" class="absolute inset-0" style="opacity:0;pointer-events:none;">
+                        <canvas id="topExpenseChart" class="w-full h-full"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -234,6 +254,86 @@
             }
         });
     }
+
+    // Top Ítems
+    const topIncomeData  = @json($topIncomeItems);
+    const topExpenseData = @json($topExpenseItems);
+
+    function stripLeadingNumbers(str) {
+        return str.replace(/^[\d\s\.\-_\)\(]+/, '').trim();
+    }
+
+    function switchTopItemsTab(tab) {
+        const titles = { income: 'Top Ítems — Ingresos', expense: 'Top Ítems — Egresos' };
+        document.getElementById('topItemsTitle').textContent = titles[tab];
+        ['income', 'expense'].forEach(t => {
+            const panel = document.getElementById('panel-top-' + t);
+            const btn   = document.getElementById('tab-top-' + t);
+            const active = t === tab;
+            panel.style.opacity       = active ? '1' : '0';
+            panel.style.pointerEvents = active ? 'auto' : 'none';
+            btn.className = active
+                ? 'px-4 py-1.5 font-medium bg-indigo-600 text-white transition-colors'
+                : 'px-4 py-1.5 font-medium text-gray-600 hover:bg-gray-50 transition-colors';
+        });
+    }
+
+    function buildTopChart(canvasId, itemsObj, color, borderColor, stripNumbers) {
+        const canvas = document.getElementById(canvasId);
+        const rawLabels = Object.keys(itemsObj);
+        const labels = stripNumbers ? rawLabels.map(stripLeadingNumbers) : rawLabels;
+        const values = Object.values(itemsObj).map(Number);
+        if (!labels.length) {
+            renderEmptyState(canvas, 'Sin datos para el período seleccionado');
+            return;
+        }
+        new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Bs.',
+                    data: values,
+                    backgroundColor: color,
+                    borderColor: borderColor,
+                    borderWidth: 1,
+                    borderRadius: 4,
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                return 'Bs. ' + Number(ctx.parsed.x).toLocaleString();
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { callback: function(v) { return bsTick(v); } }
+                    },
+                    y: {
+                        ticks: {
+                            font: { size: 11 },
+                            callback: function(val, idx) {
+                                const label = this.getLabelForValue(idx);
+                                return label.length > 24 ? label.slice(0, 22) + '…' : label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    buildTopChart('topIncomeChart',  topIncomeData,  'rgba(16, 185, 129, 0.55)', 'rgb(16, 185, 129)', false);
+    buildTopChart('topExpenseChart', topExpenseData, 'rgba(244, 63, 94, 0.55)',  'rgb(244, 63, 94)',  true);
 
     // Proyección de Cierre Anual
     const projCanvas = document.getElementById('annualProjectionChart');

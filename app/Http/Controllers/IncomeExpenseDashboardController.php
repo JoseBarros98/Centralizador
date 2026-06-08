@@ -88,6 +88,39 @@ class IncomeExpenseDashboardController extends Controller
         $totalExpense = array_sum($expenseSeries);
         $balance      = $totalIncome - $totalExpense;
 
+        // Top items for the year
+        $topIncomeItems = ManagementIncomeEntityAmount::where('gestion', $year)
+            ->selectRaw('item, SUM(amount) as total')
+            ->groupBy('item')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->pluck('total', 'item');
+
+        if ($topIncomeItems->isEmpty()) {
+            $topIncomeItems = ManagementIncome::where('gestion', $year)
+                ->selectRaw('item, SUM(income_amount) as total')
+                ->groupBy('item')
+                ->orderByDesc('total')
+                ->limit(10)
+                ->pluck('total', 'item');
+        }
+
+        $topExpenseItems = ManagementExpenseEntityAmount::where('gestion', $year)
+            ->selectRaw('item, SUM(amount) as total')
+            ->groupBy('item')
+            ->orderByDesc('total')
+            ->limit(10)
+            ->pluck('total', 'item');
+
+        if ($topExpenseItems->isEmpty()) {
+            $topExpenseItems = ManagementExpense::where('gestion', $year)
+                ->selectRaw('item, SUM(expense_amount) as total')
+                ->groupBy('item')
+                ->orderByDesc('total')
+                ->limit(10)
+                ->pluck('total', 'item');
+        }
+
         return view('dashboard.income-expense', [
             'year'           => $year,
             'availableYears' => $this->getAvailableYears($year),
@@ -105,6 +138,8 @@ class IncomeExpenseDashboardController extends Controller
                 'expenseProjectionSeries' => $expenseProjectionSeries,
                 'lastMonthWithData'       => $lastMonthWithData,
             ],
+            'topIncomeItems'  => $topIncomeItems,
+            'topExpenseItems' => $topExpenseItems,
         ]);
     }
 
