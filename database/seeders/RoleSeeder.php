@@ -60,7 +60,6 @@ class RoleSeeder extends Seeder
 
             'management_income.view', 'management_income.edit',
             'management_expense.view', 'management_expense.edit',
-            'management_investment.view', 'management_investment.edit',
 
             'role.view', 'role.create', 'role.edit', 'role.delete',
 
@@ -135,7 +134,6 @@ class RoleSeeder extends Seeder
             'participant_quota.view', 'participant_quota.create', 'participant_quota.edit', 'participant_quota.delete',
             'management_income.view', 'management_income.edit',
             'management_expense.view', 'management_expense.edit',
-            'management_investment.view', 'management_investment.edit',
         ]);
     }
 }

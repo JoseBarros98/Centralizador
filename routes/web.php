@@ -43,7 +43,6 @@ use App\Http\Controllers\ManagementIncomeController;
 use App\Http\Controllers\ManagementIncomeEntityController;
 use App\Http\Controllers\ManagementExpenseController;
 use App\Http\Controllers\ManagementExpenseEntityController;
-use App\Http\Controllers\ManagementInvestmentController;
 use App\Http\Controllers\NominalAssignmentController;
 use App\Http\Controllers\PaymentPlanController;
 use App\Http\Controllers\ParticipantQuotaController;
@@ -437,14 +436,6 @@ Route::middleware('auth')->group(function () {
   Route::patch('management-incomes/entity/{entity}',                  [ManagementIncomeEntityController::class, 'rename'])->name('management-incomes.entity.rename');
   Route::delete('management-incomes/entity/{entity}',                 [ManagementIncomeEntityController::class, 'destroy'])->name('management-incomes.entity.destroy');
   Route::post('management-incomes/entity-amount',                     [ManagementIncomeEntityController::class, 'upsertAmount'])->name('management-incomes.entity.upsertAmount');
-
-  // Rutas para inversiones por gestion
-  Route::get('management-investments',               [ManagementInvestmentController::class, 'index'])->name('management-investments.index');
-  Route::get('management-investments/items',         [ManagementInvestmentController::class, 'getItemsForYear'])->name('management-investments.items');
-  Route::get('management-investments/month-detail',  [ManagementInvestmentController::class, 'monthDetail'])->name('management-investments.monthDetail');
-  Route::post('management-investments/cell',         [ManagementInvestmentController::class, 'upsertCell'])->name('management-investments.cell');
-  Route::patch('management-investments/item',        [ManagementInvestmentController::class, 'renameItem'])->name('management-investments.renameItem');
-  Route::delete('management-investments/item',       [ManagementInvestmentController::class, 'destroyItem'])->name('management-investments.destroyItem');
 
   // Rutas para egresos por gestion
   Route::get('management-expenses',                      [ManagementExpenseController::class, 'index'])->name('management-expenses.index');

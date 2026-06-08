@@ -6,7 +6,7 @@
         <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900">Dashboard Ingresos vs Egresos</h2>
-                <p class="mt-1 text-gray-600">Comparativa anual donde egresos = gastos + inversiones</p>
+                <p class="mt-1 text-gray-600">Comparativa anual de ingresos y egresos por gestión</p>
             </div>
 
             <form method="GET" action="{{ route('dashboard.income-expense') }}" class="flex items-end gap-3">
@@ -28,7 +28,7 @@
                 <p class="mt-2 text-2xl font-bold text-emerald-700">Bs. {{ number_format($totalIncome, 2) }}</p>
             </div>
             <div class="bg-white rounded-lg shadow p-5 border-l-4 border-l-rose-500">
-                <p class="text-sm text-gray-500">Total Egresos (Gastos + Inversiones)</p>
+                <p class="text-sm text-gray-500">Total Egresos</p>
                 <p class="mt-2 text-2xl font-bold text-rose-700">Bs. {{ number_format($totalExpense, 2) }}</p>
             </div>
             <div class="bg-white rounded-lg shadow p-5 border-l-4 {{ $balance >= 0 ? 'border-l-indigo-500' : 'border-l-amber-500' }}">
@@ -43,11 +43,6 @@
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white rounded-lg shadow p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Composición de Egresos</h3>
-                <canvas id="expenseCompositionChart"></canvas>
-            </div>
-
             <div class="bg-white rounded-lg shadow p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Acumulado Anual</h3>
                 <canvas id="accumulatedChart"></canvas>
@@ -120,7 +115,7 @@
                     },
                     {
                         type: 'line',
-                        label: 'Egresos (Gastos + Inversiones)',
+                        label: 'Egresos',
                         data: chartData.expenseSeries,
                         borderColor: 'rgb(244, 63, 94)',
                         backgroundColor: 'rgba(244, 63, 94, 0.12)',
@@ -141,52 +136,6 @@
                 },
                 scales: {
                     y: moneyScale
-                }
-            }
-        });
-    }
-
-    // Composición de Egresos — barra horizontal apilada
-    const expCompCanvas = document.getElementById('expenseCompositionChart');
-    const hasCompData = (chartData.expenseComposition.values || []).some(v => v > 0);
-    if (!hasCompData) {
-        renderEmptyState(expCompCanvas, 'Sin datos de egresos para el período');
-    } else {
-        const compColors = ['rgba(244, 63, 94, 0.6)', 'rgba(251, 146, 60, 0.6)'];
-        const compBorders = ['rgb(244, 63, 94)', 'rgb(251, 146, 60)'];
-        new Chart(expCompCanvas, {
-            type: 'bar',
-            data: {
-                labels: ['Egresos'],
-                datasets: chartData.expenseComposition.labels.map((label, i) => ({
-                    label: label,
-                    data: [chartData.expenseComposition.values[i]],
-                    backgroundColor: compColors[i] ?? 'rgba(156, 163, 175, 0.6)',
-                    borderColor: compBorders[i] ?? 'rgb(156, 163, 175)',
-                    borderWidth: 1,
-                    borderRadius: 4
-                }))
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                aspectRatio: 2,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                        callbacks: {
-                            label: function(ctx) {
-                                return ctx.dataset.label + ': Bs. ' + Number(ctx.parsed.x).toLocaleString();
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: {
-                        stacked: true,
-                        ticks: { callback: function(value) { return bsTick(value); } }
-                    },
-                    y: { stacked: true }
                 }
             }
         });
