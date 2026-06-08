@@ -13,6 +13,7 @@ class ManagementIncome extends Model
         'item',
         'income_amount',
         'mes',
+        'dia',
         'gestion',
         'observation',
         'user_id',
@@ -20,7 +21,8 @@ class ManagementIncome extends Model
 
     protected $casts = [
         'income_amount' => 'decimal:2',
-        'mes' => 'integer',
+        'mes'     => 'integer',
+        'dia'     => 'integer',
         'gestion' => 'integer',
     ];
 

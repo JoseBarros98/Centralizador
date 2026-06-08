@@ -40,6 +40,7 @@ use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\ProfessionController;
 use App\Http\Controllers\PaymentRequestController;
 use App\Http\Controllers\ManagementIncomeController;
+use App\Http\Controllers\ManagementIncomeEntityController;
 use App\Http\Controllers\ManagementExpenseController;
 use App\Http\Controllers\ManagementExpenseEntityController;
 use App\Http\Controllers\ManagementInvestmentController;
@@ -427,11 +428,15 @@ Route::middleware('auth')->group(function () {
   Route::post('/program-allocation/import-previous-month', [ProgramAllocationController::class, 'importFromPreviousMonth'])->name('program-allocation.import-previous-month');
 
   // Rutas para ingresos por gestion
-  Route::get('management-incomes',        [ManagementIncomeController::class, 'index'])->name('management-incomes.index');
-  Route::get('management-incomes/items',  [ManagementIncomeController::class, 'getItemsForYear'])->name('management-incomes.items');
-  Route::post('management-incomes/cell',  [ManagementIncomeController::class, 'upsertCell'])->name('management-incomes.cell');
-  Route::patch('management-incomes/item', [ManagementIncomeController::class, 'renameItem'])->name('management-incomes.renameItem');
-  Route::delete('management-incomes/item',[ManagementIncomeController::class, 'destroyItem'])->name('management-incomes.destroyItem');
+  Route::get('management-incomes',                                    [ManagementIncomeController::class, 'index'])->name('management-incomes.index');
+  Route::get('management-incomes/items',                              [ManagementIncomeController::class, 'getItemsForYear'])->name('management-incomes.items');
+  Route::patch('management-incomes/item',                             [ManagementIncomeController::class, 'renameItem'])->name('management-incomes.renameItem');
+  Route::delete('management-incomes/item',                            [ManagementIncomeController::class, 'destroyItem'])->name('management-incomes.destroyItem');
+  Route::post('management-incomes/entity',                            [ManagementIncomeEntityController::class, 'store'])->name('management-incomes.entity.store');
+  Route::get('management-incomes/entity/{entity}/month-detail',       [ManagementIncomeEntityController::class, 'monthDetail'])->name('management-incomes.entity.monthDetail');
+  Route::patch('management-incomes/entity/{entity}',                  [ManagementIncomeEntityController::class, 'rename'])->name('management-incomes.entity.rename');
+  Route::delete('management-incomes/entity/{entity}',                 [ManagementIncomeEntityController::class, 'destroy'])->name('management-incomes.entity.destroy');
+  Route::post('management-incomes/entity-amount',                     [ManagementIncomeEntityController::class, 'upsertAmount'])->name('management-incomes.entity.upsertAmount');
 
   // Rutas para inversiones por gestion
   Route::get('management-investments',               [ManagementInvestmentController::class, 'index'])->name('management-investments.index');
