@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Inscription;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -10,7 +12,13 @@ class AcademicParticipantsController extends Controller
 
     public function index(Request $request)
     {
-        $search = $request->input('search', '');
+        $search  = $request->input('search', '');
+        $gestion = $request->input('gestion', '');
+
+        $availableYears = DB::table('programs')
+            ->distinct()
+            ->orderByDesc('year')
+            ->pluck('year');
 
         // Subquery: última asignación nominal por programa (gestion*100+mes más alto)
         $latestAssignment = DB::table('monthly_assignments as ma')
@@ -44,6 +52,9 @@ class AcademicParticipantsController extends Controller
                        ->orWhere('i.name', 'like', "%{$search}%")
                        ->orWhere('i.ci', 'like', "%{$search}%");
                 });
+            })
+            ->when($gestion, function ($q) use ($gestion) {
+                $q->where('p.year', $gestion);
             })
             ->select(
                 'i.id as inscription_id',
@@ -128,6 +139,25 @@ class AcademicParticipantsController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('academic.participants.index', compact('rows', 'search'));
+        return view('academic.participants.index', compact('rows', 'search', 'gestion', 'availableYears'));
+    }
+
+    public function getDocuments(Inscription $inscription): JsonResponse
+    {
+        $documents = $inscription->documents()
+            ->orderBy('created_at', 'desc')
+            ->get(['id', 'file_name', 'file_type', 'file_size', 'document_type', 'description', 'google_drive_link', 'created_at'])
+            ->map(fn($d) => [
+                'id'               => $d->id,
+                'file_name'        => $d->file_name,
+                'file_type'        => $d->file_type,
+                'file_size'        => $d->file_size,
+                'document_type'    => $d->document_type,
+                'description'      => $d->description,
+                'google_drive_link'=> $d->google_drive_link,
+                'created_at'       => $d->created_at?->format('d/m/Y H:i'),
+            ]);
+
+        return response()->json(['documents' => $documents]);
     }
 }

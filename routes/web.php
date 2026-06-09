@@ -86,6 +86,9 @@ Route::middleware('auth')->group(function () {
   Route::get('/academic/participants', [App\Http\Controllers\AcademicParticipantsController::class, 'index'])
       ->name('academic.participants.index')
       ->middleware('permission:participants.view');
+  Route::get('/academic/participants/{inscription}/documents', [App\Http\Controllers\AcademicParticipantsController::class, 'getDocuments'])
+      ->name('academic.participants.documents')
+      ->middleware('permission:participants.view');
 
   // Rutas para programas
   Route::resource('programs', ProgramController::class);

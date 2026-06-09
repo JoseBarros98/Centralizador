@@ -25,8 +25,19 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
 
     <div class="w-full sm:px-6 lg:px-8">
 
-        {{-- Filtro de búsqueda --}}
-        <form method="GET" action="{{ route('academic.participants.index') }}" class="flex items-center gap-2 mb-4">
+        {{-- Filtros --}}
+        <form method="GET" action="{{ route('academic.participants.index') }}" class="flex flex-wrap items-center gap-2 mb-4">
+            {{-- Gestión --}}
+            <select name="gestion"
+                    class="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors
+                           {{ $gestion ? 'border-indigo-400 bg-indigo-50 text-indigo-800 font-semibold' : 'border-gray-300 text-gray-700' }}">
+                <option value="">Todas las gestiones</option>
+                @foreach($availableYears as $year)
+                    <option value="{{ $year }}" @selected($gestion == $year)>{{ $year }}</option>
+                @endforeach
+            </select>
+
+            {{-- Búsqueda --}}
             <input
                 type="text"
                 name="search"
@@ -34,10 +45,12 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                 placeholder="Buscar por nombre o CI..."
                 class="px-4 py-2 border border-gray-300 rounded-md text-sm w-72 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
+
             <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition">
                 Buscar
             </button>
-            @if($search)
+
+            @if($search || $gestion)
                 <a href="{{ route('academic.participants.index') }}" class="px-4 py-2 bg-gray-500 text-white rounded-md text-sm hover:bg-gray-600 transition">
                     Limpiar
                 </a>
@@ -154,11 +167,31 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
 
                             {{-- Nombre completo --}}
                             <td class="sticky-col col-nombre px-3 py-3 whitespace-nowrap font-medium text-gray-900">
-                                @if($row->paternal_surname || $row->maternal_surname)
-                                    {{ trim(($row->paternal_surname ?? '') . ' ' . ($row->maternal_surname ?? '') . ', ' . ($row->name ?? '')) }}
-                                @else
-                                    {{ $row->full_name ?? '-' }}
-                                @endif
+                                @php
+                                    if ($row->paternal_surname || $row->maternal_surname) {
+                                        $displayName = trim(
+                                            ($row->paternal_surname ?? '') . ' ' .
+                                            ($row->maternal_surname ?? '') . ', ' .
+                                            ($row->name ?? '')
+                                        );
+                                    } else {
+                                        $raw = $row->full_name ?? '-';
+                                        $displayName = preg_replace('/([a-záéíóúüñ])([A-ZÁÉÍÓÚÜÑ])/u', '$1 $2', $raw);
+                                    }
+                                @endphp
+                                <div class="flex items-center gap-1.5">
+                                    <span>{{ $displayName }}</span>
+                                    <button type="button"
+                                            class="docs-btn flex-shrink-0 p-0.5 rounded text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                            data-inscription-id="{{ $row->inscription_id }}"
+                                            data-name="{{ $displayName }}"
+                                            title="Ver documentos">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </td>
 
                             {{-- CI / Ext --}}
@@ -260,13 +293,22 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                         data-inscription-id="{{ $row->inscription_id }}"
                                         data-requirement="{{ $dateF }}"
                                         value="{{ $row->{$dateF} ?? '' }}">
-                                    <input type="text"
-                                        class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                    <button type="button"
+                                        class="obs-btn w-full text-left rounded px-1.5 py-0.5 border transition-colors {{ $row->{$obsF} ? 'border-amber-300 bg-amber-50 hover:bg-amber-100' : 'border-dashed border-gray-200 hover:border-gray-400' }}"
                                         data-program-id="{{ $row->program_id }}"
                                         data-inscription-id="{{ $row->inscription_id }}"
                                         data-requirement="{{ $obsF }}"
-                                        value="{{ $row->{$obsF} ?? '' }}"
-                                        placeholder="Obs.">
+                                        data-value="{{ $row->{$obsF} ?? '' }}"
+                                        title="{{ $row->{$obsF} ?? 'Añadir observación' }}">
+                                        @if($row->{$obsF})
+                                            <span class="inline-flex items-center gap-1 max-w-full">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                                <span class="text-gray-600 text-xs truncate" style="max-width:4.5rem;">{{ $row->{$obsF} }}</span>
+                                            </span>
+                                        @else
+                                            <span class="text-gray-300 text-xs">+ obs</span>
+                                        @endif
+                                    </button>
                                     @else
                                         {{ $row->{$boolF} ? '✓' : '✗' }}
                                     @endcan
@@ -305,13 +347,22 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                             data-inscription-id="{{ $row->inscription_id }}"
                                             data-requirement="{{ $dateF }}"
                                             value="{{ $row->{$dateF} ?? '' }}">
-                                        <input type="text"
-                                            class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                        <button type="button"
+                                            class="obs-btn w-full text-left rounded px-1.5 py-0.5 border transition-colors {{ $row->{$obsF} ? 'border-amber-300 bg-amber-50 hover:bg-amber-100' : 'border-dashed border-gray-200 hover:border-gray-400' }}"
                                             data-program-id="{{ $row->program_id }}"
                                             data-inscription-id="{{ $row->inscription_id }}"
                                             data-requirement="{{ $obsF }}"
-                                            value="{{ $row->{$obsF} ?? '' }}"
-                                            placeholder="Obs.">
+                                            data-value="{{ $row->{$obsF} ?? '' }}"
+                                            title="{{ $row->{$obsF} ?? 'Añadir observación' }}">
+                                            @if($row->{$obsF})
+                                                <span class="inline-flex items-center gap-1 max-w-full">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                                    <span class="text-gray-600 text-xs truncate" style="max-width:4.5rem;">{{ $row->{$obsF} }}</span>
+                                                </span>
+                                            @else
+                                                <span class="text-gray-300 text-xs">+ obs</span>
+                                            @endif
+                                        </button>
                                         @else
                                             {{ $row->{$boolF} ? '✓' : '✗' }}
                                         @endcan
@@ -347,13 +398,22 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                             data-inscription-id="{{ $row->inscription_id }}"
                                             data-requirement="{{ $dateF }}"
                                             value="{{ $row->{$dateF} ?? '' }}">
-                                        <input type="text"
-                                            class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                        <button type="button"
+                                            class="obs-btn w-full text-left rounded px-1.5 py-0.5 border transition-colors {{ $row->{$obsF} ? 'border-amber-300 bg-amber-50 hover:bg-amber-100' : 'border-dashed border-gray-200 hover:border-gray-400' }}"
                                             data-program-id="{{ $row->program_id }}"
                                             data-inscription-id="{{ $row->inscription_id }}"
                                             data-requirement="{{ $obsF }}"
-                                            value="{{ $row->{$obsF} ?? '' }}"
-                                            placeholder="Obs.">
+                                            data-value="{{ $row->{$obsF} ?? '' }}"
+                                            title="{{ $row->{$obsF} ?? 'Añadir observación' }}">
+                                            @if($row->{$obsF})
+                                                <span class="inline-flex items-center gap-1 max-w-full">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                                    <span class="text-gray-600 text-xs truncate" style="max-width:4.5rem;">{{ $row->{$obsF} }}</span>
+                                                </span>
+                                            @else
+                                                <span class="text-gray-300 text-xs">+ obs</span>
+                                            @endif
+                                        </button>
                                         @else
                                             {{ ($row->{$boolF} ?? false) ? '✓' : '✗' }}
                                         @endcan
@@ -394,13 +454,22 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                                         data-inscription-id="{{ $row->inscription_id }}"
                                         data-requirement="{{ $dateF }}"
                                         value="{{ $row->{$dateF} ?? '' }}">
-                                    <input type="text"
-                                        class="req-obs-field w-full px-1 py-0.5 text-xs border border-gray-200 rounded"
+                                    <button type="button"
+                                        class="obs-btn w-full text-left rounded px-1.5 py-0.5 border transition-colors {{ $row->{$obsF} ? 'border-amber-300 bg-amber-50 hover:bg-amber-100' : 'border-dashed border-gray-200 hover:border-gray-400' }}"
                                         data-program-id="{{ $row->program_id }}"
                                         data-inscription-id="{{ $row->inscription_id }}"
                                         data-requirement="{{ $obsF }}"
-                                        value="{{ $row->{$obsF} ?? '' }}"
-                                        placeholder="Obs.">
+                                        data-value="{{ $row->{$obsF} ?? '' }}"
+                                        title="{{ $row->{$obsF} ?? 'Añadir observación' }}">
+                                        @if($row->{$obsF})
+                                            <span class="inline-flex items-center gap-1 max-w-full">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"></span>
+                                                <span class="text-gray-600 text-xs truncate" style="max-width:4.5rem;">{{ $row->{$obsF} }}</span>
+                                            </span>
+                                        @else
+                                            <span class="text-gray-300 text-xs">+ obs</span>
+                                        @endif
+                                    </button>
                                     @else
                                         {{ $row->{$boolF} ? '✓' : '✗' }}
                                     @endcan
@@ -423,7 +492,7 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
 
             {{-- Paginación --}}
             <div class="px-4 py-3 border-t border-gray-200">
-                {{ $rows->appends(['search' => $search])->links() }}
+                {{ $rows->appends(['search' => $search, 'gestion' => $gestion])->links() }}
             </div>
 
             @else
@@ -436,6 +505,58 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
         </div>
     </div>
 </x-app-layout>
+
+{{-- Modal de documentos --}}
+<div id="docs-modal" class="hidden fixed inset-0 z-50 p-4"
+     style="background:rgba(0,0,0,0.5);">
+    <div class="flex items-center justify-center w-full h-full">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col">
+        {{-- Header --}}
+        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div>
+                <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Documentos del participante</p>
+                <h3 id="docs-modal-name" class="text-base font-bold text-gray-900 mt-0.5"></h3>
+            </div>
+            <button id="docs-modal-close"
+                    class="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        {{-- Body --}}
+        <div id="docs-modal-body" class="flex-1 overflow-y-auto px-5 py-4">
+        </div>
+    </div>
+    </div>
+</div>
+
+{{-- Popover flotante de observaciones --}}
+<div id="obs-popover"
+     style="display:none;position:fixed;z-index:9999;width:260px;background:#fff;border:1px solid #d1d5db;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,0.18);padding:0.75rem;">
+    <p style="font-size:0.65rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.4rem;">Observación</p>
+    <textarea id="obs-textarea" rows="4"
+              placeholder="Escribe una observación…"
+              style="width:100%;resize:vertical;border:1px solid #d1d5db;border-radius:6px;font-size:0.75rem;padding:0.4rem 0.5rem;outline:none;font-family:inherit;line-height:1.5;"
+              onfocus="this.style.borderColor='#6366f1';this.style.boxShadow='0 0 0 2px rgba(99,102,241,0.15)'"
+              onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'"></textarea>
+    <p style="font-size:0.65rem;color:#9ca3af;margin:0.3rem 0 0.5rem;">
+        <kbd style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:3px;padding:1px 4px;">Ctrl+Enter</kbd> para guardar &middot;
+        <kbd style="background:#f3f4f6;border:1px solid #e5e7eb;border-radius:3px;padding:1px 4px;">Esc</kbd> para cancelar
+    </p>
+    <div style="display:flex;gap:0.4rem;">
+        <button id="obs-save-btn"
+                style="flex:1;padding:0.35rem 0;background:#4f46e5;color:#fff;border:none;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;"
+                onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">
+            Guardar
+        </button>
+        <button id="obs-cancel-btn"
+                style="flex:1;padding:0.35rem 0;background:#f3f4f6;color:#374151;border:none;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;"
+                onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='#f3f4f6'">
+            Cancelar
+        </button>
+    </div>
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -513,13 +634,234 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Campos de observación de requisito
-    document.querySelectorAll('.req-obs-field').forEach(input => {
-        input.addEventListener('blur', function () {
-            saveRequirement(this.dataset.programId, this.dataset.inscriptionId, this.dataset.requirement, this.value)
-                .then(data => flash(this, data.success))
-                .catch(() => flash(this, false));
+    // ── Popover de observaciones ──────────────────────────────────────
+    const popover   = document.getElementById('obs-popover');
+    const popTA     = document.getElementById('obs-textarea');
+    const popSave   = document.getElementById('obs-save-btn');
+    const popCancel = document.getElementById('obs-cancel-btn');
+    let   activeBtn = null;
+
+    function openObsPopover(btn) {
+        activeBtn = btn;
+        popTA.value = btn.dataset.value ?? '';
+
+        // Posición viewport-relative (position:fixed — NO usar scrollY)
+        const rect      = btn.getBoundingClientRect();
+        const popW      = 260;
+        const popH      = 230; // altura estimada del popover
+        const margin    = 8;
+
+        // Horizontal: alinear con el botón, nunca salir de pantalla
+        let left = rect.left;
+        if (left + popW > window.innerWidth - margin) left = window.innerWidth - popW - margin;
+        if (left < margin) left = margin;
+
+        popover.style.display = 'block';
+        popover.style.left    = left + 'px';
+
+        // Vertical: preferir abajo; si no cabe, abrir arriba
+        const spaceBelow = window.innerHeight - rect.bottom - margin;
+        const spaceAbove = rect.top - margin;
+
+        if (spaceBelow >= popH || spaceBelow >= spaceAbove) {
+            popover.style.top    = (rect.bottom + 4) + 'px';
+            popover.style.bottom = 'auto';
+        } else {
+            popover.style.top    = 'auto';
+            popover.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+        }
+
+        popTA.focus();
+    }
+
+    function closeObsPopover() {
+        popover.style.display = 'none';
+        activeBtn = null;
+    }
+
+    function saveObs() {
+        if (!activeBtn) return;
+        const value = popTA.value.trim();
+        saveRequirement(
+            activeBtn.dataset.programId,
+            activeBtn.dataset.inscriptionId,
+            activeBtn.dataset.requirement,
+            value
+        ).then(data => {
+            if (data.success) {
+                activeBtn.dataset.value = value;
+                // Actualizar visual del botón
+                if (value) {
+                    activeBtn.className = activeBtn.className
+                        .replace('border-dashed border-gray-200 hover:border-gray-400', '')
+                        .replace('border-amber-300 bg-amber-50 hover:bg-amber-100', '');
+                    activeBtn.className += ' border-amber-300 bg-amber-50 hover:bg-amber-100';
+                    activeBtn.title = value;
+                    activeBtn.innerHTML = `<span class="inline-flex items-center gap-1 max-w-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0"></span>
+                        <span class="text-gray-600 text-xs truncate" style="max-width:4.5rem;">${value}</span>
+                    </span>`;
+                } else {
+                    activeBtn.className = activeBtn.className
+                        .replace('border-amber-300 bg-amber-50 hover:bg-amber-100', '')
+                        .replace('border-dashed border-gray-200 hover:border-gray-400', '');
+                    activeBtn.className += ' border-dashed border-gray-200 hover:border-gray-400';
+                    activeBtn.title = 'Añadir observación';
+                    activeBtn.innerHTML = '<span class="text-gray-300 text-xs">+ obs</span>';
+                }
+                closeObsPopover();
+            }
+        }).catch(() => {});
+    }
+
+    document.querySelectorAll('.obs-btn').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (popover.style.display === 'block' && activeBtn === btn) {
+                closeObsPopover();
+            } else {
+                openObsPopover(btn);
+            }
         });
+    });
+
+    popSave.addEventListener('click', saveObs);
+    popCancel.addEventListener('click', closeObsPopover);
+
+    popTA.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveObs(); }
+        if (e.key === 'Escape') { closeObsPopover(); }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (popover.style.display === 'block' && !popover.contains(e.target)) {
+            closeObsPopover();
+        }
+    });
+
+    // ── Modal de documentos ───────────────────────────────────────────
+    const docsModal     = document.getElementById('docs-modal');
+    const docsModalName = document.getElementById('docs-modal-name');
+    const docsModalBody = document.getElementById('docs-modal-body');
+    const docsModalClose = document.getElementById('docs-modal-close');
+
+    const docTypeLabels = {
+        ci:                    'Cédula de Identidad',
+        titulo:                'Título Académico',
+        diploma:               'Diploma Académico',
+        nacimiento:            'Certificado de Nacimiento',
+        documentacion_completa:'Documentación Completa',
+        compromiso:            'Carta de Compromiso',
+        congelamiento:         'Carta de Congelamiento',
+        recibo:                'Recibo',
+        factura:               'Factura',
+        comprobante_pago:      'Comprobante de Pago',
+    };
+
+    const docTypeIcons = {
+        ci:                     '🪪',
+        titulo:                 '🎓',
+        diploma:                '📜',
+        nacimiento:             '📋',
+        documentacion_completa: '📁',
+        compromiso:             '✍️',
+        congelamiento:          '❄️',
+        recibo:                 '🧾',
+        factura:                '🧾',
+        comprobante_pago:       '💳',
+    };
+
+    function fmtSize(bytes) {
+        if (!bytes) return '';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(0) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function openDocsModal(inscriptionId, name) {
+        docsModalName.textContent = name;
+        docsModalBody.innerHTML = '<div class="flex justify-center py-10"><svg class="w-8 h-8 text-indigo-400 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 22 6.477 22 12h-4z"/></svg></div>';
+        docsModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        fetch(`/academic/participants/${inscriptionId}/documents`, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': csrfToken }
+        })
+        .then(r => r.json())
+        .then(data => {
+            const docs = data.documents ?? [];
+            if (!docs.length) {
+                docsModalBody.innerHTML = '<div class="text-center py-10 text-gray-400"><svg class="w-10 h-10 mx-auto mb-2 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg><p class="text-sm">Sin documentos subidos</p></div>';
+                return;
+            }
+
+            // Agrupar por tipo
+            const groups = {};
+            docs.forEach(d => {
+                const type = d.document_type ?? 'otro';
+                if (!groups[type]) groups[type] = [];
+                groups[type].push(d);
+            });
+
+            let html = '';
+            for (const [type, items] of Object.entries(groups)) {
+                const label = docTypeLabels[type] ?? type;
+                const icon  = docTypeIcons[type]  ?? '📄';
+                html += `<div class="mb-4">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">${icon} ${label}</p>
+                    <div class="space-y-2">`;
+                items.forEach(d => {
+                    const ext = (d.file_name ?? '').split('.').pop().toUpperCase();
+                    const size = fmtSize(d.file_size);
+                    const isImage = ['jpg','jpeg','png','gif','webp'].includes(ext.toLowerCase());
+                    const isPdf   = ext === 'PDF';
+                    html += `<div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-indigo-200 transition-colors">
+                        <div class="flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold
+                            ${isPdf ? 'bg-red-100 text-red-600' : isImage ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}">
+                            ${ext}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium text-gray-800 truncate">${d.file_name ?? '—'}</p>
+                            <p class="text-xs text-gray-400">${size ? size + ' · ' : ''}${d.created_at ?? ''}</p>
+                            ${d.description ? `<p class="text-xs text-gray-500 mt-0.5">${d.description}</p>` : ''}
+                        </div>
+                        ${d.google_drive_link ? `
+                        <a href="${d.google_drive_link}" target="_blank" rel="noopener"
+                           class="flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-md hover:bg-indigo-700 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            Ver
+                        </a>` : ''}
+                    </div>`;
+                });
+                html += '</div></div>';
+            }
+            docsModalBody.innerHTML = html;
+        })
+        .catch(() => {
+            docsModalBody.innerHTML = '<p class="text-center text-sm text-red-500 py-8">Error al cargar los documentos.</p>';
+        });
+    }
+
+    function closeDocsModal() {
+        docsModal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('.docs-btn').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            openDocsModal(this.dataset.inscriptionId, this.dataset.name);
+        });
+    });
+
+    docsModalClose.addEventListener('click', closeDocsModal);
+    docsModal.addEventListener('click', function (e) {
+        if (e.target === docsModal) closeDocsModal();
+    });
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeDocsModal();
     });
 
     // Select de estado participante
