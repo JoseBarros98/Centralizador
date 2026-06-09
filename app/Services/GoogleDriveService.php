@@ -258,16 +258,14 @@ class GoogleDriveService
     }
     
     /**
-     * Crear estructura jerárquica de carpetas
-     * Estructura: Categoría Principal -> Secundaria -> Terciaria -> Cuaternaria (opcional)
-     * Soporta 2, 3 o 4 niveles
+     * Crear estructura jerárquica de carpetas a partir de un array de nombres.
+     * Cada nombre se anida dentro del anterior, partiendo de la carpeta base configurada.
      */
-    public function createHierarchicalFolder($mainCategory, $secondaryFolder, $tertiaryFolder = null, $quaternaryFolder = null)
+    public function createHierarchicalFolder(...$levels)
     {
         try {
             $baseFolderId = config('services.google.drive_folder_id');
-            
-            // Verificar si el folder base existe, si no, usar null (raíz)
+
             if ($baseFolderId) {
                 try {
                     $this->service->files->get($baseFolderId);
@@ -279,39 +277,22 @@ class GoogleDriveService
                     $baseFolderId = null;
                 }
             }
-            
-            // Paso 1: Crear o encontrar la carpeta principal (ej: "Solicitudes de Arte")
-            $mainFolderId = $this->findOrCreateFolder($mainCategory, $baseFolderId);
-            
-            // Paso 2: Crear o encontrar la carpeta secundaria dentro de la principal
-            $secondaryFolderId = $this->findOrCreateFolder($secondaryFolder, $mainFolderId);
-            
-            // Paso 3: Si hay carpeta terciaria, crearla dentro de la secundaria
-            $tertiaryFolderId = $secondaryFolderId;
-            if ($tertiaryFolder) {
-                $tertiaryFolderId = $this->findOrCreateFolder($tertiaryFolder, $secondaryFolderId);
+
+            $currentParentId = $baseFolderId;
+            foreach ($levels as $level) {
+                if ($level !== null && $level !== '') {
+                    $currentParentId = $this->findOrCreateFolder($level, $currentParentId);
+                }
             }
-            
-            // Paso 4: Si hay carpeta cuaternaria, crearla dentro de la terciaria
-            $finalFolderId = $tertiaryFolderId;
-            if ($quaternaryFolder) {
-                $finalFolderId = $this->findOrCreateFolder($quaternaryFolder, $tertiaryFolderId);
-            }
-            
+
             Log::info('Estructura jerárquica creada', [
-                'main_category' => $mainCategory,
-                'secondary_folder' => $secondaryFolder,
-                'tertiary_folder' => $tertiaryFolder,
-                'quaternary_folder' => $quaternaryFolder,
-                'main_folder_id' => $mainFolderId,
-                'secondary_folder_id' => $secondaryFolderId,
-                'tertiary_folder_id' => $tertiaryFolderId,
-                'final_folder_id' => $finalFolderId,
+                'levels' => $levels,
+                'final_folder_id' => $currentParentId,
                 'base_folder_id' => $baseFolderId
             ]);
-            
-            return $finalFolderId;
-            
+
+            return $currentParentId;
+
         } catch (\Exception $e) {
             Log::error('Error creando estructura jerárquica: ' . $e->getMessage());
             throw $e;

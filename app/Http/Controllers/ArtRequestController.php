@@ -223,11 +223,16 @@ class ArtRequestController extends Controller
                 
                 // Subir a Google Drive
                 $googleDriveService = new GoogleDriveService();
-                $designerName = $artRequest->designer ? $artRequest->designer->name : 'Sin Asignar';
+                $designerName  = $artRequest->designer  ? $artRequest->designer->name  : 'Sin Asignar';
                 $requesterName = $artRequest->requester ? $artRequest->requester->name : 'Desconocido';
+                $requestDate   = $artRequest->request_date ?? now();
+                $monthFolder   = \Carbon\Carbon::parse($requestDate)->locale('es')->isoFormat('MMMM YYYY');
+                $dateFolder    = \Carbon\Carbon::parse($requestDate)->format('d-m-Y');
                 $folderId = $googleDriveService->createHierarchicalFolder(
                     'Solicitudes de Arte',
                     $designerName,
+                    $monthFolder,
+                    $dateFolder,
                     $requesterName,
                     $artRequest->title
                 );
@@ -391,12 +396,17 @@ class ArtRequestController extends Controller
             // Subir a Google Drive
             $googleDriveService = new GoogleDriveService();
             
-            // Crear estructura jerárquica: "Solicitudes de Arte" -> Diseñador -> Solicitante -> Título
-            $designerName = $artRequest->designer ? $artRequest->designer->name : 'Sin Asignar';
+            // Crear estructura jerárquica: Solicitudes de Arte -> Diseñador -> Mes -> Fecha -> Solicitante -> Título
+            $designerName  = $artRequest->designer  ? $artRequest->designer->name  : 'Sin Asignar';
             $requesterName = $artRequest->requester ? $artRequest->requester->name : 'Desconocido';
+            $requestDate   = $artRequest->request_date ?? now();
+            $monthFolder   = \Carbon\Carbon::parse($requestDate)->locale('es')->isoFormat('MMMM YYYY');
+            $dateFolder    = \Carbon\Carbon::parse($requestDate)->format('d-m-Y');
             $folderId = $googleDriveService->createHierarchicalFolder(
                 'Solicitudes de Arte',
                 $designerName,
+                $monthFolder,
+                $dateFolder,
                 $requesterName,
                 $artRequest->title
             );
