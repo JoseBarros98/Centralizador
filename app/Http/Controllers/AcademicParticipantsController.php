@@ -14,11 +14,18 @@ class AcademicParticipantsController extends Controller
     {
         $search  = $request->input('search', '');
         $gestion = $request->input('gestion', '');
+        $program = $request->input('program', '');
 
         $availableYears = DB::table('programs')
             ->distinct()
             ->orderByDesc('year')
             ->pluck('year');
+
+        $availablePrograms = DB::table('programs')
+            ->select('id', 'name', 'code', 'year')
+            ->when($gestion, fn($q) => $q->where('year', $gestion))
+            ->orderBy('name')
+            ->get();
 
         // Subquery: última asignación nominal por programa (gestion*100+mes más alto)
         $latestAssignment = DB::table('monthly_assignments as ma')
@@ -55,6 +62,9 @@ class AcademicParticipantsController extends Controller
             })
             ->when($gestion, function ($q) use ($gestion) {
                 $q->where('p.year', $gestion);
+            })
+            ->when($program, function ($q) use ($program) {
+                $q->where('p.id', $program);
             })
             ->select(
                 'i.id as inscription_id',
@@ -139,7 +149,7 @@ class AcademicParticipantsController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        return view('academic.participants.index', compact('rows', 'search', 'gestion', 'availableYears'));
+        return view('academic.participants.index', compact('rows', 'search', 'gestion', 'program', 'availableYears', 'availablePrograms'));
     }
 
     public function getDocuments(Inscription $inscription): JsonResponse

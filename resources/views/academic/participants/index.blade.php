@@ -26,9 +26,10 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
     <div class="w-full sm:px-6 lg:px-8">
 
         {{-- Filtros --}}
-        <form method="GET" action="{{ route('academic.participants.index') }}" class="flex flex-wrap items-center gap-2 mb-4">
+        <form method="GET" action="{{ route('academic.participants.index') }}" class="flex flex-wrap items-center gap-2 mb-4" id="participants-filter-form">
+
             {{-- Gestión --}}
-            <select name="gestion"
+            <select name="gestion" id="filter-gestion"
                     class="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors
                            {{ $gestion ? 'border-indigo-400 bg-indigo-50 text-indigo-800 font-semibold' : 'border-gray-300 text-gray-700' }}">
                 <option value="">Todas las gestiones</option>
@@ -37,25 +38,134 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
                 @endforeach
             </select>
 
+            {{-- Programa (combobox JS puro) --}}
+            <input type="hidden" name="program" id="filter-program-id" value="{{ $program }}">
+            <div class="flex items-center border rounded-md text-sm transition-colors overflow-hidden {{ $program ? 'border-indigo-400 bg-indigo-50' : 'border-gray-300 bg-white' }}" id="filter-program-wrap">
+                <input type="text"
+                       id="filter-program-input"
+                       value="{{ $program ? ($availablePrograms->firstWhere('id', $program)?->name ?? '') : '' }}"
+                       placeholder="Buscar programa..."
+                       class="px-3 py-2 text-sm bg-transparent focus:outline-none w-56 {{ $program ? 'text-indigo-800 font-semibold' : 'text-gray-700' }}"
+                       autocomplete="off">
+                <button type="button" id="filter-program-clear"
+                        class="px-2 text-indigo-400 hover:text-indigo-600 {{ $program ? '' : 'hidden' }}">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
             {{-- Búsqueda --}}
-            <input
-                type="text"
-                name="search"
-                value="{{ $search }}"
-                placeholder="Buscar por nombre o CI..."
-                class="px-4 py-2 border border-gray-300 rounded-md text-sm w-72 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
+            <input type="text" name="search" value="{{ $search }}"
+                   placeholder="Buscar por nombre o CI..."
+                   class="px-4 py-2 border border-gray-300 rounded-md text-sm w-56 focus:outline-none focus:ring-2 focus:ring-indigo-500">
 
             <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm hover:bg-indigo-700 transition">
                 Buscar
             </button>
 
-            @if($search || $gestion)
+            @if($search || $gestion || $program)
                 <a href="{{ route('academic.participants.index') }}" class="px-4 py-2 bg-gray-500 text-white rounded-md text-sm hover:bg-gray-600 transition">
                     Limpiar
                 </a>
             @endif
         </form>
+
+        {{-- Dropdown de programas (renderizado en body por JS) --}}
+        <ul id="program-combobox-list"
+            style="display:none;position:fixed;z-index:9999;width:320px;max-height:240px;overflow-y:auto;background:#fff;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 4px 16px rgba(0,0,0,0.12);font-size:0.875rem;"></ul>
+
+        <script>
+        (function () {
+            const allPrograms = @json($availablePrograms);
+
+            const gestionSel  = document.getElementById('filter-gestion');
+            const input       = document.getElementById('filter-program-input');
+            const hiddenId    = document.getElementById('filter-program-id');
+            const clearBtn    = document.getElementById('filter-program-clear');
+            const wrap        = document.getElementById('filter-program-wrap');
+            const list        = document.getElementById('program-combobox-list');
+
+            // Mover la lista al body para evitar cualquier clipping
+            document.body.appendChild(list);
+
+            function getPrograms() {
+                const g = gestionSel.value;
+                return g ? allPrograms.filter(p => String(p.year) === String(g)) : allPrograms;
+            }
+
+            function renderList(query) {
+                const q = query.toLowerCase().trim();
+                const items = getPrograms().filter(p => !q || p.name.toLowerCase().includes(q));
+                list.innerHTML = '';
+                if (!items.length) {
+                    list.innerHTML = '<li style="padding:8px 12px;color:#9ca3af;font-style:italic;">Sin resultados</li>';
+                } else {
+                    items.forEach(p => {
+                        const li = document.createElement('li');
+                        li.textContent = p.name;
+                        li.style.cssText = 'padding:8px 12px;cursor:pointer;color:#374151;';
+                        if (String(p.id) === hiddenId.value) {
+                            li.style.background = '#eef2ff';
+                            li.style.color = '#3730a3';
+                            li.style.fontWeight = '600';
+                        }
+                        li.addEventListener('mouseover', () => li.style.background = '#eef2ff');
+                        li.addEventListener('mouseout',  () => {
+                            li.style.background = String(p.id) === hiddenId.value ? '#eef2ff' : '';
+                        });
+                        li.addEventListener('mousedown', e => {
+                            e.preventDefault();
+                            selectProgram(p);
+                        });
+                        list.appendChild(li);
+                    });
+                }
+            }
+
+            function openList() {
+                const rect = input.getBoundingClientRect();
+                list.style.top  = (rect.bottom + 4) + 'px';
+                list.style.left = rect.left + 'px';
+                list.style.display = 'block';
+                renderList(input.value);
+            }
+
+            function closeList() {
+                list.style.display = 'none';
+            }
+
+            function selectProgram(p) {
+                hiddenId.value = p.id;
+                input.value    = p.name;
+                input.classList.remove('text-gray-700');
+                input.classList.add('text-indigo-800', 'font-semibold');
+                wrap.classList.remove('border-gray-300', 'bg-white');
+                wrap.classList.add('border-indigo-400', 'bg-indigo-50');
+                clearBtn.classList.remove('hidden');
+                closeList();
+            }
+
+            function clearProgram() {
+                hiddenId.value = '';
+                input.value    = '';
+                input.classList.remove('text-indigo-800', 'font-semibold');
+                input.classList.add('text-gray-700');
+                wrap.classList.remove('border-indigo-400', 'bg-indigo-50');
+                wrap.classList.add('border-gray-300', 'bg-white');
+                clearBtn.classList.add('hidden');
+                closeList();
+            }
+
+            input.addEventListener('focus', openList);
+            input.addEventListener('input', openList);
+            clearBtn.addEventListener('click', clearProgram);
+            gestionSel.addEventListener('change', () => { clearProgram(); });
+            document.addEventListener('click', e => {
+                if (!wrap.contains(e.target) && !list.contains(e.target)) closeList();
+            });
+        })();
+        </script>
 
         {{-- Tabla --}}
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
