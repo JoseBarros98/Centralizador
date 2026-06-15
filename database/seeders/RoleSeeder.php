@@ -25,6 +25,7 @@ class RoleSeeder extends Seeder
             'dashboard.marketing', 'dashboard.academic', 'dashboard.accounting', 'dashboard.design',
 
             'inscription.view', 'inscription.view_own', 'inscription.create', 'inscription.edit', 'inscription.edit_own', 'inscription.delete', 'inscription.delete_own',
+            'inscription.verify',
             'inscriptions.sync',
 
             'content.view', 'content.view_own', 'content.create', 'content.edit', 'content.edit_own', 'content.delete', 'content.delete_own', 'content.toggle_active', 'content.manage_files',
@@ -124,6 +125,7 @@ class RoleSeeder extends Seeder
         // Accountant
         $accountantRole->syncPermissions([
             'dashboard.accounting',
+            'inscription.view', 'inscription.verify',
             'program.view',
             'program.request_teacher_payments',
             'payment_request.view', 'payment_request.create', 'payment_request.edit', 'payment_request.delete',

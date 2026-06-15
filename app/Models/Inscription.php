@@ -100,6 +100,10 @@ class Inscription extends Model
         'external_accounting_tuition',
         'external_accounting_degrees',
 
+        //Verificación y recibo
+        'is_verified',
+        'receipt_number',
+
         //Accesos
         'was_added_to_the_group',
         'accesses_were_sent',

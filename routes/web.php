@@ -139,6 +139,7 @@ Route::middleware('auth')->group(function () {
   Route::delete('/inscriptions/{inscription}/payment-history/{history}', [InscriptionController::class, 'destroyPaymentHistory'])->name('inscriptions.payment-history.destroy');
 
   // Rutas para actualizar documentos de inscripciones
+  Route::patch('/inscriptions/{inscription}/verify', [InscriptionController::class, 'updateVerified'])->name('inscriptions.updateVerified');
   Route::patch('/inscriptions/{inscription}/documents', [InscriptionController::class, 'updateDocuments'])->name('inscriptions.update-documents');
   Route::patch('/inscriptions/{inscription}/access', [InscriptionController::class, 'updateAccess'])->name('inscriptions.updateAccess');
   Route::patch('/inscriptions/{inscription}/academic-status', [InscriptionController::class, 'updateAcademicStatus'])->name('inscriptions.updateAcademicStatus');

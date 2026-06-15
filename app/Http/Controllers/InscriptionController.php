@@ -49,6 +49,7 @@ class InscriptionController extends Controller
 
             return $next($request);
         })->only(['edit', 'update', 'updatePaymentHistory', 'destroyPaymentHistory', 'updateDocuments', 'uploadCommitmentLetter', 'deleteCommitmentLetter', 'updateDocumentObservations']);
+        $this->middleware(['permission:inscription.verify'])->only(['updateVerified']);
         $this->middleware(['permission:inscription.delete'])->only(['destroy']);
     }
 
@@ -793,8 +794,9 @@ class InscriptionController extends Controller
             'document_descriptions' => 'nullable|array',
             'document_descriptions.*' => 'nullable|string|max:255',
             'gender' => 'required|in:Masculino,Femenino',
+            'receipt_number' => 'nullable|string|max:255',
         ]);
-        
+
         // CAPTURAR EL ESTADO DE PAGO ANTES de cualquier conversión o modificación
         $oldPaymentStatus = $inscription->local_payment_status ?? 'Pendiente';
         $newPaymentStatusFromForm = $validated['local_payment_status'] ?? null;
@@ -1114,6 +1116,23 @@ class InscriptionController extends Controller
             return redirect()->back()
                 ->withErrors(['error' => 'Error al eliminar la inscripción: ' . $e->getMessage()]);
         }
+    }
+
+    public function updateVerified(Request $request, Inscription $inscription)
+    {
+        $validated = $request->validate([
+            'is_verified' => 'nullable|string|max:255',
+        ]);
+
+        $inscription->is_verified = $validated['is_verified'] ?? null;
+        $inscription->updated_by = Auth::id();
+        $inscription->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Campo verificado actualizado correctamente',
+            'is_verified' => $inscription->is_verified,
+        ]);
     }
 
     public function updateDocuments(Request $request, Inscription $inscription)

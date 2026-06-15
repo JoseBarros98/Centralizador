@@ -365,6 +365,11 @@
                                     <x-input id="balance_to_pay" class="block mt-1 w-full bg-gray-100" type="number" step="0.01" readonly :value="old('balance_to_pay', ($inscription->enrollment_fee + $inscription->first_installment) - $inscription->total_paid)" />
                                     <p class="text-xs text-gray-500 mt-1">Campo calculado (Total por pagar - Total Pagado)</p>
                                 </div>
+                                <div>
+                                    <x-label for="receipt_number" :value="__('N° de Factura / Recibo')" />
+                                    <x-input id="receipt_number" class="block mt-1 w-full" type="text" name="receipt_number" :value="old('receipt_number', $inscription->receipt_number)" placeholder="Ej. FAC-001, REC-2024-00123" />
+                                    @error('receipt_number')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                                </div>
                             </div>
                         </div>
 

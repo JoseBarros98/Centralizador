@@ -169,6 +169,8 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado Inscripción</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Total Pagado</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">N° Recibo</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Verificado</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100">
@@ -260,8 +262,30 @@
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ number_format($inscription->display_total_paid, 2) }} Bs</td>
-                                        
-                                        
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->receipt_number ?? '—' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm {{ $currentUser->hasPermissionTo('inscription.verify') ? 'verified-cell cursor-pointer' : '' }}"
+                                            data-inscription="{{ $inscription->id }}"
+                                            data-original="{{ $inscription->is_verified ?? '' }}">
+                                            @if($currentUser->hasPermissionTo('inscription.verify'))
+                                                <span class="verified-display">
+                                                    @if($inscription->is_verified)
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ $inscription->is_verified }}</span>
+                                                    @else
+                                                        <span class="text-gray-400 text-xs">—</span>
+                                                    @endif
+                                                </span>
+                                                <input
+                                                    type="text"
+                                                    class="verified-inline-input hidden rounded border-gray-300 text-xs focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-32"
+                                                    value="{{ $inscription->is_verified ?? '' }}"
+                                                    placeholder="Ingrese valor..."
+                                                >
+                                            @elseif($inscription->is_verified)
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ $inscription->is_verified }}</span>
+                                            @else
+                                                <span class="text-gray-400 text-xs">—</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
@@ -279,4 +303,88 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        function showNotification(type, message) {
+            const el = document.createElement('div');
+            el.className = `fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        function renderBadge(display, value) {
+            if (value) {
+                display.innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">${value}</span>`;
+            } else {
+                display.innerHTML = `<span class="text-gray-400 text-xs">—</span>`;
+            }
+        }
+
+        document.querySelectorAll('.verified-cell').forEach(cell => {
+            const display = cell.querySelector('.verified-display');
+            const input = cell.querySelector('.verified-inline-input');
+
+            cell.addEventListener('click', function(e) {
+                if (!input.classList.contains('hidden')) return;
+                display.classList.add('hidden');
+                input.classList.remove('hidden');
+                input.focus();
+                input.select();
+            });
+
+            input.addEventListener('blur', function() {
+                const inscriptionId = cell.dataset.inscription;
+                const value = this.value.trim();
+                const original = cell.dataset.original;
+
+                if (value === original) {
+                    input.classList.add('hidden');
+                    display.classList.remove('hidden');
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('is_verified', value);
+                formData.append('_method', 'PATCH');
+
+                fetch(`/inscriptions/${inscriptionId}/verify`, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        cell.dataset.original = value;
+                        renderBadge(display, value);
+                        showNotification('success', 'Verificado actualizado');
+                    } else {
+                        this.value = original;
+                        showNotification('error', data.message || 'Error al actualizar');
+                    }
+                    input.classList.add('hidden');
+                    display.classList.remove('hidden');
+                })
+                .catch(() => {
+                    this.value = original;
+                    input.classList.add('hidden');
+                    display.classList.remove('hidden');
+                    showNotification('error', 'Error de conexión');
+                });
+            });
+
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
+                if (e.key === 'Escape') {
+                    this.value = cell.dataset.original;
+                    this.blur();
+                }
+            });
+
+            input.addEventListener('click', e => e.stopPropagation());
+        });
+    </script>
 </x-app-layout>

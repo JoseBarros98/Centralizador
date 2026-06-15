@@ -239,6 +239,30 @@
                                     {{ number_format(($inscription->first_installment + $inscription->enrollment_fee) - $inscription->total_paid, 2) }} Bs
                                 </dd>
                             </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">N° de Factura / Recibo</dt>
+                                <dd class="mt-1 text-sm text-gray-900">{{ $inscription->receipt_number ?? '—' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-sm font-medium text-gray-500">Verificado</dt>
+                                <dd class="mt-1 text-sm text-gray-900">
+                                    @if(auth()->user()->hasPermissionTo('inscription.verify'))
+                                        <input
+                                            type="text"
+                                            id="verified-input"
+                                            class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm w-full"
+                                            value="{{ $inscription->is_verified ?? '' }}"
+                                            placeholder="Ingrese valor de verificación"
+                                            data-inscription="{{ $inscription->id }}"
+                                        >
+                                        <p class="text-xs text-gray-400 mt-1">Presione Enter o haga clic fuera para guardar</p>
+                                    @else
+                                        <span class="{{ $inscription->is_verified ? 'text-gray-900' : 'text-gray-400' }}">
+                                            {{ $inscription->is_verified ?? '—' }}
+                                        </span>
+                                    @endif
+                                </dd>
+                            </div>
                         </dl>
                     </div>
 
@@ -815,6 +839,54 @@
             });
 
             updateRemoveButtons();
+
+            // Input inline para "Verificado"
+            const verifiedInput = document.getElementById('verified-input');
+            if (verifiedInput) {
+                let lastSavedValue = verifiedInput.value;
+
+                function saveVerified() {
+                    const inscriptionId = verifiedInput.dataset.inscription;
+                    const value = verifiedInput.value;
+                    if (value === lastSavedValue) return;
+                    showLoading();
+                    const formData = new FormData();
+                    formData.append('is_verified', value);
+                    formData.append('_method', 'PATCH');
+                    fetch(`/inscriptions/${inscriptionId}/verify`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        hideLoading();
+                        if (data.success) {
+                            lastSavedValue = value;
+                            showNotification('success', data.message);
+                        } else {
+                            verifiedInput.value = lastSavedValue;
+                            showNotification('error', data.message || 'Error al actualizar');
+                        }
+                    })
+                    .catch(() => {
+                        hideLoading();
+                        verifiedInput.value = lastSavedValue;
+                        showNotification('error', 'Error de conexión');
+                    });
+                }
+
+                verifiedInput.addEventListener('blur', saveVerified);
+                verifiedInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.blur();
+                    }
+                });
+            }
         });
     </script>
 </x-app-layout>
