@@ -1121,17 +1121,20 @@ class InscriptionController extends Controller
     public function updateVerified(Request $request, Inscription $inscription)
     {
         $validated = $request->validate([
-            'is_verified' => 'nullable|string|max:255',
+            'is_verified'    => 'nullable|string|max:255',
+            'verified_color' => 'nullable|in:green,red,yellow,blue,gray',
         ]);
 
-        $inscription->is_verified = $validated['is_verified'] ?? null;
-        $inscription->updated_by = Auth::id();
+        $inscription->is_verified    = $validated['is_verified'] ?? null;
+        $inscription->verified_color = $validated['verified_color'] ?? 'green';
+        $inscription->updated_by     = Auth::id();
         $inscription->save();
 
         return response()->json([
-            'success' => true,
-            'message' => 'Campo verificado actualizado correctamente',
-            'is_verified' => $inscription->is_verified,
+            'success'        => true,
+            'message'        => 'Campo verificado actualizado correctamente',
+            'is_verified'    => $inscription->is_verified,
+            'verified_color' => $inscription->verified_color,
         ]);
     }
 

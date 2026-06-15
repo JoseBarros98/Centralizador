@@ -102,6 +102,7 @@ class Inscription extends Model
 
         //Verificación y recibo
         'is_verified',
+        'verified_color',
         'receipt_number',
 
         //Accesos

@@ -263,25 +263,46 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ number_format($inscription->display_total_paid, 2) }} Bs</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $inscription->receipt_number ?? '—' }}</td>
+                                        @php
+                                            $vColor = $inscription->verified_color ?? 'green';
+                                            $badgeClasses = [
+                                                'green'  => 'bg-green-100 text-green-800',
+                                                'red'    => 'bg-red-100 text-red-800',
+                                                'yellow' => 'bg-yellow-100 text-yellow-800',
+                                                'blue'   => 'bg-blue-100 text-blue-800',
+                                                'gray'   => 'bg-gray-100 text-gray-700',
+                                            ];
+                                            $badgeCls = $badgeClasses[$vColor] ?? $badgeClasses['green'];
+                                        @endphp
                                         <td class="px-6 py-4 whitespace-nowrap text-sm {{ $currentUser->hasPermissionTo('inscription.verify') ? 'verified-cell cursor-pointer' : '' }}"
                                             data-inscription="{{ $inscription->id }}"
-                                            data-original="{{ $inscription->is_verified ?? '' }}">
+                                            data-original="{{ $inscription->is_verified ?? '' }}"
+                                            data-color="{{ $vColor }}">
                                             @if($currentUser->hasPermissionTo('inscription.verify'))
                                                 <span class="verified-display">
                                                     @if($inscription->is_verified)
-                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ $inscription->is_verified }}</span>
+                                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $badgeCls }}">{{ $inscription->is_verified }}</span>
                                                     @else
                                                         <span class="text-gray-400 text-xs">—</span>
                                                     @endif
                                                 </span>
-                                                <input
-                                                    type="text"
-                                                    class="verified-inline-input hidden rounded border-gray-300 text-xs focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-32"
-                                                    value="{{ $inscription->is_verified ?? '' }}"
-                                                    placeholder="Ingrese valor..."
-                                                >
+                                                <div class="verified-editor hidden flex-col gap-1">
+                                                    <input
+                                                        type="text"
+                                                        class="verified-inline-input rounded border-gray-300 text-xs focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-32"
+                                                        value="{{ $inscription->is_verified ?? '' }}"
+                                                        placeholder="Ingrese valor..."
+                                                    >
+                                                    <div class="flex gap-1 mt-1 color-picker">
+                                                        <button type="button" data-color="green"  class="color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'green'  ? 'ring-2 ring-green-500'  : '' }}" style="background-color:#4ade80" title="Verde"></button>
+                                                        <button type="button" data-color="red"    class="color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'red'    ? 'ring-2 ring-red-500'    : '' }}" style="background-color:#f87171" title="Rojo"></button>
+                                                        <button type="button" data-color="yellow" class="color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'yellow' ? 'ring-2 ring-yellow-500' : '' }}" style="background-color:#facc15" title="Amarillo"></button>
+                                                        <button type="button" data-color="blue"   class="color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'blue'   ? 'ring-2 ring-blue-500'   : '' }}" style="background-color:#60a5fa" title="Azul"></button>
+                                                        <button type="button" data-color="gray"   class="color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'gray'   ? 'ring-2 ring-gray-500'   : '' }}" style="background-color:#9ca3af" title="Gris"></button>
+                                                    </div>
+                                                </div>
                                             @elseif($inscription->is_verified)
-                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">{{ $inscription->is_verified }}</span>
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $badgeCls }}">{{ $inscription->is_verified }}</span>
                                             @else
                                                 <span class="text-gray-400 text-xs">—</span>
                                             @endif
@@ -307,6 +328,14 @@
     <script>
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
+        const badgeClasses = {
+            green:  'bg-green-100 text-green-800',
+            red:    'bg-red-100 text-red-800',
+            yellow: 'bg-yellow-100 text-yellow-800',
+            blue:   'bg-blue-100 text-blue-800',
+            gray:   'bg-gray-100 text-gray-700',
+        };
+
         function showNotification(type, message) {
             const el = document.createElement('div');
             el.className = `fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
@@ -315,76 +344,111 @@
             setTimeout(() => el.remove(), 3000);
         }
 
-        function renderBadge(display, value) {
+        function renderBadge(display, value, color) {
             if (value) {
-                display.innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">${value}</span>`;
+                const cls = badgeClasses[color] ?? badgeClasses.green;
+                display.innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${cls}">${value}</span>`;
             } else {
                 display.innerHTML = `<span class="text-gray-400 text-xs">—</span>`;
             }
         }
 
-        document.querySelectorAll('.verified-cell').forEach(cell => {
+        function openEditor(cell) {
             const display = cell.querySelector('.verified-display');
-            const input = cell.querySelector('.verified-inline-input');
+            const editor  = cell.querySelector('.verified-editor');
+            display.classList.add('hidden');
+            editor.classList.remove('hidden');
+            editor.style.display = 'flex';
+            editor.querySelector('.verified-inline-input').focus();
+            editor.querySelector('.verified-inline-input').select();
+        }
+
+        function closeEditor(cell) {
+            const display = cell.querySelector('.verified-display');
+            const editor  = cell.querySelector('.verified-editor');
+            editor.style.display = 'none';
+            editor.classList.add('hidden');
+            display.classList.remove('hidden');
+        }
+
+        function saveVerified(cell) {
+            const input   = cell.querySelector('.verified-inline-input');
+            const value   = input.value.trim();
+            const color   = cell.dataset.color;
+            const original = cell.dataset.original;
+            const originalColor = cell.dataset.colorOriginal ?? color;
+
+            if (value === original && color === originalColor) {
+                closeEditor(cell);
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('is_verified', value);
+            formData.append('verified_color', color);
+            formData.append('_method', 'PATCH');
+
+            fetch(`/inscriptions/${cell.dataset.inscription}/verify`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    cell.dataset.original = value;
+                    cell.dataset.colorOriginal = color;
+                    renderBadge(cell.querySelector('.verified-display'), value, color);
+                    showNotification('success', 'Verificado actualizado');
+                } else {
+                    input.value = original;
+                    cell.dataset.color = originalColor;
+                    showNotification('error', data.message || 'Error al actualizar');
+                }
+                closeEditor(cell);
+            })
+            .catch(() => {
+                input.value = original;
+                cell.dataset.color = originalColor;
+                closeEditor(cell);
+                showNotification('error', 'Error de conexión');
+            });
+        }
+
+        document.querySelectorAll('.verified-cell').forEach(cell => {
+            cell.dataset.colorOriginal = cell.dataset.color;
 
             cell.addEventListener('click', function(e) {
-                if (!input.classList.contains('hidden')) return;
-                display.classList.add('hidden');
-                input.classList.remove('hidden');
-                input.focus();
-                input.select();
+                const editor = cell.querySelector('.verified-editor');
+                if (!editor.classList.contains('hidden')) return;
+                openEditor(cell);
             });
 
-            input.addEventListener('blur', function() {
-                const inscriptionId = cell.dataset.inscription;
-                const value = this.value.trim();
-                const original = cell.dataset.original;
+            const input = cell.querySelector('.verified-inline-input');
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter')  { e.preventDefault(); saveVerified(cell); }
+                if (e.key === 'Escape') { input.value = cell.dataset.original; closeEditor(cell); }
+            });
+            input.addEventListener('click', e => e.stopPropagation());
 
-                if (value === original) {
-                    input.classList.add('hidden');
-                    display.classList.remove('hidden');
-                    return;
-                }
-
-                const formData = new FormData();
-                formData.append('is_verified', value);
-                formData.append('_method', 'PATCH');
-
-                fetch(`/inscriptions/${inscriptionId}/verify`, {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
-                    body: formData
-                })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success) {
-                        cell.dataset.original = value;
-                        renderBadge(display, value);
-                        showNotification('success', 'Verificado actualizado');
-                    } else {
-                        this.value = original;
-                        showNotification('error', data.message || 'Error al actualizar');
-                    }
-                    input.classList.add('hidden');
-                    display.classList.remove('hidden');
-                })
-                .catch(() => {
-                    this.value = original;
-                    input.classList.add('hidden');
-                    display.classList.remove('hidden');
-                    showNotification('error', 'Error de conexión');
+            cell.querySelectorAll('.color-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    cell.dataset.color = this.dataset.color;
+                    cell.querySelectorAll('.color-btn').forEach(b => b.classList.remove('ring-2'));
+                    this.classList.add('ring-2');
                 });
             });
 
-            input.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
-                if (e.key === 'Escape') {
-                    this.value = cell.dataset.original;
-                    this.blur();
+            // Guardar al hacer clic fuera
+            document.addEventListener('click', function onOutside(e) {
+                if (!cell.contains(e.target)) {
+                    const editor = cell.querySelector('.verified-editor');
+                    if (editor && !editor.classList.contains('hidden')) {
+                        saveVerified(cell);
+                    }
                 }
             });
-
-            input.addEventListener('click', e => e.stopPropagation());
         });
     </script>
 </x-app-layout>

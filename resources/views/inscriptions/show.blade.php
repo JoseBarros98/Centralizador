@@ -246,7 +246,25 @@
                             <div>
                                 <dt class="text-sm font-medium text-gray-500">Verificado</dt>
                                 <dd class="mt-1 text-sm text-gray-900">
+                                    @php
+                                        $vColor = $inscription->verified_color ?? 'green';
+                                        $showBadgeClasses = [
+                                            'green'  => 'bg-green-100 text-green-800',
+                                            'red'    => 'bg-red-100 text-red-800',
+                                            'yellow' => 'bg-yellow-100 text-yellow-800',
+                                            'blue'   => 'bg-blue-100 text-blue-800',
+                                            'gray'   => 'bg-gray-100 text-gray-700',
+                                        ];
+                                        $showBadgeCls = $showBadgeClasses[$vColor] ?? $showBadgeClasses['green'];
+                                    @endphp
                                     @if(auth()->user()->hasPermissionTo('inscription.verify'))
+                                        <div id="verified-display" class="mb-2">
+                                            @if($inscription->is_verified)
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $showBadgeCls }}">{{ $inscription->is_verified }}</span>
+                                            @else
+                                                <span class="text-gray-400 text-sm">—</span>
+                                            @endif
+                                        </div>
                                         <input
                                             type="text"
                                             id="verified-input"
@@ -254,12 +272,22 @@
                                             value="{{ $inscription->is_verified ?? '' }}"
                                             placeholder="Ingrese valor de verificación"
                                             data-inscription="{{ $inscription->id }}"
+                                            data-color="{{ $vColor }}"
                                         >
-                                        <p class="text-xs text-gray-400 mt-1">Presione Enter o haga clic fuera para guardar</p>
+                                        <div class="flex gap-2 mt-2" id="verified-color-picker">
+                                            <button type="button" data-color="green"  class="show-color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'green'  ? 'ring-2 ring-green-500'  : '' }}" style="background-color:#4ade80" title="Verde"></button>
+                                            <button type="button" data-color="red"    class="show-color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'red'    ? 'ring-2 ring-red-500'    : '' }}" style="background-color:#f87171" title="Rojo"></button>
+                                            <button type="button" data-color="yellow" class="show-color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'yellow' ? 'ring-2 ring-yellow-500' : '' }}" style="background-color:#facc15" title="Amarillo"></button>
+                                            <button type="button" data-color="blue"   class="show-color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'blue'   ? 'ring-2 ring-blue-500'   : '' }}" style="background-color:#60a5fa" title="Azul"></button>
+                                            <button type="button" data-color="gray"   class="show-color-btn w-5 h-5 rounded-full ring-offset-1 {{ $vColor === 'gray'   ? 'ring-2 ring-gray-500'   : '' }}" style="background-color:#9ca3af" title="Gris"></button>
+                                        </div>
+                                        <p class="text-xs text-gray-400 mt-1">Presione Enter o haga clic fuera del campo para guardar</p>
                                     @else
-                                        <span class="{{ $inscription->is_verified ? 'text-gray-900' : 'text-gray-400' }}">
-                                            {{ $inscription->is_verified ?? '—' }}
-                                        </span>
+                                        @if($inscription->is_verified)
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $showBadgeCls }}">{{ $inscription->is_verified }}</span>
+                                        @else
+                                            <span class="text-gray-400">—</span>
+                                        @endif
                                     @endif
                                 </dd>
                             </div>
@@ -843,15 +871,44 @@
             // Input inline para "Verificado"
             const verifiedInput = document.getElementById('verified-input');
             if (verifiedInput) {
+                const verifiedDisplay = document.getElementById('verified-display');
                 let lastSavedValue = verifiedInput.value;
+                let lastSavedColor = verifiedInput.dataset.color || 'green';
+
+                const badgeClsMap = {
+                    green:  'bg-green-100 text-green-800',
+                    red:    'bg-red-100 text-red-800',
+                    yellow: 'bg-yellow-100 text-yellow-800',
+                    blue:   'bg-blue-100 text-blue-800',
+                    gray:   'bg-gray-100 text-gray-700',
+                };
+
+                function updateShowBadge(value, color) {
+                    if (value) {
+                        const cls = badgeClsMap[color] ?? badgeClsMap.green;
+                        verifiedDisplay.innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${cls}">${value}</span>`;
+                    } else {
+                        verifiedDisplay.innerHTML = `<span class="text-gray-400 text-sm">—</span>`;
+                    }
+                }
+
+                document.querySelectorAll('.show-color-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        verifiedInput.dataset.color = this.dataset.color;
+                        document.querySelectorAll('.show-color-btn').forEach(b => b.classList.remove('ring-2'));
+                        this.classList.add('ring-2');
+                    });
+                });
 
                 function saveVerified() {
                     const inscriptionId = verifiedInput.dataset.inscription;
-                    const value = verifiedInput.value;
-                    if (value === lastSavedValue) return;
+                    const value = verifiedInput.value.trim();
+                    const color = verifiedInput.dataset.color || 'green';
+                    if (value === lastSavedValue && color === lastSavedColor) return;
                     showLoading();
                     const formData = new FormData();
                     formData.append('is_verified', value);
+                    formData.append('verified_color', color);
                     formData.append('_method', 'PATCH');
                     fetch(`/inscriptions/${inscriptionId}/verify`, {
                         method: 'POST',
@@ -861,11 +918,13 @@
                         },
                         body: formData
                     })
-                    .then(response => response.json())
+                    .then(r => r.json())
                     .then(data => {
                         hideLoading();
                         if (data.success) {
                             lastSavedValue = value;
+                            lastSavedColor = color;
+                            updateShowBadge(value, color);
                             showNotification('success', data.message);
                         } else {
                             verifiedInput.value = lastSavedValue;
@@ -881,10 +940,7 @@
 
                 verifiedInput.addEventListener('blur', saveVerified);
                 verifiedInput.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-                        this.blur();
-                    }
+                    if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
                 });
             }
         });
