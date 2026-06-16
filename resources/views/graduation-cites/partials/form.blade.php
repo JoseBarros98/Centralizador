@@ -1,10 +1,18 @@
 @php
     $paymentTypes = [
         'inscripcion' => 'Inscripción',
-        'matricula' => 'Matrícula',
+        'matricula'   => 'Matrícula',
         'colegiatura' => 'Colegiatura',
         'certificacion' => 'Certificación',
     ];
+
+    $paymentStatuses = [
+        'pendiente' => 'Pendiente',
+        'pagado'    => 'Pagado',
+        'cancelado' => 'Cancelado',
+    ];
+
+    $currentStatus = old('payment_status', $graduationCite->payment_status ?? 'pendiente');
 
     // Cargar participantes con sus montos del pivot (edit) o de old() (re-submit tras validación)
     $oldAmounts = old('participant_amounts', []);
@@ -45,7 +53,7 @@
         @method($method)
     @endif
 
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-6 gap-6">
         <div>
             <x-label for="cite_number" value="CITE" />
             <x-input id="cite_number" class="block mt-1 w-full" type="text" name="cite_number" :value="old('cite_number', $graduationCite->cite_number ?? '')" required />
@@ -80,6 +88,16 @@
             <x-label for="total_amount_preview" :value="__('Monto Total (Bs)')" />
             <input id="total_amount_preview" type="text" :value="formattedTotalAmount" readonly class="block mt-1 w-full rounded-md border-gray-300 bg-gray-100 shadow-sm text-gray-700">
             <p class="text-xs text-gray-500 mt-1">Suma de los montos individuales.</p>
+        </div>
+
+        <div>
+            <x-label for="payment_status" value="Estado de Pago" />
+            <select id="payment_status" name="payment_status" class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                @foreach($paymentStatuses as $value => $label)
+                    <option value="{{ $value }}" {{ $currentStatus === $value ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+            @error('payment_status')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
         </div>
     </div>
 

@@ -82,6 +82,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">CITE</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Fecha</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Concepto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Estado</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Monto por Participante</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Monto Total</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Participantes</th>
@@ -95,6 +96,28 @@
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $graduationCite->cite_number }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $graduationCite->cite_date?->format('d/m/Y') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $graduationCite->payment_type_label }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm status-cell {{ Auth::user()->can('graduation_cite.edit') ? 'cursor-pointer' : '' }}"
+                                        data-cite="{{ $graduationCite->id }}"
+                                        data-status="{{ $graduationCite->payment_status }}">
+                                        @if(Auth::user()->can('graduation_cite.edit'))
+                                            <span class="status-display">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $graduationCite->payment_status_color }}">
+                                                    {{ $graduationCite->payment_status_label }}
+                                                </span>
+                                            </span>
+                                            <div class="status-editor hidden flex-col gap-1">
+                                                <select class="status-inline-select rounded border-gray-300 text-xs focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-32">
+                                                    <option value="pendiente" {{ $graduationCite->payment_status === 'pendiente' ? 'selected' : '' }}>Pendiente</option>
+                                                    <option value="pagado"    {{ $graduationCite->payment_status === 'pagado'    ? 'selected' : '' }}>Pagado</option>
+                                                    <option value="cancelado" {{ $graduationCite->payment_status === 'cancelado' ? 'selected' : '' }}>Cancelado</option>
+                                                </select>
+                                            </div>
+                                        @else
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $graduationCite->payment_status_color }}">
+                                                {{ $graduationCite->payment_status_label }}
+                                            </span>
+                                        @endif
+                                    </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">Bs. {{ number_format((float) $graduationCite->amount_per_participant, 2) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Bs. {{ number_format((float) $graduationCite->total_amount, 2) }}</td>
                                     <td class="px-6 py-4 text-sm text-gray-700">
@@ -208,4 +231,86 @@
     @if($errors->has('excel_file'))
         <script>document.getElementById('import-modal').style.display='flex';</script>
     @endif
+
+    @can('graduation_cite.edit')
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        const statusBadgeMap = {
+            pendiente: 'bg-yellow-100 text-yellow-800',
+            pagado:    'bg-green-100 text-green-800',
+            cancelado: 'bg-red-100 text-red-800',
+        };
+        const statusLabels = { pendiente: 'Pendiente', pagado: 'Pagado', cancelado: 'Cancelado' };
+
+        function showNotification(type, message) {
+            const el = document.createElement('div');
+            el.className = `fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg text-white text-sm ${type === 'success' ? 'bg-green-500' : 'bg-red-500'}`;
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        function renderStatusBadge(display, status) {
+            const cls   = statusBadgeMap[status] ?? statusBadgeMap.pendiente;
+            const label = statusLabels[status] ?? status;
+            display.innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${cls}">${label}</span>`;
+        }
+
+        function openStatusEditor(cell) {
+            cell.querySelector('.status-display').classList.add('hidden');
+            const editor = cell.querySelector('.status-editor');
+            editor.classList.remove('hidden');
+            editor.style.display = 'flex';
+        }
+
+        function closeStatusEditor(cell) {
+            cell.querySelector('.status-display').classList.remove('hidden');
+            const editor = cell.querySelector('.status-editor');
+            editor.classList.add('hidden');
+            editor.style.display = 'none';
+        }
+
+        function saveStatus(cell) {
+            const status = cell.querySelector('.status-inline-select').value;
+            if (status === cell.dataset.status) { closeStatusEditor(cell); return; }
+
+            fetch(`/graduation-cites/${cell.dataset.cite}/status`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ _method: 'PATCH', payment_status: status }),
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    cell.dataset.status = status;
+                    renderStatusBadge(cell.querySelector('.status-display'), status);
+                    showNotification('success', 'Estado actualizado');
+                } else {
+                    showNotification('error', 'Error al actualizar');
+                }
+                closeStatusEditor(cell);
+            })
+            .catch(() => { closeStatusEditor(cell); showNotification('error', 'Error de conexión'); });
+        }
+
+        document.querySelectorAll('.status-cell').forEach(cell => {
+            cell.addEventListener('click', function() {
+                if (!cell.querySelector('.status-editor').classList.contains('hidden')) return;
+                document.querySelectorAll('.status-cell').forEach(c => {
+                    if (c !== cell && !c.querySelector('.status-editor').classList.contains('hidden')) saveStatus(c);
+                });
+                openStatusEditor(cell);
+            });
+
+            cell.querySelector('.status-inline-select').addEventListener('click', e => e.stopPropagation());
+
+            document.addEventListener('click', function(e) {
+                if (!cell.contains(e.target) && !cell.querySelector('.status-editor').classList.contains('hidden')) {
+                    saveStatus(cell);
+                }
+            });
+        });
+    </script>
+    @endcan
 </x-app-layout>

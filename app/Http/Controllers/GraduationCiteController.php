@@ -77,6 +77,7 @@ class GraduationCiteController extends Controller
             'cite_number'            => $validated['cite_number'],
             'cite_date'              => $validated['cite_date'],
             'payment_type'           => $validated['payment_type'],
+            'payment_status'         => $validated['payment_status'],
             'amount_per_participant' => $validated['amount_per_participant'],
             'total_amount'           => $totalAmount,
             'observations'           => $validated['observations'] ?? null,
@@ -133,6 +134,7 @@ class GraduationCiteController extends Controller
             'cite_number'            => $validated['cite_number'],
             'cite_date'              => $validated['cite_date'],
             'payment_type'           => $validated['payment_type'],
+            'payment_status'         => $validated['payment_status'],
             'amount_per_participant' => $validated['amount_per_participant'],
             'total_amount'           => $totalAmount,
             'observations'           => $validated['observations'] ?? null,
@@ -144,6 +146,25 @@ class GraduationCiteController extends Controller
         return redirect()
             ->route('graduation-cites.show', $graduationCite)
             ->with('success', 'CITE de titulación actualizado correctamente.');
+    }
+
+    public function updateStatus(Request $request, GraduationCite $graduationCite)
+    {
+        abort_unless(
+            Auth::user()?->can('graduation_cite.edit') || Auth::user()?->can('graduation_cite.edit_own'),
+            403
+        );
+
+        $validated = $request->validate([
+            'payment_status' => 'required|in:pendiente,pagado,cancelado',
+        ]);
+
+        $graduationCite->update([
+            'payment_status' => $validated['payment_status'],
+            'updated_by'     => Auth::id(),
+        ]);
+
+        return response()->json(['success' => true]);
     }
 
     public function destroy(GraduationCite $graduationCite)
@@ -213,12 +234,13 @@ class GraduationCiteController extends Controller
                     ->where('payment_type', $request->input('payment_type'))
                     ->ignore($graduationCite),
             ],
-            'cite_date' => 'required|date',
-            'payment_type' => 'required|in:inscripcion,matricula,colegiatura,certificacion',
+            'cite_date'              => 'required|date',
+            'payment_type'           => 'required|in:inscripcion,matricula,colegiatura,certificacion',
+            'payment_status'         => 'required|in:pendiente,pagado,cancelado',
             'amount_per_participant' => 'required|numeric|min:0',
-            'observations' => 'nullable|string|max:2000',
-            'participant_ids' => 'required|array|min:1',
-            'participant_ids.*' => 'integer|exists:inscriptions,id',
+            'observations'           => 'nullable|string|max:2000',
+            'participant_ids'        => 'required|array|min:1',
+            'participant_ids.*'      => 'integer|exists:inscriptions,id',
         ], [
             'participant_ids.required' => 'Debes agregar al menos un participante al CITE.',
             'participant_ids.min' => 'Debes agregar al menos un participante al CITE.',
@@ -499,6 +521,7 @@ class GraduationCiteController extends Controller
                 'cite_number'            => $citeNumber,
                 'cite_date'              => $citeDate,
                 'payment_type'           => $paymentType,
+                'payment_status'         => 'pendiente',
                 'amount_per_participant' => $avgAmount,
                 'total_amount'           => $totalAmount,
                 'created_by'             => Auth::id(),

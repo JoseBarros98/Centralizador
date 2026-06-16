@@ -393,6 +393,7 @@ Route::middleware('auth')->group(function () {
   // Rutas para CITES de titulación
   Route::post('/graduation-cites/import', [GraduationCiteController::class, 'import'])->name('graduation-cites.import');
   Route::resource('graduation-cites', GraduationCiteController::class);
+  Route::patch('/graduation-cites/{graduation_cite}/status', [GraduationCiteController::class, 'updateStatus'])->name('graduation-cites.status');
   Route::get('/api/graduation-cites/participants/search', [GraduationCiteController::class, 'searchParticipants'])->name('graduation-cites.participants.search');
 
   // Rutas para Asignación Nominal (contabilidad)

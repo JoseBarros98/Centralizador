@@ -13,6 +13,7 @@ class GraduationCite extends Model
         'cite_number',
         'cite_date',
         'payment_type',
+        'payment_status',
         'amount_per_participant',
         'total_amount',
         'observations',
@@ -41,6 +42,25 @@ class GraduationCite extends Model
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function getPaymentStatusLabelAttribute(): string
+    {
+        return match ($this->payment_status) {
+            'pendiente' => 'Pendiente',
+            'pagado'    => 'Pagado',
+            'cancelado' => 'Cancelado',
+            default     => ucfirst((string) $this->payment_status),
+        };
+    }
+
+    public function getPaymentStatusColorAttribute(): string
+    {
+        return match ($this->payment_status) {
+            'pagado'    => 'bg-green-100 text-green-800',
+            'cancelado' => 'bg-red-100 text-red-800',
+            default     => 'bg-yellow-100 text-yellow-800',
+        };
     }
 
     public function getPaymentTypeLabelAttribute()

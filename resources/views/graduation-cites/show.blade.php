@@ -30,6 +30,14 @@
                         <p class="mt-1 text-base font-semibold text-gray-900">{{ $graduationCite->payment_type_label }}</p>
                     </div>
                     <div>
+                        <p class="text-sm font-medium text-gray-500">Estado de Pago</p>
+                        <p class="mt-1">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {{ $graduationCite->payment_status_color }}">
+                                {{ $graduationCite->payment_status_label }}
+                            </span>
+                        </p>
+                    </div>
+                    <div>
                         <p class="text-sm font-medium text-gray-500">Monto Total</p>
                         <p class="mt-1 text-base font-semibold text-gray-900">Bs. {{ number_format((float) $graduationCite->total_amount, 2) }}</p>
                     </div>
