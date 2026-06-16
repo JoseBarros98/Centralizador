@@ -391,6 +391,7 @@ Route::middleware('auth')->group(function () {
   Route::get('/payment_requests/reporte', [PaymentRequestController::class, 'reporte'])->name('payment_requests.reporte');
 
   // Rutas para CITES de titulación
+  Route::post('/graduation-cites/import', [GraduationCiteController::class, 'import'])->name('graduation-cites.import');
   Route::resource('graduation-cites', GraduationCiteController::class);
   Route::get('/api/graduation-cites/participants/search', [GraduationCiteController::class, 'searchParticipants'])->name('graduation-cites.participants.search');
 

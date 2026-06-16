@@ -29,7 +29,7 @@ class GraduationCite extends Model
     public function participants()
     {
         return $this->belongsToMany(Inscription::class, 'graduation_cite_inscription')
-            ->withPivot(['participant_full_name', 'participant_ci', 'participant_program'])
+            ->withPivot(['participant_full_name', 'participant_ci', 'participant_program', 'amount'])
             ->withTimestamps();
     }
 
