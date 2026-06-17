@@ -15,7 +15,7 @@ class ManagementExpenseController extends Controller
     public function __construct()
     {
         $this->middleware('permission:management_expense.view')->only(['index', 'monthDetail', 'getItemsForYear']);
-        $this->middleware('permission:management_expense.edit')->only(['upsertCell', 'destroyItem', 'renameItem']);
+        $this->middleware('permission:management_expense.edit')->only(['upsertCell', 'destroyItem', 'renameItem', 'moveItemCategory']);
     }
 
     public function index(Request $request): View
@@ -42,13 +42,26 @@ class ManagementExpenseController extends Controller
                 ($entityTotals[$ea->item][$ea->mes] ?? 0) + (float) $ea->amount;
         }
 
-        // Item list: union of management_expenses items AND entity-amount items (both sources)
-        $itemsFromExpenses = ManagementExpense::where('gestion', $gestion)
-            ->distinct()->orderBy('item')->pluck('item')->toArray();
-        $itemsFromEntities = ManagementExpenseEntityAmount::where('gestion', $gestion)
-            ->distinct()->orderBy('item')->pluck('item')->toArray();
-        $items = array_values(array_unique(array_merge($itemsFromExpenses, $itemsFromEntities)));
-        sort($items);
+        // Item list with category: union of management_expenses AND entity-amount items
+        $expenseItems = ManagementExpense::where('gestion', $gestion)
+            ->orderBy('item')
+            ->get(['item', 'category'])
+            ->unique('item')
+            ->keyBy('item')
+            ->map(fn($r) => $r->category ?? 'operativo');
+
+        $entityItems = ManagementExpenseEntityAmount::where('gestion', $gestion)
+            ->orderBy('item')
+            ->get(['item', 'category'])
+            ->unique('item')
+            ->keyBy('item')
+            ->map(fn($r) => $r->category ?? 'operativo');
+
+        // Merge: management_expenses category takes precedence
+        $itemCategories = $entityItems->merge($expenseItems)->toArray();
+        ksort($itemCategories);
+
+        $items = array_keys($itemCategories);
 
         // Main grid: entity totals, with all items present (even if zero)
         $grid = [];
@@ -62,7 +75,7 @@ class ManagementExpenseController extends Controller
             }
         }
 
-        return view('management-expenses.index', compact('grid', 'items', 'gestion', 'entities', 'entityAmountsGrid'));
+        return view('management-expenses.index', compact('grid', 'items', 'itemCategories', 'gestion', 'entities', 'entityAmountsGrid'));
     }
 
     /**
@@ -106,6 +119,7 @@ class ManagementExpenseController extends Controller
             'dia'            => 'required|integer|between:1,31',
             'expense_amount' => 'required|numeric|min:0',
             'observation'    => 'nullable|string|max:1000',
+            'category'       => 'nullable|string|in:operativo,otro',
         ]);
 
         if ($validated['expense_amount'] == 0) {
@@ -137,6 +151,7 @@ class ManagementExpenseController extends Controller
             [
                 'expense_amount' => $validated['expense_amount'],
                 'observation'    => $validated['observation'] ?? null,
+                'category'       => $validated['category'] ?? 'operativo',
                 'user_id'        => $request->user()->id,
             ]
         );
@@ -202,5 +217,24 @@ class ManagementExpenseController extends Controller
             ->update(['item' => $request->new_item]);
 
         return response()->json(['success' => true]);
+    }
+
+    public function moveItemCategory(Request $request): JsonResponse
+    {
+        $request->validate([
+            'item'     => 'required|string|max:255',
+            'gestion'  => 'required|integer|between:2000,2100',
+            'category' => 'required|string|in:operativo,otro',
+        ]);
+
+        ManagementExpense::where('item', $request->item)
+            ->where('gestion', $request->gestion)
+            ->update(['category' => $request->category]);
+
+        ManagementExpenseEntityAmount::where('item', $request->item)
+            ->where('gestion', $request->gestion)
+            ->update(['category' => $request->category]);
+
+        return response()->json(['success' => true, 'category' => $request->category]);
     }
 }

@@ -167,16 +167,19 @@ window._incConfig = {
             <template x-if="entities.length > 1">
                 <div class="ml-auto flex items-center gap-2">
                     <span class="text-xs font-medium text-gray-500">Filtrar:</span>
-                    <select x-model="entityFilter"
-                            class="px-2.5 py-1 text-xs border rounded-full focus:outline-none focus:ring-1 transition-colors"
-                            :class="entityFilter
-                                ? 'border-indigo-400 bg-indigo-50 text-indigo-800 font-semibold focus:ring-indigo-400'
-                                : 'border-gray-300 bg-white text-gray-700 focus:ring-indigo-400'">
-                        <option value="">Todas las entidades</option>
-                        <template x-for="ent in entities" :key="ent.id">
-                            <option :value="ent.id" x-text="ent.name"></option>
-                        </template>
-                    </select>
+                    <div style="position:relative;display:inline-flex;align-items:center;">
+                        <select x-model="entityFilter"
+                                :style="'appearance:none;-webkit-appearance:none;padding:0.25rem 1.75rem 0.25rem 0.75rem;font-size:0.75rem;border-width:1px;border-style:solid;border-radius:9999px;outline:none;cursor:pointer;line-height:1.25;' + (entityFilter ? 'border-color:#818cf8;background:#eef2ff;color:#3730a3;font-weight:600;' : 'border-color:#d1d5db;background:#fff;color:#374151;')">
+                            <option value="">Todas las entidades</option>
+                            <template x-for="ent in entities" :key="ent.id">
+                                <option :value="ent.id" x-text="ent.name"></option>
+                            </template>
+                        </select>
+                        <svg style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);width:0.7rem;height:0.7rem;color:#9ca3af;pointer-events:none;"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </div>
                     <button x-show="entityFilter" @click="entityFilter = ''"
                             class="text-indigo-400 hover:text-red-500 transition-colors" title="Quitar filtro">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

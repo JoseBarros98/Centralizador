@@ -105,6 +105,7 @@ class ManagementExpenseEntityController extends Controller
             'dia'         => 'required|integer|between:1,31',
             'amount'      => 'required|numeric|min:0',
             'observation' => 'nullable|string|max:1000',
+            'category'    => 'nullable|string|in:operativo,otro',
         ]);
 
         if ($validated['amount'] == 0) {
@@ -135,6 +136,7 @@ class ManagementExpenseEntityController extends Controller
             [
                 'amount'      => $validated['amount'],
                 'observation' => $validated['observation'] ?? null,
+                'category'    => $validated['category'] ?? 'operativo',
             ]
         );
 

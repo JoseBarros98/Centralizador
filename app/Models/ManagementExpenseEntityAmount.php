@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ManagementExpenseEntityAmount extends Model
 {
-    protected $fillable = ['entity_id', 'item', 'mes', 'gestion', 'dia', 'amount', 'observation'];
+    protected $fillable = ['entity_id', 'item', 'category', 'mes', 'gestion', 'dia', 'amount', 'observation'];
 
     public function entity()
     {

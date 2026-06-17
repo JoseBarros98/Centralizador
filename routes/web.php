@@ -452,6 +452,7 @@ Route::middleware('auth')->group(function () {
   Route::get('management-expenses/month-detail',         [ManagementExpenseController::class, 'monthDetail'])->name('management-expenses.monthDetail');
   Route::post('management-expenses/cell',                [ManagementExpenseController::class, 'upsertCell'])->name('management-expenses.cell');
   Route::patch('management-expenses/item',               [ManagementExpenseController::class, 'renameItem'])->name('management-expenses.renameItem');
+  Route::patch('management-expenses/item/category',      [ManagementExpenseController::class, 'moveItemCategory'])->name('management-expenses.moveItemCategory');
   Route::delete('management-expenses/item',              [ManagementExpenseController::class, 'destroyItem'])->name('management-expenses.destroyItem');
   Route::post('management-expenses/entity',                              [ManagementExpenseEntityController::class, 'store'])->name('management-expenses.entity.store');
   Route::get('management-expenses/entity/{entity}/month-detail',        [ManagementExpenseEntityController::class, 'monthDetail'])->name('management-expenses.entity.monthDetail');

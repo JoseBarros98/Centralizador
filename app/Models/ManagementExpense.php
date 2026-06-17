@@ -11,6 +11,7 @@ class ManagementExpense extends Model
 
     protected $fillable = [
         'item',
+        'category',
         'expense_amount',
         'mes',
         'gestion',
