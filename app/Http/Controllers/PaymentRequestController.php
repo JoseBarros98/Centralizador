@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Routing\Controller;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class PaymentRequestController extends Controller
 {
@@ -115,14 +116,15 @@ class PaymentRequestController extends Controller
         if ($request->filled('month')) {
             $month = str_pad($request->month, 2, '0', STR_PAD_LEFT);
             $query->whereRaw("MONTH(request_date) = ?", [$month]);
-        } else {
-            // Si no hay mes especificado, filtrar por el mes actual por defecto (solo si también se está filtrando por año actual)
+        } elseif (!$request->has('month')) {
+            // Solo aplicar mes actual por defecto si el parámetro no vino en la URL
             if (!$request->filled('year') || $request->year == $currentYear) {
                 $query->whereRaw("MONTH(request_date) = ?", [$currentMonth]);
             }
         }
+        // Si month está presente pero vacío (="Todos"), no aplicar filtro de mes
 
-        $paymentRequests = $query->orderBy('created_at', 'desc')->paginate(10);
+        $paymentRequests = $query->orderBy('created_at', 'desc')->paginate(10)->appends(request()->query());
         return view('payment_requests.index', compact('paymentRequests', 'availableYears'));
     }
 
@@ -612,6 +614,245 @@ class PaymentRequestController extends Controller
             ),
             $fileName
         );
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'excel_file' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        $file = $request->file('excel_file');
+
+        try {
+            $spreadsheet = IOFactory::load($file->getRealPath());
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray(null, true, true, false);
+        } catch (\Exception $e) {
+            return back()->with('error', 'No se pudo leer el archivo Excel: ' . $e->getMessage());
+        }
+
+        if (empty($rows)) {
+            return back()->with('error', 'El archivo está vacío.');
+        }
+
+        // Normalizar cabeceras
+        $headerRow = array_map(fn($v) => strtoupper(trim((string) ($v ?? ''))), $rows[0]);
+        unset($rows[0]);
+
+        Log::info('Import PaymentRequest - Headers detectados', ['headers' => $headerRow]);
+
+        // Detectar índices de columnas
+        $colMap = [];
+        $colNames = [
+            'sede'           => ['SEDE'],
+            'mes'            => ['MES'],
+            'payroll'        => ['N° PLANILLA', 'N PLANILLA', 'PLANILLA'],
+            'fecha'          => ['FECHA SOLICITUD', 'FECHA'],
+            'accounting'     => ['CODIGO CONTABLE PROGRAMA', 'CÓDIGO CONTABLE PROGRAMA', 'CODIGO CONTABLE', 'CÓDIGO CONTABLE'],
+            'programa'       => ['PROGRAMA'],
+            'modulo'         => ['MÓDULO', 'MODULO'],
+            'fecha_inicio'   => ['FECHA DE INICIO MÓDULO', 'FECHA DE INICIO MODULO', 'FECHA INICIO'],
+            'fecha_fin'      => ['FECHA DE FIN MÓDULO', 'FECHA DE FIN MODULO', 'FECHA FIN'],
+            'estudiantes'    => ['CANTIDAD DE ESTUDIANTE', 'CANTIDAD DE ESTUDIANTES', 'CANTIDAD ESTUDIANTES'],
+            'docente'        => ['APELLIDOS Y NOMBRES', 'APELLIDOS Y NOMBRE'],
+            'ci'             => ['CARNET DE IDENTIDAD', 'CI'],
+            'factura_sn'     => ['EMITE FACTURA S/NO', 'EMITE FACTURA'],
+            'nro_factura'    => ['N° FACTURA', 'N FACTURA', 'NRO FACTURA'],
+            'total'          => ['IMPTE.TOTAL', 'IMPORTE TOTAL', 'TOTAL'],
+            'liquido'        => ['LIQUIDO PAGABLE DOCENTE (84,5%)', 'LIQUIDO PAGABLE DOCENTE', 'LÍQUIDO PAGABLE DOCENTE', 'LIQUIDO'],
+            'observaciones'  => ['OBSERVACIONES'],
+        ];
+
+        foreach ($colNames as $key => $candidates) {
+            foreach ($headerRow as $idx => $name) {
+                if (in_array($name, $candidates)) {
+                    $colMap[$key] = $idx;
+                    break;
+                }
+            }
+        }
+
+        Log::info('Import PaymentRequest - ColMap detectado', ['colMap' => $colMap]);
+
+        if (!isset($colMap['accounting']) || !isset($colMap['modulo'])) {
+            return back()->with('error', 'No se encontraron las columnas requeridas (CODIGO CONTABLE PROGRAMA, MÓDULO). Verifica el formato del Excel. Headers encontrados: ' . implode(', ', array_filter($headerRow)));
+        }
+
+        $created   = 0;
+        $skipped   = [];
+        $notFound  = [];
+
+        foreach ($rows as $rowIndex => $row) {
+            $accountingCode = trim((string) ($row[$colMap['accounting']] ?? ''));
+            // Normalizar: quitar saltos de línea internos que Excel puede incluir en celdas
+            $moduleName     = trim(preg_replace('/[\r\n]+/', ' ', (string) ($row[$colMap['modulo']] ?? '')));
+
+            if ($accountingCode === '' || $moduleName === '') {
+                continue;
+            }
+
+            // Buscar programa por código contable
+            Log::info("Import fila {$rowIndex}", ['accounting' => $accountingCode, 'modulo' => $moduleName]);
+            $program = Program::where('accounting_code', $accountingCode)->first();
+            if (!$program) {
+                $notFound[] = "Fila " . ($rowIndex + 1) . ": código contable '{$accountingCode}' no encontrado";
+                continue;
+            }
+
+            // El Excel trae "MÓDULO N: NOMBRE" o "TUTORÍA MÓDULO N: NOMBRE - Participantes: ..."
+            // La DB guarda solo el nombre sin prefijo. Extraer la parte después de "MÓDULO N: "
+            $moduleSearch = $moduleName;
+            if (preg_match('/^(?:TUTORÍA\s+)?MÓDULO\s+\d+[:\.\-]\s*(.+?)(?:\s*-\s*Participantes?:.*)?$/iu', $moduleName, $matches)) {
+                $moduleSearch = trim($matches[1]);
+            }
+
+            Log::info("Import fila {$rowIndex} moduleSearch", ['original' => $moduleName, 'search' => $moduleSearch, 'program_id' => $program->id]);
+
+            // Buscar módulo por nombre (case-insensitive) dentro del programa
+            $module = Module::where('program_id', $program->id)
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower($moduleSearch)])
+                ->with('teacher')
+                ->first();
+
+            // Si no encuentra exacto, buscar con LIKE case-insensitive
+            if (!$module) {
+                $module = Module::where('program_id', $program->id)
+                    ->whereRaw('LOWER(name) LIKE ?', ['%' . mb_strtolower($moduleSearch) . '%'])
+                    ->with('teacher')
+                    ->first();
+            }
+
+            // Fallback: buscar por palabras significativas (omite artículos/preposiciones y no-alfa)
+            if (!$module) {
+                $stopWords = ['de', 'del', 'la', 'el', 'en', 'y', 'a', 'e', 'los', 'las', 'un', 'una', 'iso', 'nts'];
+                $rawWords  = explode(' ', mb_strtolower($moduleSearch));
+                $sigWords  = array_values(array_filter(array_map(
+                    fn($w) => preg_replace('/[^a-záéíóúüñ]/u', '', $w),
+                    $rawWords
+                ), fn($w) => mb_strlen($w) > 3 && !in_array($w, $stopWords)));
+
+                // Primeras 2 palabras significativas
+                if (count($sigWords) >= 2) {
+                    $module = Module::where('program_id', $program->id)
+                        ->whereRaw('LOWER(name) LIKE ?', ['%' . $sigWords[0] . '%'])
+                        ->whereRaw('LOWER(name) LIKE ?', ['%' . $sigWords[1] . '%'])
+                        ->with('teacher')
+                        ->first();
+                }
+
+                // Primera + última palabra significativa (cubre casos con orden de palabras diferente)
+                if (!$module && count($sigWords) >= 2) {
+                    $last = end($sigWords);
+                    if ($last !== $sigWords[0]) {
+                        $module = Module::where('program_id', $program->id)
+                            ->whereRaw('LOWER(name) LIKE ?', ['%' . $sigWords[0] . '%'])
+                            ->whereRaw('LOWER(name) LIKE ?', ['%' . $last . '%'])
+                            ->with('teacher')
+                            ->first();
+                    }
+                }
+
+                // Última opción: solo primera palabra significativa larga (>= 6 chars)
+                if (!$module && count($sigWords) >= 1 && mb_strlen($sigWords[0]) >= 6) {
+                    $module = Module::where('program_id', $program->id)
+                        ->whereRaw('LOWER(name) LIKE ?', ['%' . $sigWords[0] . '%'])
+                        ->with('teacher')
+                        ->first();
+                }
+            }
+
+            if (!$module) {
+                $notFound[] = "Fila " . ($rowIndex + 1) . ": módulo '{$moduleName}' no encontrado en programa '{$program->name}'";
+                continue;
+            }
+
+            // Calcular montos
+            $rawTotal = $row[$colMap['total']] ?? 0;
+            $totalAmount = (float) preg_replace('/[^\d.]/', '', (string) $rawTotal);
+            Log::info("Import fila {$rowIndex} monto", ['raw' => $rawTotal, 'parsed' => $totalAmount, 'module' => $module->name]);
+            if ($totalAmount <= 0) {
+                $skipped[] = "Fila " . ($rowIndex + 1) . ": monto total inválido ('{$moduleName}')";
+                continue;
+            }
+
+            // Calcular retención desde los datos del docente en DB
+            $teacher = $module->teacher;
+            $retentionAmount = 0;
+            if ($teacher) {
+                $bills      = in_array($teacher->bill, ['Si', 'Sí', 'si', 'sí']);
+                $esamWorker = in_array($teacher->esam_worker, ['Si', 'Sí', 'si', 'sí']);
+
+                if ($esamWorker) {
+                    $retentionAmount = $totalAmount * 0.30;
+                    if (!$bills) {
+                        $retentionAmount += ($totalAmount - $retentionAmount) * 0.16;
+                    }
+                } elseif (!$bills) {
+                    $retentionAmount = $totalAmount * 0.16;
+                }
+            }
+            $netAmount = $totalAmount - $retentionAmount;
+
+            $sede = trim((string) ($row[$colMap['sede']] ?? ''));
+            if ($sede === '') $sede = 'ESAM LATAM ALAS';
+
+            $observations = isset($colMap['observaciones']) ? (trim((string) ($row[$colMap['observaciones']] ?? '')) ?: null) : null;
+
+            // Fecha solicitud — PhpSpreadsheet devuelve fechas como número serial de Excel
+            $fechaRaw = isset($colMap['fecha']) ? ($row[$colMap['fecha']] ?? null) : null;
+            $requestDate = now()->format('Y-m-d');
+            if ($fechaRaw !== null && $fechaRaw !== '') {
+                try {
+                    if (is_numeric($fechaRaw)) {
+                        // Número serial de Excel (ej: 46041 = 20/01/2026)
+                        $requestDate = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $fechaRaw)->format('Y-m-d');
+                    } else {
+                        // String con formato DD/MM/YYYY
+                        $requestDate = \Carbon\Carbon::createFromFormat('d/m/Y', trim((string) $fechaRaw))->format('Y-m-d');
+                    }
+                } catch (\Exception $e) {
+                    $requestDate = now()->format('Y-m-d');
+                }
+            }
+
+            $estudiantes = isset($colMap['estudiantes']) ? (int) ($row[$colMap['estudiantes']] ?? 0) : 0;
+            $payroll     = isset($colMap['payroll'])     ? trim((string) ($row[$colMap['payroll']] ?? ''))     : null;
+            $nroFactura  = isset($colMap['nro_factura']) ? trim((string) ($row[$colMap['nro_factura']] ?? '')) : null;
+
+            PaymentRequest::create([
+                'module_id'             => $module->id,
+                'sede'                  => $sede,
+                'request_type'          => stripos($moduleName, 'TUTORÍA') !== false ? 'Tutoria' : 'Modulo',
+                'payroll_number'        => $payroll ?: null,
+                'request_date'          => $requestDate,
+                'invoice_number'        => $nroFactura ?: null,
+                'total_amount'          => $totalAmount,
+                'retention_amount'      => $retentionAmount,
+                'net_amount'            => $netAmount,
+                'total_active_students' => $estudiantes ?: 0,
+                'observations'          => $observations,
+                'status'                => 'Realizado',
+                'created_by'            => Auth::id(),
+            ]);
+
+            $created++;
+        }
+
+        Log::info('Import PaymentRequest - Resultado', ['created' => $created, 'notFound_count' => count($notFound), 'skipped_count' => count($skipped)]);
+        foreach ($notFound as $nf) Log::info('Import notFound: ' . $nf);
+        foreach ($skipped as $sk) Log::info('Import skipped: ' . $sk);
+
+        $message = "Se importaron {$created} solicitudes correctamente.";
+        if (!empty($notFound)) {
+            $message .= ' No encontrados: ' . implode('; ', $notFound) . '.';
+        }
+        if (!empty($skipped)) {
+            $message .= ' Omitidos: ' . implode('; ', $skipped) . '.';
+        }
+
+        $type = (!empty($notFound) || !empty($skipped)) ? 'warning' : 'success';
+        return back()->with($type, $message);
     }
 
     private function authorizeAccess(PaymentRequest $paymentRequest, string $ability): void

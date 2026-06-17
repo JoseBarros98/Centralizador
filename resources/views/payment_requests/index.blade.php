@@ -132,6 +132,14 @@
                                         Limpiar Filtros
                                     </a>
                                 @endif
+                                @can('payment_request.create')
+                                    <button type="button" onclick="document.getElementById('importModal').style.display='flex'" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 whitespace-nowrap">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                        </svg>
+                                        Importar Excel
+                                    </button>
+                                @endcan
                             </div>
                         </form>
                     </div>
@@ -206,7 +214,7 @@
                                             </span>
                                         </td>
                                         <td class="px-3 py-2 whitespace-nowrap">{{ $loop->iteration }}</td>
-                                        <td class="px-3 py-2 whitespace-nowrap">ESAM LATAM ALAS</td>
+                                        <td class="px-3 py-2 whitespace-nowrap">{{ $request->sede ?? 'ESAM LATAM ALAS' }}</td>
                                         <td class="px-3 py-2 whitespace-nowrap">
                                             @if($request->request_date)
                                                 {{ $request->request_date->locale('es')->getTranslatedMonthName('long') }}
@@ -355,4 +363,42 @@
             });
         });
     </script>
+
+    <!-- Modal importar Excel -->
+    <div id="importModal" style="display:none" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Importar solicitudes desde Excel</h3>
+                <button type="button" onclick="document.getElementById('importModal').style.display='none'" class="text-gray-400 hover:text-gray-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <form method="POST" action="{{ route('payment_requests.import') }}" enctype="multipart/form-data" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Archivo Excel (.xlsx, .xls)</label>
+                    <input type="file" name="excel_file" accept=".xlsx,.xls" required
+                        class="block w-full text-sm text-gray-700 border border-gray-300 rounded-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <p class="text-xs text-gray-500 mt-1">
+                        Columnas requeridas: <strong>CODIGO CONTABLE PROGRAMA</strong>, <strong>MÓDULO</strong>, <strong>IMPTE.TOTAL</strong>.
+                    </p>
+                </div>
+                <p class="text-xs text-gray-500">
+                    Las solicitudes importadas se crean con estado <strong>Realizado</strong>. El módulo se busca por código contable y nombre exacto.
+                </p>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="document.getElementById('importModal').style.display='none'"
+                        class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-700 text-xs font-semibold rounded-md hover:bg-gray-300">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-md hover:bg-indigo-700">
+                        Importar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </x-app-layout>

@@ -11,6 +11,7 @@ class PaymentRequest extends Model
 
     protected $fillable = [
         'module_id',
+        'sede',
         'request_type',
         'payroll_number',
         'request_date',

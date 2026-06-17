@@ -389,6 +389,7 @@ Route::middleware('auth')->group(function () {
   Route::get('/payment_requests/module/{moduleId}/info', [PaymentRequestController::class, 'getModuleInfo'])->name('payment_requests.module_info');
   Route::patch('/payment_requests/{paymentRequest}/cambiar-estado', [PaymentRequestController::class, 'cambiarEstado'])->name('payment_requests.cambiar_estado');
   Route::get('/payment_requests/reporte', [PaymentRequestController::class, 'reporte'])->name('payment_requests.reporte');
+  Route::post('/payment_requests/import', [PaymentRequestController::class, 'import'])->name('payment_requests.import');
 
   // Rutas para CITES de titulación
   Route::post('/graduation-cites/import', [GraduationCiteController::class, 'import'])->name('graduation-cites.import');
