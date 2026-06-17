@@ -182,6 +182,8 @@ Route::middleware('auth')->group(function () {
   Route::get('/programs/{program}/modules/{module}/attendances/summary', [AttendanceController::class, 'summary'])->name('attendances.summary');
   Route::get('/programs/{program}/modules/{module}/attendances/summary/pdf', [AttendanceController::class, 'exportPdf'])->name('attendances.summary.pdf');
   Route::get('/programs/{program}/modules/{module}/classes/{class}/attendances/recalculate', [AttendanceController::class, 'recalculatePercentages'])->name('attendances.recalculate');
+  Route::post('/programs/{program}/attendances/{attendance}/link-to-inscription', [AttendanceController::class, 'linkToInscription'])->name('attendances.link_to_inscription');
+  Route::delete('/programs/{program}/attendances/{attendance}/unlink-inscription', [AttendanceController::class, 'unlinkInscription'])->name('attendances.unlink_inscription');
 
   // Rutas para calificaciones
   Route::get('/programs/{program}/modules/{module}/grades/upload', [GradeController::class, 'uploadForm'])->name('grades.upload');

@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Models\InscriptionAlias;
 use Illuminate\Support\Facades\Log;
 
 class NameMatcher
@@ -191,6 +192,33 @@ class NameMatcher
         return false;
     }
     
+    /**
+     * Busca una inscripción por alias registrado en el programa.
+     * Retorna la inscripción si el nombre normalizado coincide con algún alias.
+     *
+     * @param \Illuminate\Database\Eloquent\Collection $inscriptions
+     * @param string $name  Nombre tal como viene del XLSX (ya normalizado)
+     * @param int $programId
+     * @return \App\Models\Inscription|null
+     */
+    public static function findByAlias($inscriptions, string $name, int $programId)
+    {
+        $normalizedName = self::normalizeName($name);
+
+        $alias = InscriptionAlias::where('program_id', $programId)
+            ->whereIn('inscription_id', $inscriptions->pluck('id'))
+            ->get()
+            ->first(function ($alias) use ($normalizedName) {
+                return self::normalizeName($alias->alias_name) === $normalizedName;
+            });
+
+        if (!$alias) {
+            return null;
+        }
+
+        return $inscriptions->firstWhere('id', $alias->inscription_id);
+    }
+
     /**
      * Genera una clave única para un nombre normalizado.
      * Útil para agrupar variaciones del mismo nombre.

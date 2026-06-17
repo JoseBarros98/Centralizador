@@ -6,6 +6,8 @@ use App\Models\Module;
 use App\Models\ModuleClass;
 use App\Models\Program;
 use App\Models\Attendance;
+use App\Models\Inscription;
+use App\Models\InscriptionAlias;
 use App\Helpers\NameMatcher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +23,7 @@ class AttendanceController extends Controller
     public function __construct()
     {
         $this->middleware('permission:program.view_attendance')->only(['show', 'summary']);
-        $this->middleware('permission:program.manage_attendance')->only(['uploadForm', 'upload', 'recalculatePercentages']);
+        $this->middleware('permission:program.manage_attendance')->only(['uploadForm', 'upload', 'recalculatePercentages', 'linkToInscription', 'unlinkInscription']);
         $this->middleware('permission:program.export_attendance')->only(['exportPdf']);
     }
 
@@ -208,7 +210,7 @@ class AttendanceController extends Controller
                 $duration = $this->parseDurationToMinutes($durationStr);
 
                 // Buscar inscripción con múltiples métodos de matching
-                $inscription = $this->findInscriptionMatch($inscriptions, $fullNameXlsx, $email);
+                $inscription = $this->findInscriptionMatch($inscriptions, $fullNameXlsx, $email, $program->id);
 
                 // Contar registrados y no registrados
                 if ($inscription) {
@@ -328,7 +330,10 @@ class AttendanceController extends Controller
             }
         }
         
-        return view('attendances.show', compact('program', 'module', 'class', 'attendances', 'absentInscription', 'classDuration', 'metadata'));
+        // Lista de inscritos del programa para el modal de vinculación
+        $programInscriptions = $program->inscriptions()->orderBy('full_name')->get();
+
+        return view('attendances.show', compact('program', 'module', 'class', 'attendances', 'absentInscription', 'classDuration', 'metadata', 'programInscriptions'));
     }
 
     /**
@@ -548,11 +553,23 @@ class AttendanceController extends Controller
     /**
      * Busca una inscripción usando múltiples métodos de matching.
      */
-    private function findInscriptionMatch($inscriptions, $fullNameXlsx, $email)
+    private function findInscriptionMatch($inscriptions, $fullNameXlsx, $email, $programId = null)
     {
         // Separar palabras pegadas usando mayúsculas como delimitador
         // Ejemplo: "AlexanderUrquizu" -> "Alexander Urquizu"
         $fullNameXlsx = preg_replace('/([a-z])([A-Z])/', '$1 $2', $fullNameXlsx);
+
+        // Prioridad 0: alias registrado manualmente para este programa
+        if ($programId) {
+            $aliasMatch = NameMatcher::findByAlias($inscriptions, $fullNameXlsx, $programId);
+            if ($aliasMatch) {
+                Log::info('Coincidencia por alias encontrada', [
+                    'xlsx_name' => $fullNameXlsx,
+                    'inscription_name' => $aliasMatch->full_name,
+                ]);
+                return $aliasMatch;
+            }
+        }
         
         // Normalizar el nombre del archivo XLSX
         $normalizedXlsxName = NameMatcher::normalizeName($fullNameXlsx);
@@ -675,6 +692,102 @@ class AttendanceController extends Controller
         }
 
         return $bestMatch;
+    }
+
+    /**
+     * Vincula un registro de asistencia (invitado) a un inscrito del programa.
+     * Crea un alias permanente y actualiza el registro + todos los anteriores del programa.
+     */
+    public function linkToInscription(Request $request, Program $program, Attendance $attendance)
+    {
+        $request->validate([
+            'inscription_id' => 'required|integer|exists:inscriptions,id',
+        ]);
+
+        $inscription = Inscription::findOrFail($request->inscription_id);
+
+        // Verificar que el inscrito pertenece al programa
+        if (!$program->inscriptions()->where('inscriptions.id', $inscription->id)->exists()) {
+            return back()->withErrors(['inscription_id' => 'El participante no pertenece a este programa.']);
+        }
+
+        $aliasName = $attendance->name;
+
+        // Crear alias (ignorar si ya existe)
+        InscriptionAlias::firstOrCreate([
+            'inscription_id' => $inscription->id,
+            'program_id'     => $program->id,
+            'alias_name'     => $aliasName,
+        ], [
+            'created_by' => Auth::id(),
+        ]);
+
+        // Actualizar este registro de asistencia
+        $attendance->update([
+            'inscription_id'           => $inscription->id,
+            'name'                     => $inscription->getFullName(),
+            'is_registered_inscription' => true,
+        ]);
+
+        // Aplicar retroactivamente a todas las clases previas del programa con este nombre
+        $this->applyAliasRetroactively($program, $inscription, $aliasName);
+
+        return back()->with('success', "\"$aliasName\" vinculado a {$inscription->getFullName()} en todo el programa.");
+    }
+
+    /**
+     * Desvincula un registro de asistencia de su inscripción (lo convierte en invitado).
+     * No elimina el alias para preservar el historial.
+     */
+    public function unlinkInscription(Request $request, Program $program, Attendance $attendance)
+    {
+        $originalName = $attendance->name;
+
+        $attendance->update([
+            'inscription_id'           => null,
+            'is_registered_inscription' => false,
+        ]);
+
+        return back()->with('success', "\"$originalName\" desvinculado y marcado como invitado.");
+    }
+
+    /**
+     * Actualiza retroactivamente registros de asistencia con el alias_name dado
+     * que aún estén sin vinculación en las clases del programa.
+     */
+    private function applyAliasRetroactively(Program $program, Inscription $inscription, string $aliasName)
+    {
+        // Obtener IDs de todas las clases del programa
+        $classIds = $program->modules()
+            ->with('classes')
+            ->get()
+            ->flatMap(fn($module) => $module->classes->pluck('id'));
+
+        if ($classIds->isEmpty()) {
+            return;
+        }
+
+        // Buscar registros con ese nombre que todavía sean invitados
+        $affected = Attendance::whereIn('module_class_id', $classIds)
+            ->whereNull('inscription_id')
+            ->where('name', $aliasName)
+            ->get();
+
+        foreach ($affected as $att) {
+            $att->update([
+                'inscription_id'           => $inscription->id,
+                'name'                     => $inscription->getFullName(),
+                'is_registered_inscription' => true,
+            ]);
+        }
+
+        if ($affected->count() > 0) {
+            Log::info("Alias retroactivo aplicado: \"$aliasName\" → {$inscription->getFullName()}", [
+                'program_id'     => $program->id,
+                'inscription_id' => $inscription->id,
+                'registros'      => $affected->count(),
+            ]);
+        }
     }
 
     /**

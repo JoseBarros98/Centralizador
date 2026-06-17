@@ -159,6 +159,11 @@ class Inscription extends Model
                     ->withTimestamps();
     }
 
+    public function aliases()
+    {
+        return $this->hasMany(InscriptionAlias::class);
+    }
+
     /**
      * Accessor de compatibilidad para obtener el primer programa
      * Retorna el primer programa asociado como modelo (no como relación)
