@@ -47,6 +47,23 @@
                         </ul>
                     </div>
                     
+                    <div class="mb-4 flex items-center gap-3">
+                        <div style="position:relative; max-width:320px; width:100%;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                 style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#9ca3af; pointer-events:none;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                            </svg>
+                            <input type="text"
+                                   id="inscrito-search"
+                                   placeholder="Buscar por nombre o CI..."
+                                   oninput="filtrarInscritos(this.value)"
+                                   style="width:100%; padding:0.5rem 1rem 0.5rem 2.25rem; border:1px solid #d1d5db; border-radius:0.375rem; font-size:0.875rem; outline:none; box-sizing:border-box;"
+                                   onfocus="this.style.borderColor='#818cf8'; this.style.boxShadow='0 0 0 2px #e0e7ff';"
+                                   onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none';">
+                        </div>
+                        <span id="search-count" style="font-size:0.875rem; color:#6b7280;"></span>
+                    </div>
+
                     @if(count($classes) === 0)
                         <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                             <div class="flex">
@@ -93,9 +110,9 @@
                                         <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">{{ __('Asistencia') }}</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-100">
+                                <tbody id="inscrito-tbody" class="divide-y divide-gray-100">
                                     @foreach($attendanceMatrix as $row)
-                                        <tr>
+                                        <tr data-search="{{ strtolower($row['inscription']->getFullName() . ' ' . $row['inscription']->ci) }}" class="inscrito-row">
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                                 {{ $row['inscription']->getFullName() }}
                                             </td>
@@ -165,4 +182,24 @@
             </div>
         </div>
     </div>
+<script>
+function filtrarInscritos(query) {
+    const q = query.toLowerCase().trim();
+    const rows = document.querySelectorAll('.inscrito-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const match = !q || row.dataset.search.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    const counter = document.getElementById('search-count');
+    if (q) {
+        counter.textContent = visible + ' de ' + rows.length + ' inscritos';
+    } else {
+        counter.textContent = '';
+    }
+}
+</script>
 </x-app-layout>

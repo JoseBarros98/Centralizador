@@ -87,8 +87,24 @@
 
     <!-- Attendance Table -->
     <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
+        <div class="px-4 py-5 sm:px-6 flex items-center justify-between gap-4">
             <h3 class="text-lg leading-6 font-medium text-gray-900">Lista de Asistencia</h3>
+            <div class="flex items-center gap-3">
+                <div style="position:relative; width:260px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                         style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#9ca3af; pointer-events:none;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                    </svg>
+                    <input type="text"
+                           id="attendance-search"
+                           placeholder="Buscar por nombre..."
+                           oninput="filtrarAsistencia(this.value)"
+                           style="width:100%; padding:0.4rem 1rem 0.4rem 2.25rem; border:1px solid #d1d5db; border-radius:0.375rem; font-size:0.875rem; outline:none; box-sizing:border-box;"
+                           onfocus="this.style.borderColor='#818cf8'; this.style.boxShadow='0 0 0 2px #e0e7ff';"
+                           onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none';">
+                </div>
+                <span id="attendance-count" style="font-size:0.875rem; color:#6b7280; white-space:nowrap;"></span>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-100">
@@ -104,7 +120,9 @@
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     @foreach($attendances as $attendance)
-                    <tr class="{{ !$attendance->is_registered_inscription ? 'bg-amber-50' : '' }}">
+                    <tr class="attendance-row {{ !$attendance->is_registered_inscription ? 'bg-amber-50' : '' }}"
+                        data-search="{{ strtolower($attendance->inscription ? $attendance->inscription->getFullName() : $attendance->name) }}"
+                    >
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm font-medium text-gray-900">
                                 @if($attendance->inscription)
@@ -309,6 +327,21 @@ document.getElementById('link-modal').addEventListener('click', function(e) {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeLinkModal();
 });
+
+function filtrarAsistencia(query) {
+    const q = query.toLowerCase().trim();
+    const rows = document.querySelectorAll('.attendance-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const match = !q || row.dataset.search.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    const counter = document.getElementById('attendance-count');
+    counter.textContent = q ? (visible + ' de ' + rows.length) : '';
+}
 </script>
 @endcan
 

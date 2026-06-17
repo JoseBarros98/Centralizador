@@ -25,6 +25,23 @@
                 <div class="p-6 bg-white border-b border-gray-200">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Calificaciones del Módulo: {{ $module->name }}</h3>
                     
+                    <div class="mb-4 flex items-center gap-3">
+                        <div style="position:relative; max-width:320px; width:100%;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                 style="position:absolute; left:9px; top:50%; transform:translateY(-50%); color:#9ca3af; pointer-events:none;">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+                            </svg>
+                            <input type="text"
+                                   id="grade-search"
+                                   placeholder="Buscar por nombre..."
+                                   oninput="filtrarCalificaciones(this.value)"
+                                   style="width:100%; padding:0.5rem 0.75rem 0.5rem 2.25rem; border:1px solid #d1d5db; border-radius:0.375rem; font-size:0.875rem; outline:none; box-sizing:border-box;"
+                                   onfocus="this.style.borderColor='#818cf8'; this.style.boxShadow='0 0 0 2px #e0e7ff';"
+                                   onblur="this.style.borderColor='#d1d5db'; this.style.boxShadow='none';">
+                        </div>
+                        <span id="grade-count" style="font-size:0.875rem; color:#6b7280;"></span>
+                    </div>
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-100">
                             <thead>
@@ -37,14 +54,15 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody id="grades-tbody" class="divide-y divide-gray-100">
                                 @forelse ($grades as $grade)
-                                    <tr id="grade-row-{{ $grade->id }}">
+                                    <tr id="grade-row-{{ $grade->id }}" class="grade-row"
+                                        data-search="{{ strtolower($grade->inscription ? $grade->inscription->getFullName() : $grade->name . ' ' . $grade->last_name) }}">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                             @if($grade->inscription)
                                                 {{ $grade->inscription->getFullName() }}
                                             @else
-                                                {{ $grade->name }} {{ $grade->last_name }} (no asociado)
+                                                {{ $grade->name }} {{ $grade->last_name }} (ac asociado)
                                             @endif
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -407,4 +425,20 @@
             }
         }
     </script>
+<script>
+function filtrarCalificaciones(query) {
+    const q = query.toLowerCase().trim();
+    const rows = document.querySelectorAll('.grade-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const match = !q || row.dataset.search.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+
+    const counter = document.getElementById('grade-count');
+    counter.textContent = q ? (visible + ' de ' + rows.length + ' participantes') : '';
+}
+</script>
 </x-app-layout>
