@@ -47,6 +47,8 @@ class RoleSeeder extends Seeder
             'marketing.view', 'marketing.create', 'marketing.edit', 'marketing.delete',
             'marketing.manage_teams', 'marketing.manage_goals', 'marketing.view_reports',
 
+            'marketing_program.view', 'marketing_program.edit',
+
             'payment_request.view', 'payment_request.create', 'payment_request.edit', 'payment_request.edit_own', 'payment_request.delete', 'payment_request.delete_own',
 
             'graduation_cite.view', 'graduation_cite.create', 'graduation_cite.edit', 'graduation_cite.edit_own', 'graduation_cite.delete', 'graduation_cite.delete_own',
@@ -96,6 +98,7 @@ class RoleSeeder extends Seeder
             'marketing.manage_teams', 'marketing.manage_goals', 'marketing.view_reports',
             'marketing_contact.view_own', 'marketing_contact.view_team', 'marketing_contact.create',
             'marketing_contact.edit_own', 'marketing_contact.delete_own',
+            'marketing_program.view', 'marketing_program.edit',
         ]);
 
         // Designer

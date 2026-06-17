@@ -36,6 +36,7 @@ use App\Http\Controllers\MarketingGoalController;
 use App\Http\Controllers\MarketingGoalWeekController;
 use App\Http\Controllers\MarketingGoalWeekEntryController;
 use App\Http\Controllers\MarketingCourseTypeController;
+use App\Http\Controllers\MarketingProgramController;
 use App\Http\Controllers\UniversityController;
 use App\Http\Controllers\ProfessionController;
 use App\Http\Controllers\PaymentRequestController;
@@ -320,6 +321,17 @@ Route::middleware('auth')->group(function () {
   Route::patch('/marketing-teams/{marketingTeam}/restore', [MarketingTeamController::class, 'restore'])->name('marketing-teams.restore');
 
   // Rutas para metas de marketing
+  // Oferta académica de marketing
+  Route::get('marketing-programs', [MarketingProgramController::class, 'index'])->name('marketing-programs.index');
+  Route::post('marketing-programs', [MarketingProgramController::class, 'store'])->name('marketing-programs.store');
+  Route::patch('marketing-programs/{marketingProgram}', [MarketingProgramController::class, 'update'])->name('marketing-programs.update');
+  Route::delete('marketing-programs/{marketingProgram}', [MarketingProgramController::class, 'destroy'])->name('marketing-programs.destroy');
+  Route::post('marketing-programs/{marketingProgram}/teacher-panel', [MarketingProgramController::class, 'uploadTeacherPanel'])->name('marketing-programs.teacher-panel.upload');
+  Route::delete('marketing-programs/{marketingProgram}/teacher-panel', [MarketingProgramController::class, 'deleteTeacherPanel'])->name('marketing-programs.teacher-panel.delete');
+  Route::post('marketing-programs/{marketingProgram}/webinars', [MarketingProgramController::class, 'storeWebinar'])->name('marketing-programs.webinars.store');
+  Route::post('marketing-programs/webinars/{webinar}', [MarketingProgramController::class, 'updateWebinar'])->name('marketing-programs.webinars.update');
+  Route::delete('marketing-programs/webinars/{webinar}', [MarketingProgramController::class, 'destroyWebinar'])->name('marketing-programs.webinars.destroy');
+
   Route::prefix('marketing-goals')->name('marketing-goals.')->group(function () {
       Route::get('/', [MarketingGoalController::class, 'index'])->name('index');
       Route::post('/', [MarketingGoalController::class, 'store'])->name('store');

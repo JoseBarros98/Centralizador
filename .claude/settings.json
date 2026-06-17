@@ -7,7 +7,8 @@
       "Bash(xargs grep -l \"management.*expense\\\\|egreso\")",
       "PowerShell(docker exec centtest_app php artisan view:clear 2>&1)",
       "PowerShell(docker exec centtest_app php artisan route:clear 2>&1)",
-      "PowerShell(docker cp \"c:/Users/PC/Desktop/Dev/VS_Code_Docs/centtest/resources/views/management-expenses/index.blade.php\" centtest_app:/var/www/resources/views/management-expenses/index.blade.php)"
+      "PowerShell(docker cp \"c:/Users/PC/Desktop/Dev/VS_Code_Docs/centtest/resources/views/management-expenses/index.blade.php\" centtest_app:/var/www/resources/views/management-expenses/index.blade.php)",
+      "PowerShell(docker exec centtest_app sh -c \"mkdir -p /var/www/resources/views/marketing-programs\")"
     ]
   }
 }
