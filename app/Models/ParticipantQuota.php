@@ -18,6 +18,7 @@ class ParticipantQuota extends Model
         'descuento_aplicado',
         'importe_final',
         'fecha_vencimiento',
+        'pagada',
     ];
 
     protected $casts = [
@@ -25,6 +26,7 @@ class ParticipantQuota extends Model
         'importe_base' => 'decimal:2',
         'descuento_aplicado' => 'decimal:2',
         'importe_final' => 'decimal:2',
+        'pagada' => 'boolean',
     ];
 
     public function inscription()

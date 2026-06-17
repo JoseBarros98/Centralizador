@@ -432,9 +432,12 @@ Route::middleware('auth')->group(function () {
   Route::prefix('accounting')->name('participant-quotas.')->group(function () {
       Route::get('/participant-quotas', [ParticipantQuotaController::class, 'index'])->name('index.global');
       Route::post('/participant-quotas', [ParticipantQuotaController::class, 'store'])->name('store');
+      Route::post('/participant-quotas/preview-from-plan', [ParticipantQuotaController::class, 'previewFromPlan'])->name('preview');
       Route::post('/participant-quotas/generate-from-plan', [ParticipantQuotaController::class, 'generateFromPlan'])->name('generate');
+      Route::post('/participant-quotas/generate-bulk', [ParticipantQuotaController::class, 'generateBulk'])->name('generate-bulk');
       Route::post('/participant-quotas/discount', [ParticipantQuotaController::class, 'upsertDiscount'])->name('discount.upsert');
       Route::delete('/participant-quotas/discount', [ParticipantQuotaController::class, 'destroyDiscount'])->name('discount.destroy');
+      Route::patch('/participant-quotas/{participantQuota}/toggle-pagada', [ParticipantQuotaController::class, 'togglePagada'])->name('toggle-pagada');
       Route::patch('/participant-quotas/{participantQuota}', [ParticipantQuotaController::class, 'update'])->name('update');
       Route::delete('/participant-quotas/{participantQuota}', [ParticipantQuotaController::class, 'destroy'])->name('destroy');
       Route::delete('/participant-quotas-all', [ParticipantQuotaController::class, 'destroyAll'])->name('destroyAll');

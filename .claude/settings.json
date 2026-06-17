@@ -8,7 +8,13 @@
       "PowerShell(docker exec centtest_app php artisan view:clear 2>&1)",
       "PowerShell(docker exec centtest_app php artisan route:clear 2>&1)",
       "PowerShell(docker cp \"c:/Users/PC/Desktop/Dev/VS_Code_Docs/centtest/resources/views/management-expenses/index.blade.php\" centtest_app:/var/www/resources/views/management-expenses/index.blade.php)",
-      "PowerShell(docker exec centtest_app sh -c \"mkdir -p /var/www/resources/views/marketing-programs\")"
+      "PowerShell(docker exec centtest_app sh -c \"mkdir -p /var/www/resources/views/marketing-programs\")",
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\database\\\\migrations\\\\\" | Where-Object { $_.Name -match \"participant\" } | Select-Object Name)",
+      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Models\\\\ParticipantQuota.php\" centtest_app:/var/www/app/Models/ParticipantQuota.php)",
+      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Services\\\\NominalAssignmentService.php\" centtest_app:/var/www/app/Services/NominalAssignmentService.php)",
+      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Http\\\\Controllers\\\\ParticipantQuotaController.php\" centtest_app:/var/www/app/Http/Controllers/ParticipantQuotaController.php)",
+      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\routes\\\\web.php\" centtest_app:/var/www/routes/web.php)",
+      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\\\\participant-quotas\\\\index.blade.php\" centtest_app:/var/www/resources/views/participant-quotas/index.blade.php)"
     ]
   }
 }

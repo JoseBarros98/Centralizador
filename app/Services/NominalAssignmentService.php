@@ -88,6 +88,7 @@ class NominalAssignmentService
     {
         $allQuotas = ParticipantQuota::where('inscription_id', $detail->inscription_id)
             ->where('program_id', $assignment->program_id)
+            ->where('pagada', false)
             ->orderBy('numero_cuota')
             ->get();
 
@@ -135,6 +136,7 @@ class NominalAssignmentService
 
         $allQuotas = ParticipantQuota::where('inscription_id', $inscription->id)
             ->where('program_id', $programId)
+            ->where('pagada', false)
             ->orderBy('numero_cuota')
             ->get();
 
