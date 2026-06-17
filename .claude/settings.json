@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(docker exec centtest_app php artisan migrate --force)"
+      "PowerShell(docker exec centtest_app php artisan migrate --force)",
+      "PowerShell(docker exec centtest_app ls -lh /var/www/public/favicon.ico)",
+      "PowerShell(docker cp \"c:/Users/PC/Desktop/Dev/VS_Code_Docs/centtest/public/favicon.ico\" centtest_app:/var/www/public/favicon.ico)"
     ]
   }
 }
