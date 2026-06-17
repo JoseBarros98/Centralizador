@@ -11,12 +11,18 @@ class Grade extends Model
 
     protected $fillable = [
         'module_id',
-        //'participant_id',
         'inscription_id',
         'name',
         'last_name',
         'grade',
+        'activities',
         'approval_type',
+    ];
+
+    protected $casts = [
+        'activities' => 'array',
+        'grade'      => 'decimal:2',
+        'approved'   => 'boolean',
     ];
 
     /**

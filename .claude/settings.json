@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(docker exec centtest_app php artisan migrate --force)"
+    ]
+  }
+}

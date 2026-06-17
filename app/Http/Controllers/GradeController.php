@@ -56,32 +56,52 @@ public function uploadForm(Program $program, Module $module)
             }
 
             // Buscar las columnas necesarias
-            $nameColumn = null;
-            $lastNameColumn = null;
-            $gradeColumn = null;
+            $nameColumn       = null;
+            $lastNameColumn   = null;
+            $gradeColumn      = null;
+            $direccionColumn  = null;
+            $activityColumns  = []; // [index => 'Nombre actividad']
 
             // Asumimos que los encabezados están en la primera fila
             foreach ($rows[0] as $index => $header) {
                 if (!is_string($header)) {
                     continue;
                 }
-                
-                $header = trim(strtolower($header));
-                
-                if (str_contains($header, 'nombre')) {
+
+                $headerNorm = trim(strtolower($header));
+
+                if (str_contains($headerNorm, 'nombre')) {
                     $nameColumn = $index;
-                } elseif (str_contains($header, 'apellido')) {
+                } elseif (str_contains($headerNorm, 'apellido')) {
                     $lastNameColumn = $index;
-                } elseif (str_contains($header, 'total del curso') || str_contains($header, 'total del curso(real)') || str_contains($header, 'total del curso (real)')) {
+                } elseif (str_contains($headerNorm, 'dirección') || str_contains($headerNorm, 'direccion')) {
+                    $direccionColumn = $index;
+                } elseif (
+                    str_contains($headerNorm, 'total del curso') ||
+                    str_contains($headerNorm, 'total del curso(real)') ||
+                    str_contains($headerNorm, 'total del curso (real)')
+                ) {
                     $gradeColumn = $index;
                 }
             }
 
+            // Detectar columnas de actividades: las que están entre Dirección y Total del curso
+            if ($direccionColumn !== null && $gradeColumn !== null) {
+                for ($col = $direccionColumn + 1; $col < $gradeColumn; $col++) {
+                    $header = $rows[0][$col] ?? null;
+                    if ($header && is_string($header) && trim($header) !== '') {
+                        $activityColumns[$col] = trim($header);
+                    }
+                }
+            }
+
             Log::info('Columnas detectadas:', [
-                'nameColumn' => $nameColumn,
-                'lastNameColumn' => $lastNameColumn,
-                'gradeColumn' => $gradeColumn,
-                'headers' => $rows[0]
+                'nameColumn'      => $nameColumn,
+                'lastNameColumn'  => $lastNameColumn,
+                'direccionColumn' => $direccionColumn,
+                'gradeColumn'     => $gradeColumn,
+                'activityColumns' => $activityColumns,
+                'headers'         => $rows[0],
             ]);
 
             if ($nameColumn === null || $lastNameColumn === null || $gradeColumn === null) {
@@ -102,11 +122,20 @@ public function uploadForm(Program $program, Module $module)
                     continue;
                 }
 
-                $name = trim($row[$nameColumn]);
-                $lastName = trim($row[$lastNameColumn]);
+                $name       = trim($row[$nameColumn]);
+                $lastName   = trim($row[$lastNameColumn]);
                 $gradeValue = floatval(str_replace(',', '.', $row[$gradeColumn]));
-                $fullName = $name . ' ' . $lastName;
-                
+                $fullName   = $name . ' ' . $lastName;
+
+                // Capturar actividades intermedias
+                $activities = [];
+                foreach ($activityColumns as $col => $activityName) {
+                    $val = $row[$col] ?? null;
+                    if ($val !== null && $val !== '') {
+                        $activities[$activityName] = floatval(str_replace(',', '.', $val));
+                    }
+                }
+
                 // Buscar inscripción por nombre
                 $matchedInscription = $this->findBestInscriptionMatch($fullName, $inscriptions);
 
@@ -114,14 +143,15 @@ public function uploadForm(Program $program, Module $module)
                 $gradeRecord = Grade::updateOrCreate(
                     [
                         'module_id' => $module->id,
-                        'name' => $name,
+                        'name'      => $name,
                         'last_name' => $lastName,
                     ],
                     [
                         'inscription_id' => $matchedInscription ? $matchedInscription->id : null,
-                        'grade' => $gradeValue,
-                        'approved' => $gradeValue >= 71,
-                        'original_name' => $fullName,
+                        'grade'          => $gradeValue,
+                        'activities'     => !empty($activities) ? $activities : null,
+                        'approved'       => $gradeValue >= 71,
+                        'original_name'  => $fullName,
                     ]
                 );
 
@@ -222,7 +252,19 @@ public function uploadForm(Program $program, Module $module)
         $totalCount = $grades->count();
         $approvalRate = $totalCount > 0 ? ($approvedCount / $totalCount) * 100 : 0;
 
-        return view('grades.summary', compact('program', 'module', 'grades', 'approvedCount', 'totalCount', 'approvalRate'));
+        // Recopilar nombres de actividades únicos en el orden en que aparecen
+        $activityNames = [];
+        foreach ($grades as $grade) {
+            if (!empty($grade->activities)) {
+                foreach (array_keys($grade->activities) as $actName) {
+                    if (!in_array($actName, $activityNames)) {
+                        $activityNames[] = $actName;
+                    }
+                }
+            }
+        }
+
+        return view('grades.summary', compact('program', 'module', 'grades', 'approvedCount', 'totalCount', 'approvalRate', 'activityNames'));
     }
 
     /**
