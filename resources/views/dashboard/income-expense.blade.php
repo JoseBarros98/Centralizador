@@ -3,22 +3,29 @@
 @section('content')
 <div>
     <div class="w-full sm:px-6 lg:px-8">
-        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div style="margin-bottom:1.5rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1rem;">
             <div>
                 <h2 class="text-2xl font-bold text-gray-900">Dashboard Ingresos vs Egresos</h2>
                 <p class="mt-1 text-gray-600">Comparativa anual de ingresos y egresos por gestión</p>
             </div>
 
-            <form method="GET" action="{{ route('dashboard.income-expense') }}" class="flex items-end gap-3">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Gestión</label>
-                    <select name="year" class="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <form method="GET" action="{{ route('dashboard.income-expense') }}" style="display:flex;align-items:center;gap:0.5rem;">
+                <label style="font-size:0.875rem;font-weight:500;color:#374151;">Gestión</label>
+                <div style="position:relative;display:inline-flex;align-items:center;">
+                    <select name="year"
+                            style="appearance:none;-webkit-appearance:none;padding:0.375rem 1.75rem 0.375rem 0.75rem;font-size:0.875rem;border:1px solid #d1d5db;border-radius:0.375rem;outline:none;cursor:pointer;background:#fff;color:#374151;"
+                            onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
                         @foreach($availableYears as $availableYear)
                             <option value="{{ $availableYear }}" @selected((int)$year === (int)$availableYear)>{{ $availableYear }}</option>
                         @endforeach
                     </select>
+                    <svg style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);width:0.7rem;height:0.7rem;color:#9ca3af;pointer-events:none;"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
                 </div>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700">Aplicar</button>
+                <button type="submit" style="padding:0.375rem 1rem;background:#4f46e5;color:#fff;border:none;border-radius:0.375rem;font-size:0.875rem;font-weight:500;cursor:pointer;"
+                        onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">Aplicar</button>
             </form>
         </div>
 

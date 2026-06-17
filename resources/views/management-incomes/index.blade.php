@@ -31,12 +31,14 @@ window._incConfig = {
                     Define las entidades, expande un mes y haz clic en una celda de entidad para registrar los ingresos diarios.
                 </p>
             </div>
-            <form method="GET" action="{{ route('management-incomes.index') }}" class="flex items-center gap-2">
-                <label for="gestion" class="text-sm font-medium text-gray-700">Gestión:</label>
+            <form method="GET" action="{{ route('management-incomes.index') }}" style="display:flex;align-items:center;gap:0.5rem;">
+                <label for="gestion" style="font-size:0.875rem;font-weight:500;color:#374151;">Gestión</label>
                 <input id="gestion" name="gestion" type="number" min="2000" max="2100"
                        value="{{ $gestion }}"
-                       class="w-24 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">Cambiar</button>
+                       style="width:5rem;padding:0.375rem 0.75rem;border:1px solid #d1d5db;border-radius:0.375rem;font-size:0.875rem;outline:none;"
+                       onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#d1d5db'">
+                <button type="submit" style="padding:0.375rem 1rem;background:#2563eb;color:#fff;border:none;border-radius:0.375rem;font-size:0.875rem;font-weight:500;cursor:pointer;"
+                        onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Aplicar</button>
             </form>
         </div>
 
