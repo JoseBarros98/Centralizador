@@ -552,12 +552,12 @@
                                             </td>
                                             <td class="px-4 py-2 align-top">
                                                 <div class="flex space-x-2">
-                                                    <a href="{{ route('documents.serve', $document) }}" target="_blank" class="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" title="Ver">
+                                                    <button type="button" onclick="openDocPreview('{{ route('documents.serve', $document) }}', '{{ route('documents.download', $document) }}', '{{ addslashes(ucfirst(str_replace('_', ' ', $document->document_type))) }}')" class="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" title="Ver">
                                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                                         </svg>
-                                                    </a>
+                                                    </button>
                                                     @can('inscription.edit')
                                                     @if(auth()->user()->id === $inscription->created_by)
                                                     <a href="{{ route('documents.serve', $document) }}" download class="inline-flex items-center p-1 border border-transparent rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" title="Descargar">
@@ -943,6 +943,44 @@
                     if (e.key === 'Enter') { e.preventDefault(); this.blur(); }
                 });
             }
+        });
+    </script>
+
+    {{-- Modal previsualización de documento --}}
+    <div id="doc-preview-overlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:rgba(0,0,0,0.65);" onclick="if(event.target===this)closeDocPreview()">
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;">
+            <div style="display:flex;flex-direction:column;width:100%;max-width:800px;max-height:80vh;border-radius:0.75rem;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+                <div style="background:#1f2937;padding:0.6rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <span id="doc-preview-label" style="color:#e5e7eb;font-size:0.875rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:1rem;"></span>
+                    <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;">
+                        <a id="doc-preview-download" href="#" style="display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.75rem;background:#2563eb;color:#fff;border-radius:0.375rem;font-size:0.75rem;font-weight:600;text-decoration:none;" download>
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            Descargar
+                        </a>
+                        <button type="button" onclick="closeDocPreview()" style="color:#9ca3af;background:none;border:none;cursor:pointer;padding:0.25rem;line-height:1;" title="Cerrar">
+                            <svg xmlns="http://www.w3.org/2000/svg" style="width:20px;height:20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div style="background:#f3f4f6;flex:1;overflow:auto;min-height:60vh;">
+                    <iframe id="doc-preview-frame" src="" style="width:100%;height:100%;border:none;min-height:60vh;display:block;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function openDocPreview(url, downloadUrl, label) {
+            document.getElementById('doc-preview-label').textContent = label;
+            document.getElementById('doc-preview-download').href = downloadUrl;
+            document.getElementById('doc-preview-frame').src = url;
+            document.getElementById('doc-preview-overlay').style.display = 'block';
+        }
+        function closeDocPreview() {
+            document.getElementById('doc-preview-overlay').style.display = 'none';
+            document.getElementById('doc-preview-frame').src = '';
+        }
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDocPreview();
         });
     </script>
 </x-app-layout>
