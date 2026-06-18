@@ -30,6 +30,7 @@ tbody tr:hover       .sticky-col { background: #f9fafb; } /* gray-50 */
 
             {{-- Gestión --}}
             <select name="gestion" id="filter-gestion"
+                    style="min-width:170px;"
                     class="px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors
                            {{ $gestion ? 'border-indigo-400 bg-indigo-50 text-indigo-800 font-semibold' : 'border-gray-300 text-gray-700' }}">
                 <option value="">Todas las gestiones</option>
