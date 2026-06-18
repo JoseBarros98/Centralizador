@@ -14,7 +14,12 @@
       "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Services\\\\NominalAssignmentService.php\" centtest_app:/var/www/app/Services/NominalAssignmentService.php)",
       "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Http\\\\Controllers\\\\ParticipantQuotaController.php\" centtest_app:/var/www/app/Http/Controllers/ParticipantQuotaController.php)",
       "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\routes\\\\web.php\" centtest_app:/var/www/routes/web.php)",
-      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\\\\participant-quotas\\\\index.blade.php\" centtest_app:/var/www/resources/views/participant-quotas/index.blade.php)"
+      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\\\\participant-quotas\\\\index.blade.php\" centtest_app:/var/www/resources/views/participant-quotas/index.blade.php)",
+      "Bash(xargs grep -l \"program\\\\|oferta\" -i)",
+      "Bash(xargs grep -l \"program\" -i)",
+      "PowerShell(docker exec centtest_app find /var/www -maxdepth 5 -type d -name \"views\" 2>&1)",
+      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\\\\marketing-programs\\\\index.blade.php\" centtest_app:/var/www/resources/views/marketing-programs/index.blade.php)",
+      "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Http\\\\Controllers\\\\MarketingProgramController.php\" centtest_app:/var/www/app/Http/Controllers/MarketingProgramController.php)"
     ]
   }
 }

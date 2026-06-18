@@ -1,5 +1,28 @@
 @extends('layouts.app')
 
+@push('styles')
+<style>
+.modal-select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 100%;
+    padding: 0.4rem 1.75rem 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    outline: none;
+    box-sizing: border-box;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%239ca3af' stroke-width='2.5' viewBox='0 0 24 24'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 0.7rem;
+    cursor: pointer;
+}
+</style>
+@endpush
+
 @section('content')
 <div x-data="marketingPrograms()" x-init="init()" class="max-w-full px-4 sm:px-6 md:px-8">
 
@@ -33,40 +56,40 @@
 
     {{-- Tabla --}}
     <div style="overflow-x:auto;border-radius:0.5rem;border:1px solid #e5e7eb;">
-        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+        <table style="width:100%;border-collapse:separate;border-spacing:0;font-size:0.8rem;">
             <thead>
                 <tr>
-                    <th style="position:sticky;left:0;z-index:20;background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:110px;border-right:1px solid #374151;">ESTADO</th>
-                    <th style="position:sticky;left:110px;z-index:20;background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:200px;border-right:1px solid #374151;">NOMBRE DEL PROGRAMA</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:130px;">CERTIFICACIÓN</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:140px;">EQUIPO RESPONSABLE</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:140px;">DÍAS DE CLASES</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:80px;">ÁREA</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:center;white-space:normal;word-break:break-word;min-width:100px;">PLANTEL DOCENTE</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:120px;">LANZAMIENTO DE CAMPAÑAS</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:130px;">WEBINAR / MASTERCLASS</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:120px;">INICIO INAUGURACIÓN</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:100px;">MÓDULO 0</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:100px;">MÓDULO 1</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:center;white-space:normal;word-break:break-word;min-width:80px;">TOTAL INSCRITOS</th>
-                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:center;white-space:normal;word-break:break-word;min-width:90px;">INSCRITOS COMPLETOS</th>
+                    <th style="position:sticky;left:0;z-index:20;background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:center;white-space:nowrap;min-width:70px;border-right:1px solid #374151;border-bottom:2px solid #374151;">ACCIONES</th>
+                    <th style="position:sticky;left:70px;z-index:20;background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:130px;border-right:1px solid #374151;border-bottom:2px solid #374151;">ESTADO</th>
+                    <th style="position:sticky;left:200px;z-index:20;background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:200px;border-right:1px solid #374151;border-bottom:2px solid #374151;">NOMBRE DEL PROGRAMA</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:130px;border-bottom:2px solid #374151;">CERTIFICACIÓN</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:140px;border-bottom:2px solid #374151;">EQUIPO RESPONSABLE</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:140px;border-bottom:2px solid #374151;">DÍAS DE CLASES</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:80px;border-bottom:2px solid #374151;">ÁREA</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:center;white-space:normal;word-break:break-word;min-width:100px;border-bottom:2px solid #374151;">PLANTEL DOCENTE</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:120px;border-bottom:2px solid #374151;">LANZAMIENTO DE CAMPAÑAS</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:130px;border-bottom:2px solid #374151;">WEBINAR / MASTERCLASS</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:normal;word-break:break-word;min-width:120px;border-bottom:2px solid #374151;">INICIO INAUGURACIÓN</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:100px;border-bottom:2px solid #374151;">MÓDULO 0</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:left;white-space:nowrap;min-width:100px;border-bottom:2px solid #374151;">MÓDULO 1</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:center;white-space:normal;word-break:break-word;min-width:80px;border-bottom:2px solid #374151;">TOTAL INSCRITOS</th>
+                    <th style="background:#1f2937;color:#fff;padding:0.6rem 0.75rem;text-align:center;white-space:normal;word-break:break-word;min-width:90px;border-bottom:2px solid #374151;">INSCRITOS COMPLETOS</th>
                 </tr>
             </thead>
             <tbody>
                 <template x-if="programs.length === 0">
                     <tr>
-                        <td colspan="14" style="text-align:center;padding:2rem;color:#6b7280;font-style:italic;">
+                        <td colspan="15" style="text-align:center;padding:2rem;color:#6b7280;font-style:italic;">
                             No hay programas registrados para esta gestión.
                         </td>
                     </tr>
                 </template>
                 <template x-for="prog in programs" :key="prog.id">
                     <tr :style="rowStyle(prog.status)" style="border-bottom:1px solid #e5e7eb;">
-                        {{-- Estado --}}
-                        <td :style="stickyCell(prog.status, 0, 110)" style="position:sticky;left:0;z-index:10;padding:0.5rem 0.75rem;border-right:1px solid #e5e7eb;">
-                            <div style="display:flex;align-items:center;gap:0.375rem;">
-                                <span :style="statusBadge(prog.status)" style="display:inline-block;padding:0.2rem 0.5rem;border-radius:9999px;font-size:0.7rem;font-weight:600;white-space:nowrap;" x-text="statusLabel(prog.status)"></span>
-                                @can('marketing_program.edit')
+                        {{-- Acciones --}}
+                        <td :style="stickyCell(prog.status, 0, 0)" style="padding:0.5rem 0.75rem;border-right:1px solid #e5e7eb;text-align:center;">
+                            @can('marketing_program.edit')
+                            <div style="display:inline-flex;align-items:center;gap:0.25rem;">
                                 <button @click="openEdit(prog)" title="Editar" style="color:#6b7280;background:none;border:none;cursor:pointer;padding:0.125rem;">
                                     <svg style="width:0.875rem;height:0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -77,11 +100,15 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                                     </svg>
                                 </button>
-                                @endcan
                             </div>
+                            @endcan
+                        </td>
+                        {{-- Estado --}}
+                        <td :style="stickyCell(prog.status, 1, 70)" style="padding:0.5rem 0.75rem;border-right:1px solid #e5e7eb;">
+                            <span :style="statusBadge(prog.status)" style="display:inline-block;padding:0.2rem 0.5rem;border-radius:9999px;font-size:0.7rem;font-weight:600;white-space:nowrap;" x-text="statusLabel(prog.status)"></span>
                         </td>
                         {{-- Nombre --}}
-                        <td :style="stickyCell(prog.status, 1, 110)" style="position:sticky;left:110px;z-index:10;padding:0.5rem 0.75rem;font-weight:600;border-right:1px solid #e5e7eb;" x-text="prog.name"></td>
+                        <td :style="stickyCell(prog.status, 1, 200)" style="padding:0.5rem 0.75rem;font-weight:600;border-right:1px solid #e5e7eb;" x-text="prog.name"></td>
                         {{-- Certificación --}}
                         <td style="padding:0.5rem 0.75rem;" x-text="prog.certification || '—'"></td>
                         {{-- Equipo --}}
@@ -94,14 +121,14 @@
                         <td style="padding:0.5rem 0.75rem;" x-text="prog.area || '—'"></td>
                         {{-- Plantel docente --}}
                         <td style="padding:0.5rem 0.75rem;text-align:center;">
-                            <template x-if="prog.has_teacher_panel && prog.teacher_panel_drive_link">
-                                <a :href="prog.teacher_panel_drive_link" target="_blank"
-                                   style="display:inline-flex;align-items:center;gap:0.25rem;color:#16a34a;font-size:0.75rem;text-decoration:none;">
+                            <template x-if="prog.has_teacher_panel && prog.teacher_panel_drive_id">
+                                <button @click="openFilePreview(prog.teacher_panel_drive_id, prog.name)"
+                                        style="display:inline-flex;align-items:center;gap:0.25rem;color:#16a34a;font-size:0.75rem;background:none;border:none;cursor:pointer;padding:0;">
                                     <svg style="width:0.875rem;height:0.875rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                     </svg>
                                     Ver
-                                </a>
+                                </button>
                             </template>
                             <template x-if="prog.has_teacher_panel && !prog.teacher_panel_drive_link">
                                 <span style="color:#16a34a;font-weight:600;">✓</span>
@@ -180,20 +207,15 @@
                     <div style="display:grid;grid-template-columns:1fr 2fr;gap:1rem;">
                         <div>
                             <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Estado *</label>
-                            <div style="position:relative;">
-                                <select x-model="modal.status"
-                                        :style="'appearance:none;-webkit-appearance:none;width:100%;padding:0.4rem 1.75rem 0.4rem 0.6rem;font-size:0.8rem;border-width:1px;border-style:solid;border-radius:0.375rem;outline:none;' + (modal.status ? 'border-color:#6366f1;' : 'border-color:#d1d5db;')">
-                                    <option value="en_oferta">En Oferta</option>
-                                    <option value="en_desarrollo">En Desarrollo</option>
-                                    <option value="en_conflicto">En Conflicto</option>
-                                    <option value="pendiente_lanzamiento">Pendiente de Lanzamiento</option>
-                                    <option value="grupo_cerrado">Grupo Cerrado</option>
-                                    <option value="sin_exito">Programa sin Éxito</option>
-                                </select>
-                                <svg style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);width:0.7rem;height:0.7rem;color:#9ca3af;pointer-events:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </div>
+                            <select x-model="modal.status" class="modal-select"
+                                    onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
+                                <option value="en_oferta">En Oferta</option>
+                                <option value="en_desarrollo">En Desarrollo</option>
+                                <option value="en_conflicto">En Conflicto</option>
+                                <option value="pendiente_lanzamiento">Pendiente de Lanzamiento</option>
+                                <option value="grupo_cerrado">Grupo Cerrado</option>
+                                <option value="sin_exito">Programa sin Éxito</option>
+                            </select>
                         </div>
                         <div>
                             <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Nombre del Programa *</label>
@@ -207,23 +229,70 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                         <div>
                             <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Certificación</label>
-                            <input x-model="modal.certification" type="text" placeholder="Ej: MBA, Diplomado…"
+                            <input x-model="modal.certification" type="text" placeholder="Ej: UNSXX, UPI…"
                                    style="width:100%;padding:0.4rem 0.6rem;border:1px solid #d1d5db;border-radius:0.375rem;font-size:0.8rem;outline:none;box-sizing:border-box;"
                                    onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
                         </div>
-                        <div>
-                            <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Programa (Posgrado)</label>
+                        <div style="min-width:0;"
+                             x-data="{
+                                open: false,
+                                search: '',
+                                get filtered() {
+                                    if (!this.search.trim()) return programsList;
+                                    const q = this.search.toLowerCase();
+                                    return programsList.filter(p => p.name.toLowerCase().includes(q));
+                                },
+                                get selectedLabel() {
+                                    if (!modal.program_id) return '— Sin vincular —';
+                                    const p = programsList.find(p => p.id == modal.program_id);
+                                    return p ? p.name : '— Sin vincular —';
+                                },
+                                select(id) {
+                                    modal.program_id = id;
+                                    this.open = false;
+                                    this.search = '';
+                                },
+                                openDropdown() {
+                                    this.open = true;
+                                    this.search = '';
+                                    this.$nextTick(() => this.$refs.searchInput.focus());
+                                }
+                             }">
+                            <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Programa</label>
                             <div style="position:relative;">
-                                <select x-model="modal.program_id"
-                                        :style="'appearance:none;-webkit-appearance:none;width:100%;padding:0.4rem 1.75rem 0.4rem 0.6rem;font-size:0.8rem;border-width:1px;border-style:solid;border-radius:0.375rem;outline:none;' + (modal.program_id ? 'border-color:#6366f1;' : 'border-color:#d1d5db;')">
-                                    <option value="">— Sin vincular —</option>
-                                    @foreach($programs_list as $p)
-                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
-                                    @endforeach
-                                </select>
+                                {{-- Trigger --}}
+                                <button type="button" @click="openDropdown()"
+                                        style="appearance:none;width:100%;padding:0.4rem 1.75rem 0.4rem 0.6rem;font-size:0.8rem;border:1px solid #d1d5db;border-radius:0.375rem;outline:none;background:#fff;text-align:left;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;box-sizing:border-box;"
+                                        x-text="selectedLabel"></button>
                                 <svg style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);width:0.7rem;height:0.7rem;color:#9ca3af;pointer-events:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                                 </svg>
+                                {{-- Dropdown --}}
+                                <div x-show="open" @click.outside="open = false"
+                                     style="display:none;position:absolute;top:100%;left:0;right:0;z-index:200;background:#fff;border:1px solid #d1d5db;border-radius:0.375rem;box-shadow:0 4px 16px rgba(0,0,0,0.12);margin-top:2px;">
+                                    <div style="padding:0.4rem;">
+                                        <input x-ref="searchInput" x-model="search" type="text" placeholder="Buscar programa…"
+                                               style="width:100%;padding:0.35rem 0.5rem;border:1px solid #d1d5db;border-radius:0.25rem;font-size:0.78rem;outline:none;box-sizing:border-box;"
+                                               onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
+                                    </div>
+                                    <ul style="max-height:200px;overflow-y:auto;margin:0;padding:0 0 0.25rem 0;list-style:none;">
+                                        <li @click="select('')"
+                                            style="padding:0.4rem 0.75rem;font-size:0.78rem;cursor:pointer;color:#6b7280;"
+                                            onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='transparent'">
+                                            — Sin vincular —
+                                        </li>
+                                        <template x-for="p in filtered" :key="p.id">
+                                            <li @click="select(p.id)"
+                                                :style="modal.program_id == p.id ? 'background:#eff6ff;font-weight:600;' : ''"
+                                                style="padding:0.4rem 0.75rem;font-size:0.78rem;cursor:pointer;"
+                                                onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background= modal.program_id == this.__x_for_key ? '#eff6ff' : 'transparent'"
+                                                x-text="p.name"></li>
+                                        </template>
+                                        <template x-if="filtered.length === 0">
+                                            <li style="padding:0.4rem 0.75rem;font-size:0.78rem;color:#9ca3af;font-style:italic;">Sin resultados.</li>
+                                        </template>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -232,18 +301,13 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
                         <div>
                             <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Equipo Responsable</label>
-                            <div style="position:relative;">
-                                <select x-model="modal.marketing_team_id"
-                                        :style="'appearance:none;-webkit-appearance:none;width:100%;padding:0.4rem 1.75rem 0.4rem 0.6rem;font-size:0.8rem;border-width:1px;border-style:solid;border-radius:0.375rem;outline:none;' + (modal.marketing_team_id ? 'border-color:#6366f1;' : 'border-color:#d1d5db;')">
-                                    <option value="">— Sin asignar —</option>
-                                    @foreach($teams as $team)
-                                    <option value="{{ $team->id }}">{{ $team->name }}</option>
-                                    @endforeach
-                                </select>
-                                <svg style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);width:0.7rem;height:0.7rem;color:#9ca3af;pointer-events:none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                            </div>
+                            <select x-model="modal.marketing_team_id" class="modal-select"
+                                    onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
+                                <option value="">— Sin asignar —</option>
+                                @foreach($teams as $team)
+                                <option value="{{ $team->id }}">{{ $team->name }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div>
                             <label style="display:block;font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.25rem;">Días de Clases</label>
@@ -313,9 +377,9 @@
                                         <input type="file" style="display:none;" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                                                @change="uploadTeacherPanel($event)">
                                     </label>
-                                    <template x-if="modal.has_teacher_panel && modal.teacher_panel_drive_link">
-                                        <a :href="modal.teacher_panel_drive_link" target="_blank"
-                                           style="font-size:0.75rem;color:#4f46e5;text-decoration:none;">Ver archivo</a>
+                                    <template x-if="modal.has_teacher_panel && modal.teacher_panel_drive_id">
+                                        <button @click="openFilePreview(modal.teacher_panel_drive_id, modal.name)"
+                                                style="font-size:0.75rem;color:#4f46e5;background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;">Ver archivo</button>
                                     </template>
                                     <template x-if="modal.has_teacher_panel">
                                         <button @click="deleteTeacherPanel()" style="font-size:0.75rem;color:#ef4444;background:none;border:none;cursor:pointer;">Eliminar</button>
@@ -411,6 +475,49 @@
         </div>
     </div>
 
+    {{-- Modal Previsualización Archivo --}}
+    <div x-show="filePreview.open" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;overflow-y:auto;background:rgba(0,0,0,0.65);">
+        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;" @click.self="filePreview.open = false">
+            <div style="display:flex;flex-direction:column;width:100%;max-width:800px;max-height:80vh;border-radius:0.75rem;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.5);">
+                {{-- Header --}}
+                <div style="background:#1f2937;padding:0.6rem 1rem;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;gap:0.5rem;min-width:0;">
+                        <svg style="width:0.9rem;height:0.9rem;color:#9ca3af;flex-shrink:0;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span style="color:#e5e7eb;font-size:0.8rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="filePreview.label"></span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.4rem;flex-shrink:0;">
+                        <a :href="'/marketing-programs/file-preview?id=' + filePreview.driveId + '&download=1'"
+                           style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.65rem;background:#4f46e5;color:#fff;border-radius:0.375rem;font-size:0.75rem;font-weight:500;text-decoration:none;">
+                            <svg style="width:0.8rem;height:0.8rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Descargar
+                        </a>
+                        <button @click="filePreview.open = false" style="color:#9ca3af;background:none;border:none;cursor:pointer;padding:0.2rem;line-height:0;">
+                            <svg style="width:1.1rem;height:1.1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                {{-- Contenido --}}
+                <div style="background:#f3f4f6;flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;min-height:0;">
+                    <template x-if="filePreview.isImage">
+                        <img :src="filePreview.driveId ? '/marketing-programs/file-preview?id=' + filePreview.driveId : ''"
+                             style="max-width:100%;max-height:100%;object-fit:contain;display:block;">
+                    </template>
+                    <template x-if="!filePreview.isImage">
+                        <iframe :src="filePreview.driveId ? '/marketing-programs/file-preview?id=' + filePreview.driveId : ''"
+                                style="width:100%;height:100%;border:none;min-height:60vh;"
+                                allow="autoplay"></iframe>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Toast --}}
     <div x-show="toast.show" x-transition.opacity
          :style="'position:fixed;bottom:1.5rem;right:1.5rem;z-index:100;padding:0.75rem 1.25rem;border-radius:0.5rem;font-size:0.875rem;font-weight:500;color:#fff;pointer-events:none;' + (toast.type === 'error' ? 'background:#ef4444;' : 'background:#16a34a;')"
@@ -422,6 +529,7 @@
 function marketingPrograms() {
     return {
         programs: @json($programs),
+        programsList: @json($programs_list->map(fn($p) => ['id' => $p->id, 'name' => $p->name])),
         gestion:  {{ $gestion }},
         allDays: [
             {val:'lunes',label:'Lun'},{val:'martes',label:'Mar'},{val:'miércoles',label:'Mié'},
@@ -433,8 +541,18 @@ function marketingPrograms() {
                  campaign_launch_date:'', inauguration_date:'', module_0_date:'', module_1_date:'',
                  webinars:[] },
         toast: { show:false, msg:'', type:'success' },
+        filePreview: { open:false, driveId:null, label:'', isImage:false },
 
         init() {},
+
+        async openFilePreview(driveId, label) {
+            this.filePreview = { open:true, driveId, label: label || 'Plantel Docente', isImage:false };
+            try {
+                const res = await fetch(`/marketing-programs/file-preview?id=${driveId}&info=1`, { headers:{ 'Accept':'application/json' } });
+                const data = await res.json();
+                this.filePreview.isImage = (data.mimeType || '').startsWith('image/');
+            } catch(e) {}
+        },
 
         // ── Status helpers ──
         statusLabel(s) {
@@ -469,8 +587,8 @@ function marketingPrograms() {
                 pendiente_lanzamiento:'#fefce8', grupo_cerrado:'#f9fafb', sin_exito:'#f8fafc',
             };
             const bg = bgMap[status] ?? '#fff';
-            const left = col === 0 ? '0' : leftBase + 'px';
-            return `background:${bg};left:${left};`;
+            const left = col === 0 ? '0px' : leftBase + 'px';
+            return `position:sticky;left:${left};z-index:10;background:${bg};`;
         },
 
         // ── Dates ──

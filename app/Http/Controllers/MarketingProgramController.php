@@ -131,6 +131,35 @@ class MarketingProgramController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function previewFile(Request $request): \Illuminate\Http\Response|\Illuminate\Http\JsonResponse
+    {
+        $driveId  = $request->query('id');
+        $download = $request->boolean('download');
+        $infoOnly = $request->boolean('info');
+
+        abort_if(!$driveId, 400);
+
+        $info = $this->drive->getFileInfo($driveId);
+
+        if ($infoOnly) {
+            return response()->json(['mimeType' => $info['mimeType'] ?? null, 'name' => $info['name'] ?? null]);
+        }
+
+        $content  = $this->drive->downloadFile($driveId);
+        $mime     = $info['mimeType'] ?? 'application/octet-stream';
+        $filename = $info['name']     ?? 'archivo';
+
+        $headers = [
+            'Content-Type'    => $mime,
+            'Content-Length'  => strlen($content),
+            'Cache-Control'   => 'private, max-age=3600',
+            'X-Frame-Options' => 'SAMEORIGIN',
+            'Content-Disposition' => ($download ? 'attachment' : 'inline') . '; filename="' . addslashes($filename) . '"',
+        ];
+
+        return response($content, 200, $headers);
+    }
+
     // ── Webinars ─────────────────────────────────────────────────────────────
 
     public function storeWebinar(Request $request, MarketingProgram $marketingProgram): JsonResponse

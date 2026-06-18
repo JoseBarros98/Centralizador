@@ -326,6 +326,7 @@ Route::middleware('auth')->group(function () {
   Route::post('marketing-programs', [MarketingProgramController::class, 'store'])->name('marketing-programs.store');
   Route::patch('marketing-programs/{marketingProgram}', [MarketingProgramController::class, 'update'])->name('marketing-programs.update');
   Route::delete('marketing-programs/{marketingProgram}', [MarketingProgramController::class, 'destroy'])->name('marketing-programs.destroy');
+  Route::get('marketing-programs/file-preview', [MarketingProgramController::class, 'previewFile'])->name('marketing-programs.file-preview');
   Route::post('marketing-programs/{marketingProgram}/teacher-panel', [MarketingProgramController::class, 'uploadTeacherPanel'])->name('marketing-programs.teacher-panel.upload');
   Route::delete('marketing-programs/{marketingProgram}/teacher-panel', [MarketingProgramController::class, 'deleteTeacherPanel'])->name('marketing-programs.teacher-panel.delete');
   Route::post('marketing-programs/{marketingProgram}/webinars', [MarketingProgramController::class, 'storeWebinar'])->name('marketing-programs.webinars.store');
