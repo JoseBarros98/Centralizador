@@ -621,37 +621,13 @@
                 Subir archivo(s)
             </h2>
 
-            <form action="{{ route('inscriptions.update', $inscription) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('documents.store', $inscription) }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                @method('PATCH')
-                
-                <!-- Mantener los datos actuales de la inscripción -->
-                <input type="hidden" name="full_name" value="{{ $inscription->full_name }}">
-                <input type="hidden" name="ci" value="{{ $inscription->ci }}">
-                <input type="hidden" name="birth_date" value="{{ $inscription->birth_date ? $inscription->birth_date->format('Y-m-d') : '' }}">
-                <input type="hidden" name="email" value="{{ $inscription->email }}">
-                <input type="hidden" name="civil_status" value="{{ $inscription->civil_status }}">
-                <input type="hidden" name="university_id" value="{{ $inscription->university_id }}">
-                <input type="hidden" name="phone" value="{{ $inscription->phone }}">
-                <input type="hidden" name="program_id" value="{{ $inscription->program_id }}">
-                <input type="hidden" name="payment_plan" value="{{ $inscription->payment_plan }}">
-                <input type="hidden" name="payment_method" value="{{ $inscription->payment_method }}">
-                <input type="hidden" name="enrollment_fee" value="{{ $inscription->enrollment_fee }}">
-                <input type="hidden" name="first_installment" value="{{ $inscription->first_installment }}">
-                <input type="hidden" name="total_paid" value="{{ $inscription->total_paid }}">
-                <input type="hidden" name="status" value="{{ $inscription->status }}">
-                <input type="hidden" name="profession_id" value="{{ $inscription->profession_id }}">
-                <input type="hidden" name="residence" value="{{ $inscription->residence }}">
-                <input type="hidden" name="location" value="{{ $inscription->location }}">
-                <input type="hidden" name="inscription_date" value="{{ $inscription->inscription_date->format('Y-m-d') }}">
-                <input type="hidden" name="notes" value="{{ $inscription->notes }}">
-                <input type="hidden" name="certification" value="{{ $inscription->certification }}">
-                <input type="hidden" name="gender" value="{{ $inscription->gender }}">
 
                 <div id="file-container">
-                    <div class="file-group mb-2">
-                        <div class="flex items-center space-x-2">
-                            <select name="document_types[]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                    <div class="file-group mb-3">
+                        <div class="flex items-center gap-2 mb-1">
+                            <select name="document_types[]" class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block shadow-sm sm:text-sm border-gray-300 rounded-md" required>
                                 <option value="">Tipo de documento</option>
                                 <option value="ci">Cédula de Identidad</option>
                                 <option value="titulo">Título en Provisión Nacional</option>
@@ -661,10 +637,10 @@
                                 <option value="compromiso">Carta de Compromiso</option>
                                 <option value="congelamiento">Carta de Congelamiento</option>
                             </select>
-                            <input type="file" name="document_files[]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block shadow-sm sm:text-sm border-gray-300 rounded-md" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" required>
-                            <button type="button" class="remove-file px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600" style="display: none;">Eliminar</button>
+                            <button type="button" class="remove-file px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink-0" style="display: none;">Eliminar</button>
                         </div>
-                        <input type="text" name="document_descriptions[]" placeholder="Descripción del archivo" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        <input type="file" name="document_files[]" class="block w-full mb-1 text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-gray-300 rounded-md" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" required>
+                        <input type="text" name="document_descriptions[]" placeholder="Descripción del archivo" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                     </div>
                 </div>
 
@@ -832,10 +808,10 @@
             if (addFileButton) {
                 addFileButton.addEventListener('click', function() {
                     const fileGroup = document.createElement('div');
-                    fileGroup.className = 'file-group mb-2';
+                    fileGroup.className = 'file-group mb-3';
                     fileGroup.innerHTML = `
-                        <div class="flex items-center space-x-2">
-                            <select name="document_types[]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block shadow-sm sm:text-sm border-gray-300 rounded-md" required>
+                        <div class="flex items-center gap-2 mb-1">
+                            <select name="document_types[]" class="flex-1 focus:ring-indigo-500 focus:border-indigo-500 block shadow-sm sm:text-sm border-gray-300 rounded-md" required>
                                 <option value="">Tipo de documento</option>
                                 <option value="ci">Cédula de Identidad</option>
                                 <option value="titulo">Título en Provisión Nacional</option>
@@ -845,10 +821,10 @@
                                 <option value="compromiso">Carta de Compromiso</option>
                                 <option value="congelamiento">Carta de Congelamiento</option>
                             </select>
-                            <input type="file" name="document_files[]" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block shadow-sm sm:text-sm border-gray-300 rounded-md" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" required>
-                            <button type="button" class="remove-file px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600">Eliminar</button>
+                            <button type="button" class="remove-file px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-sm flex-shrink-0">Eliminar</button>
                         </div>
-                        <input type="text" name="document_descriptions[]" placeholder="Descripción del archivo" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                        <input type="file" name="document_files[]" class="block w-full mb-1 text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 border border-gray-300 rounded-md" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" required>
+                        <input type="text" name="document_descriptions[]" placeholder="Descripción del archivo" class="focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
                     `;
                     fileContainer.appendChild(fileGroup);
                     updateRemoveButtons();
