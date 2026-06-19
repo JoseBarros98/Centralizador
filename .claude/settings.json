@@ -20,7 +20,8 @@
       "PowerShell(docker exec centtest_app find /var/www -maxdepth 5 -type d -name \"views\" 2>&1)",
       "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\resources\\\\views\\\\marketing-programs\\\\index.blade.php\" centtest_app:/var/www/resources/views/marketing-programs/index.blade.php)",
       "PowerShell(docker cp \"c:\\\\Users\\\\PC\\\\Desktop\\\\Dev\\\\VS_Code_Docs\\\\centtest\\\\app\\\\Http\\\\Controllers\\\\MarketingProgramController.php\" centtest_app:/var/www/app/Http/Controllers/MarketingProgramController.php)",
-      "PowerShell(docker exec centtest_app php /var/www/artisan migrate --path=database/migrations/2026_06_19_000001_create_management_income_banco_table.php --force 2>&1)"
+      "PowerShell(docker exec centtest_app php /var/www/artisan migrate --path=database/migrations/2026_06_19_000001_create_management_income_banco_table.php --force 2>&1)",
+      "PowerShell(docker exec centtest_app php /var/www/artisan migrate --path=database/migrations/2026_06_19_000002_create_management_expense_banco_table.php --force 2>&1)"
     ]
   }
 }

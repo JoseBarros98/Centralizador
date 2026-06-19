@@ -477,6 +477,8 @@ Route::middleware('auth')->group(function () {
   Route::patch('management-expenses/entity/{entity}',                   [ManagementExpenseEntityController::class, 'rename'])->name('management-expenses.entity.rename');
   Route::delete('management-expenses/entity/{entity}',                  [ManagementExpenseEntityController::class, 'destroy'])->name('management-expenses.entity.destroy');
   Route::post('management-expenses/entity-amount',                      [ManagementExpenseEntityController::class, 'upsertAmount'])->name('management-expenses.entity.upsertAmount');
+  Route::get('management-expenses/entity/{entity}/banco-detail',        [ManagementExpenseEntityController::class, 'bancoDetail'])->name('management-expenses.entity.bancoDetail');
+  Route::post('management-expenses/entity-banco',                       [ManagementExpenseEntityController::class, 'upsertBanco'])->name('management-expenses.entity.upsertBanco');
 
   // Rutas para vinculación de asesores
   Route::middleware('permission:inscriptions.sync')->prefix('advisors')->name('advisors.')->group(function () {

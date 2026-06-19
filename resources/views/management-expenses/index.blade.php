@@ -9,6 +9,7 @@ window._expConfig = {
     gestion:            {{ $gestion }},
     entities:           @json($entities->toArray()),
     entityAmountsGrid:  @json((object)$entityAmountsGrid),
+    bancoGrid:          @json((object)$bancoGrid),
     destroyUrl:         "{{ route('management-expenses.destroyItem') }}",
     renameUrl:          "{{ route('management-expenses.renameItem') }}",
     moveCategoryUrl:    "{{ route('management-expenses.moveItemCategory') }}",
@@ -18,6 +19,7 @@ window._expConfig = {
     entityDestroyBase:  "{{ url('management-expenses/entity') }}",
     entityDetailBase:   "{{ url('management-expenses/entity') }}",
     entityAmountUrl:    "{{ route('management-expenses.entity.upsertAmount') }}",
+    entityBancoUrl:     "{{ route('management-expenses.entity.upsertBanco') }}",
     currentMonth:       {{ (int)date('n') }},
 };
 </script>
@@ -564,12 +566,109 @@ window._expConfig = {
             </div>
         </div>
 
-        {{-- Grand total bar --}}
-        <div style="display:flex;align-items:center;justify-content:flex-end;padding:0.75rem 1.25rem;background:#1f2937;border-radius:0.5rem;margin-bottom:2rem;">
-            <span style="font-size:0.875rem;color:#9ca3af;margin-right:1rem;">Total general gestión <span x-text="gestion"></span>:</span>
-            <span style="font-size:1.25rem;font-weight:800;color:#f87171;">
-                Bs. <span x-text="fmtAmt(getGrandTotalByCategory('operativo') + getGrandTotalByCategory('otro'))"></span>
-            </span>
+        {{-- ══════════════════════════════════════════════════════════════ --}}
+        {{-- TABLA RESUMEN: Total Egresos / S/G Bancos / Diferencia  --}}
+        {{-- ══════════════════════════════════════════════════════════════ --}}
+        <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm border-collapse">
+                    <thead>
+                        <tr style="background:#1f2937;color:white;font-size:0.75rem;">
+                            <th style="position:sticky;left:0;z-index:20;background:#1f2937;padding:0.6rem 1rem;text-align:left;font-size:0.75rem;font-weight:600;color:white;text-transform:uppercase;letter-spacing:0.05em;min-width:200px;border-right:1px solid #374151;">Resumen</th>
+                            <template x-for="col in visibleColumns()" :key="col.key">
+                                <th :style="col.type === 'entity'
+                                        ? 'background:#1d4ed8;color:white;padding:0.6rem 0.5rem;text-align:center;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;min-width:90px;'
+                                        : (col.mes === currentMonth
+                                            ? 'background:#b91c1c;color:white;padding:0.6rem 0.5rem;text-align:center;font-size:0.75rem;font-weight:600;text-transform:uppercase;min-width:82px;box-shadow:inset 0 0 0 2px #f87171;'
+                                            : 'background:#1f2937;color:white;padding:0.6rem 0.5rem;text-align:center;font-size:0.75rem;font-weight:600;text-transform:uppercase;min-width:82px;')">
+                                    <span x-text="col.type === 'month' ? col.short : col.entityName"></span>
+                                </th>
+                            </template>
+                            <th style="padding:0.6rem 1rem;text-align:right;font-size:0.75rem;font-weight:600;color:white;text-transform:uppercase;min-width:110px;border-left:1px solid #374151;">Total anual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{-- Fila 1: Total Egresos (suma ítems) --}}
+                        <tr style="background:#fef2f2;">
+                            <td style="position:sticky;left:0;z-index:10;background:#fef2f2;padding:0.5rem 1rem;font-size:0.75rem;font-weight:700;color:#991b1b;text-transform:uppercase;border-right:1px solid #e5e7eb;">
+                                Total Egresos
+                            </td>
+                            <template x-for="col in visibleColumns()" :key="col.key">
+                                <td style="padding:0.5rem 0.25rem;text-align:center;font-size:0.75rem;font-weight:700;color:#991b1b;">
+                                    <template x-if="col.type === 'month'">
+                                        <span x-text="getMonthTotalAll(col.mes) > 0 ? 'Bs. ' + fmtAmt(getMonthTotalAll(col.mes)) : '–'"></span>
+                                    </template>
+                                    <template x-if="col.type === 'entity'">
+                                        <span x-text="getEntityMonthTotalAll(col.entityId, col.mes) > 0 ? fmtAmt(getEntityMonthTotalAll(col.entityId, col.mes)) : '–'" style="color:#b91c1c;"></span>
+                                    </template>
+                                </td>
+                            </template>
+                            <td style="padding:0.5rem 1rem;text-align:right;font-size:0.8rem;font-weight:800;color:#991b1b;border-left:1px solid #e5e7eb;background:#fef2f2;">
+                                Bs. <span x-text="fmtAmt(getGrandTotalByCategory('operativo') + getGrandTotalByCategory('otro'))"></span>
+                            </td>
+                        </tr>
+
+                        {{-- Fila 2: Total Egresos S/G Bancos (editable) --}}
+                        <tr style="background:#fefce8;">
+                            <td style="position:sticky;left:0;z-index:10;background:#fefce8;padding:0.5rem 1rem;font-size:0.75rem;font-weight:700;color:#92400e;text-transform:uppercase;border-right:1px solid #e5e7eb;">
+                                Total Egresos S/G Bancos
+                            </td>
+                            <template x-for="col in visibleColumns()" :key="col.key">
+                                <td style="padding:0.25rem;text-align:center;">
+                                    <template x-if="col.type === 'month'">
+                                        <button @click="openBancoModal(null, col.mes)"
+                                                style="width:100%;min-height:2rem;border-radius:4px;padding:0.25rem;font-size:0.75rem;font-weight:700;border:none;cursor:pointer;transition:background 0.1s;"
+                                                :style="getBancoMonthTotal(col.mes) > 0
+                                                    ? 'color:#92400e;background:#fef9c3;'
+                                                    : 'color:#d1d5db;background:transparent;'"
+                                                :onmouseover="getBancoMonthTotal(col.mes) > 0 ? 'this.style.background=\'#fde68a\'' : 'this.style.background=\'#fef9c3\''"
+                                                :onmouseout="getBancoMonthTotal(col.mes) > 0 ? 'this.style.background=\'#fef9c3\'' : 'this.style.background=\'transparent\''">
+                                            <span x-text="getBancoMonthTotal(col.mes) > 0 ? 'Bs. ' + fmtAmt(getBancoMonthTotal(col.mes)) : '–'"></span>
+                                        </button>
+                                    </template>
+                                    <template x-if="col.type === 'entity'">
+                                        <button @click="openBancoModal(col.entityId, col.mes)"
+                                                style="width:100%;min-height:2rem;border-radius:4px;padding:0.25rem;font-size:0.75rem;font-weight:700;border:none;cursor:pointer;transition:background 0.1s;"
+                                                :style="getBancoAmount(col.entityId, col.mes) > 0
+                                                    ? 'color:#92400e;background:#fef9c3;'
+                                                    : 'color:#d1d5db;background:transparent;'"
+                                                :onmouseover="getBancoAmount(col.entityId, col.mes) > 0 ? 'this.style.background=\'#fde68a\'' : 'this.style.background=\'#fef9c3\''"
+                                                :onmouseout="getBancoAmount(col.entityId, col.mes) > 0 ? 'this.style.background=\'#fef9c3\'' : 'this.style.background=\'transparent\''">
+                                            <span x-text="getBancoAmount(col.entityId, col.mes) > 0 ? fmtAmt(getBancoAmount(col.entityId, col.mes)) : '–'"></span>
+                                        </button>
+                                    </template>
+                                </td>
+                            </template>
+                            <td style="padding:0.5rem 1rem;text-align:right;font-size:0.8rem;font-weight:800;color:#92400e;border-left:1px solid #e5e7eb;background:#fefce8;">
+                                Bs. <span x-text="fmtAmt(getBancoGrandTotal())"></span>
+                            </td>
+                        </tr>
+
+                        {{-- Fila 3: Diferencia = S/G Bancos - Total Egresos --}}
+                        <tr style="background:#f8fafc;border-top:2px solid #e2e8f0;">
+                            <td style="position:sticky;left:0;z-index:10;background:#f8fafc;padding:0.5rem 1rem;font-size:0.75rem;font-weight:700;color:#374151;text-transform:uppercase;border-right:1px solid #e5e7eb;">
+                                Diferencia
+                            </td>
+                            <template x-for="col in visibleColumns()" :key="col.key">
+                                <td style="padding:0.5rem 0.25rem;text-align:center;font-size:0.75rem;font-weight:700;">
+                                    <template x-if="col.type === 'month'">
+                                        <span :style="getDiferenciaMonth(col.mes) === 0 ? 'color:#9ca3af;' : (getDiferenciaMonth(col.mes) > 0 ? 'color:#15803d;' : 'color:#dc2626;')"
+                                              x-text="getDiferenciaMonth(col.mes) === 0 ? '0.00' : fmtAmt(getDiferenciaMonth(col.mes))"></span>
+                                    </template>
+                                    <template x-if="col.type === 'entity'">
+                                        <span :style="getDiferenciaEntity(col.entityId, col.mes) === 0 ? 'color:#9ca3af;' : (getDiferenciaEntity(col.entityId, col.mes) > 0 ? 'color:#15803d;' : 'color:#dc2626;')"
+                                              x-text="getDiferenciaEntity(col.entityId, col.mes) === 0 ? '0.00' : fmtAmt(getDiferenciaEntity(col.entityId, col.mes))"></span>
+                                    </template>
+                                </td>
+                            </template>
+                            <td style="padding:0.5rem 1rem;text-align:right;font-size:0.8rem;font-weight:800;border-left:1px solid #e5e7eb;background:#f8fafc;"
+                                :style="(getBancoGrandTotal() - (getGrandTotalByCategory('operativo') + getGrandTotalByCategory('otro'))) === 0 ? 'color:#9ca3af;' : ((getBancoGrandTotal() - (getGrandTotalByCategory('operativo') + getGrandTotalByCategory('otro'))) > 0 ? 'color:#15803d;' : 'color:#dc2626;')">
+                                <span x-text="fmtAmt(getBancoGrandTotal() - (getGrandTotalByCategory('operativo') + getGrandTotalByCategory('otro')))"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </div>
@@ -735,6 +834,108 @@ window._expConfig = {
         </div>
     </div>
 
+
+    {{-- ══════════════════════════════════════════════════════════════ --}}
+    {{-- MODAL BANCO EGRESOS                                            --}}
+    {{-- ══════════════════════════════════════════════════════════════ --}}
+    <div x-show="bancoModal.open"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="closeBancoModal()"
+         @keydown.escape.window="closeBancoModal()"
+         style="position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.5);">
+        <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:1rem;">
+        <div @click.stop
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             style="background:#fff;border-radius:1rem;box-shadow:0 25px 50px rgba(0,0,0,0.25);width:100%;max-width:420px;">
+
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #e5e7eb;">
+                <div>
+                    <p style="font-size:0.7rem;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:0.05em;">Egresos S/G Bancos</p>
+                    <h2 style="font-size:1rem;font-weight:700;color:#111827;margin-top:2px;">
+                        <span x-text="bancoModal.entityName ? bancoModal.entityName + ' — ' : ''"></span>
+                        <span x-text="monthFull[(bancoModal.mes ?? 1) - 1]"></span>
+                        <span x-text="gestion"></span>
+                    </h2>
+                </div>
+                <button @click="closeBancoModal()" style="color:#9ca3af;padding:4px;border-radius:6px;background:none;border:none;cursor:pointer;" onmouseover="this.style.color='#374151'" onmouseout="this.style.color='#9ca3af'">
+                    <svg style="width:1.25rem;height:1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div style="padding:1.25rem;">
+                {{-- Mes total: lista de entidades --}}
+                <template x-if="bancoModal.entityId === null">
+                    <div>
+                        <p style="font-size:0.8rem;color:#6b7280;margin-bottom:1rem;">
+                            Ingresa el monto S/G Bancos por entidad para <span x-text="monthFull[(bancoModal.mes ?? 1) - 1]" style="font-weight:600;"></span>.
+                        </p>
+                        <template x-for="ent in entities" :key="ent.id">
+                            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
+                                <label :for="'banco-exp-ent-' + ent.id" style="font-size:0.8rem;font-weight:500;color:#374151;min-width:7rem;flex-shrink:0;" x-text="ent.name"></label>
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:0.5rem;top:50%;transform:translateY(-50%);font-size:0.75rem;color:#9ca3af;pointer-events:none;">Bs.</span>
+                                    <input :id="'banco-exp-ent-' + ent.id"
+                                           type="number" min="0" step="0.01"
+                                           :value="getBancoAmount(ent.id, bancoModal.mes)"
+                                           @change="saveBancoAmount(ent.id, bancoModal.mes, $event.target.value)"
+                                           style="width:100%;padding:0.4rem 0.6rem 0.4rem 2rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.8rem;outline:none;"
+                                           onfocus="this.style.borderColor='#f59e0b';this.style.boxShadow='0 0 0 2px rgba(245,158,11,0.15)'"
+                                           onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'">
+                                </div>
+                            </div>
+                        </template>
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:0.75rem;border-top:1px solid #e5e7eb;">
+                            <span style="font-size:0.875rem;color:#6b7280;">Total S/G Bancos del mes</span>
+                            <span style="font-size:1.1rem;font-weight:700;color:#92400e;">
+                                Bs. <span x-text="fmtAmt(getBancoMonthTotal(bancoModal.mes))"></span>
+                            </span>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Entidad específica --}}
+                <template x-if="bancoModal.entityId !== null">
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:#6b7280;margin-bottom:6px;font-weight:500;">Monto S/G Bancos (Bs.)</label>
+                        <div style="position:relative;">
+                            <span style="position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:#9ca3af;pointer-events:none;">Bs.</span>
+                            <input type="number" min="0" step="0.01"
+                                   id="banco-exp-single-amount"
+                                   :value="getBancoAmount(bancoModal.entityId, bancoModal.mes)"
+                                   @keydown.enter.prevent="saveBancoSingle()"
+                                   @keydown.escape.prevent="closeBancoModal()"
+                                   style="width:100%;padding:0.5rem 0.75rem 0.5rem 2.25rem;border:1px solid #d1d5db;border-radius:8px;font-size:0.875rem;outline:none;"
+                                   onfocus="this.style.borderColor='#f59e0b';this.style.boxShadow='0 0 0 2px rgba(245,158,11,0.15)'"
+                                   onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'">
+                        </div>
+                        <div style="display:flex;gap:0.5rem;margin-top:0.875rem;">
+                            <button @click="saveBancoSingle()" :disabled="bancoModal.saving"
+                                    style="flex:1;padding:0.45rem 1rem;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;"
+                                    onmouseover="if(!this.disabled)this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
+                                <span x-text="bancoModal.saving ? 'Guardando…' : 'Guardar'"></span>
+                            </button>
+                            <button @click="closeBancoModal()"
+                                    style="flex:1;padding:0.45rem 1rem;background:#e5e7eb;color:#374151;border:none;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;"
+                                    onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='#e5e7eb'">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+        </div>
+    </div>
+
 </div>{{-- /x-data --}}
 
 <script>
@@ -751,6 +952,7 @@ function expenseGrid() {
 
         entities:          cfg.entities || [],
         entityAmountsGrid: cfg.entityAmountsGrid || {},
+        bancoGrid:         cfg.bancoGrid || {},
         expandedMonths:    [],
         addingEntity:      false,
         newEntityName:     '',
@@ -772,6 +974,14 @@ function expenseGrid() {
         renamingItem:    null,
         renameValue:     '',
         renaming:        false,
+
+        bancoModal: {
+            open:       false,
+            saving:     false,
+            entityId:   null,
+            entityName: '',
+            mes:        null,
+        },
 
         calModal: {
             open: false, loading: false, saving: false,
@@ -1130,6 +1340,99 @@ function expenseGrid() {
                     ? (added + ' ítem(s) importado(s) de ' + fromGestion + ' a ' + (category === 'operativo' ? 'Gastos Operativos' : 'Otros Egresos') + '.')
                     : ('Todos los ítems de ' + fromGestion + ' ya están presentes.'));
             } finally { this.importing = false; }
+        },
+
+        // ── Totales globales (operativo + otro) ───────────────────────────
+        getMonthTotalAll(mes) {
+            return this.getMonthTotalByCategory(mes, 'operativo') + this.getMonthTotalByCategory(mes, 'otro');
+        },
+
+        getEntityMonthTotalAll(entityId, mes) {
+            return this.getEntityMonthTotalByCategory(entityId, mes, 'operativo') + this.getEntityMonthTotalByCategory(entityId, mes, 'otro');
+        },
+
+        // ── Banco ─────────────────────────────────────────────────────────
+        getBancoAmount(entityId, mes) {
+            return parseFloat(this.bancoGrid[entityId]?.[mes] ?? 0);
+        },
+
+        getBancoMonthTotal(mes) {
+            return this.entities.reduce((t, ent) => t + this.getBancoAmount(ent.id, mes), 0);
+        },
+
+        getBancoGrandTotal() {
+            let t = 0;
+            for (let m = 1; m <= 12; m++) t += this.getBancoMonthTotal(m);
+            return t;
+        },
+
+        getDiferenciaMonth(mes) {
+            return this.getBancoMonthTotal(mes) - this.getMonthTotalAll(mes);
+        },
+
+        getDiferenciaEntity(entityId, mes) {
+            return this.getBancoAmount(entityId, mes) - this.getEntityMonthTotalAll(entityId, mes);
+        },
+
+        openBancoModal(entityId, mes) {
+            const ent = entityId !== null ? this.entities.find(e => e.id === entityId) : null;
+            this.bancoModal = {
+                open:       true,
+                saving:     false,
+                entityId:   entityId,
+                entityName: ent ? ent.name : '',
+                mes,
+            };
+            if (entityId !== null) {
+                this.$nextTick(() => {
+                    const el = document.getElementById('banco-exp-single-amount');
+                    if (el) { el.focus(); el.select(); }
+                });
+            }
+        },
+
+        closeBancoModal() {
+            this.bancoModal.open = false;
+        },
+
+        async saveBancoAmount(entityId, mes, rawValue) {
+            await this._persistBanco(entityId, mes, parseFloat(rawValue) || 0);
+        },
+
+        async saveBancoSingle() {
+            if (this.bancoModal.saving) return;
+            const el = document.getElementById('banco-exp-single-amount');
+            const amount = parseFloat(el?.value) || 0;
+            this.bancoModal.saving = true;
+            try {
+                await this._persistBanco(this.bancoModal.entityId, this.bancoModal.mes, amount);
+                this.closeBancoModal();
+            } finally {
+                this.bancoModal.saving = false;
+            }
+        },
+
+        async _persistBanco(entityId, mes, amount) {
+            const res = await fetch(cfg.entityBancoUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept':       'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ entity_id: entityId, mes, gestion: this.gestion, amount }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                const g = { ...this.bancoGrid };
+                if (!g[entityId]) g[entityId] = {};
+                if (amount === 0 || data.deleted) {
+                    delete g[entityId][mes];
+                } else {
+                    g[entityId] = { ...g[entityId], [mes]: data.amount };
+                }
+                this.bancoGrid = g;
+            }
         },
 
         fmtAmt(value) {

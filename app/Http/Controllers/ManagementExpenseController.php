@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ManagementExpense;
+use App\Models\ManagementExpenseBanco;
 use App\Models\ManagementExpenseEntity;
 use App\Models\ManagementExpenseEntityAmount;
 use Illuminate\Http\JsonResponse;
@@ -75,7 +76,14 @@ class ManagementExpenseController extends Controller
             }
         }
 
-        return view('management-expenses.index', compact('grid', 'items', 'itemCategories', 'gestion', 'entities', 'entityAmountsGrid'));
+        // Banco grid: { entityId: { mes: amount } }
+        $bancoRows = ManagementExpenseBanco::where('gestion', $gestion)->get();
+        $bancoGrid = [];
+        foreach ($bancoRows as $row) {
+            $bancoGrid[$row->entity_id][$row->mes] = (float) $row->amount;
+        }
+
+        return view('management-expenses.index', compact('grid', 'items', 'itemCategories', 'gestion', 'entities', 'entityAmountsGrid', 'bancoGrid'));
     }
 
     /**
