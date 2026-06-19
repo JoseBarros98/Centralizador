@@ -461,6 +461,8 @@ Route::middleware('auth')->group(function () {
   Route::patch('management-incomes/entity/{entity}',                  [ManagementIncomeEntityController::class, 'rename'])->name('management-incomes.entity.rename');
   Route::delete('management-incomes/entity/{entity}',                 [ManagementIncomeEntityController::class, 'destroy'])->name('management-incomes.entity.destroy');
   Route::post('management-incomes/entity-amount',                     [ManagementIncomeEntityController::class, 'upsertAmount'])->name('management-incomes.entity.upsertAmount');
+  Route::get('management-incomes/entity/{entity}/banco-detail',       [ManagementIncomeEntityController::class, 'bancoDetail'])->name('management-incomes.entity.bancoDetail');
+  Route::post('management-incomes/entity-banco',                      [ManagementIncomeEntityController::class, 'upsertBanco'])->name('management-incomes.entity.upsertBanco');
 
   // Rutas para egresos por gestion
   Route::get('management-expenses',                      [ManagementExpenseController::class, 'index'])->name('management-expenses.index');

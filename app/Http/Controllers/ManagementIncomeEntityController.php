@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ManagementIncomeBanco;
 use App\Models\ManagementIncomeEntity;
 use App\Models\ManagementIncomeEntityAmount;
 use Illuminate\Http\JsonResponse;
@@ -12,8 +13,8 @@ class ManagementIncomeEntityController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('permission:management_income.view')->only(['monthDetail']);
-        $this->middleware('permission:management_income.edit')->only(['store', 'rename', 'destroy', 'upsertAmount']);
+        $this->middleware('permission:management_income.view')->only(['monthDetail', 'bancoDetail']);
+        $this->middleware('permission:management_income.edit')->only(['store', 'rename', 'destroy', 'upsertAmount', 'upsertBanco']);
     }
 
     public function store(Request $request): JsonResponse
@@ -154,5 +155,57 @@ class ManagementIncomeEntityController extends Controller
             ->where('mes', $v['mes'])
             ->where('gestion', $v['gestion'])
             ->sum('amount');
+    }
+
+    /**
+     * Return all 12 banco amounts for one entity / gestion.
+     */
+    public function bancoDetail(ManagementIncomeEntity $entity, Request $request): JsonResponse
+    {
+        $request->validate([
+            'gestion' => 'required|integer|between:2000,2100',
+        ]);
+
+        $records = ManagementIncomeBanco::where('entity_id', $entity->id)
+            ->where('gestion', $request->gestion)
+            ->get(['mes', 'amount'])
+            ->keyBy('mes')
+            ->map(fn($r) => (float) $r->amount);
+
+        return response()->json(['amounts' => $records]);
+    }
+
+    /**
+     * Create or update a banco amount for one entity / mes / gestion.
+     * Deletes the record when amount == 0.
+     */
+    public function upsertBanco(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'entity_id' => 'required|integer|exists:management_income_entities,id',
+            'mes'       => 'required|integer|between:1,12',
+            'gestion'   => 'required|integer|between:2000,2100',
+            'amount'    => 'required|numeric|min:0',
+        ]);
+
+        if ($validated['amount'] == 0) {
+            ManagementIncomeBanco::where('entity_id', $validated['entity_id'])
+                ->where('mes', $validated['mes'])
+                ->where('gestion', $validated['gestion'])
+                ->delete();
+
+            return response()->json(['success' => true, 'deleted' => true, 'amount' => 0]);
+        }
+
+        $record = ManagementIncomeBanco::updateOrCreate(
+            [
+                'entity_id' => $validated['entity_id'],
+                'mes'       => $validated['mes'],
+                'gestion'   => $validated['gestion'],
+            ],
+            ['amount' => $validated['amount']]
+        );
+
+        return response()->json(['success' => true, 'amount' => (float) $record->amount]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ManagementIncome;
+use App\Models\ManagementIncomeBanco;
 use App\Models\ManagementIncomeEntity;
 use App\Models\ManagementIncomeEntityAmount;
 use Illuminate\Http\JsonResponse;
@@ -62,7 +63,14 @@ class ManagementIncomeController extends Controller
             }
         }
 
-        return view('management-incomes.index', compact('grid', 'items', 'gestion', 'entities', 'entityAmountsGrid'));
+        // Banco grid: { entityId: { mes: amount } }
+        $bancoRows = ManagementIncomeBanco::where('gestion', $gestion)->get();
+        $bancoGrid = [];
+        foreach ($bancoRows as $row) {
+            $bancoGrid[$row->entity_id][$row->mes] = (float) $row->amount;
+        }
+
+        return view('management-incomes.index', compact('grid', 'items', 'gestion', 'entities', 'entityAmountsGrid', 'bancoGrid'));
     }
 
     /**

@@ -8,6 +8,7 @@ window._incConfig = {
     gestion:            {{ $gestion }},
     entities:           @json($entities->toArray()),
     entityAmountsGrid:  @json((object)$entityAmountsGrid),
+    bancoGrid:          @json((object)$bancoGrid),
     destroyUrl:         "{{ route('management-incomes.destroyItem') }}",
     renameUrl:          "{{ route('management-incomes.renameItem') }}",
     itemsUrl:           "{{ route('management-incomes.items') }}",
@@ -16,6 +17,7 @@ window._incConfig = {
     entityDestroyBase:  "{{ url('management-incomes/entity') }}",
     entityDetailBase:   "{{ url('management-incomes/entity') }}",
     entityAmountUrl:    "{{ route('management-incomes.entity.upsertAmount') }}",
+    entityBancoUrl:     "{{ route('management-incomes.entity.upsertBanco') }}",
     currentMonth:       {{ (int)date('n') }},
 };
 </script>
@@ -347,6 +349,7 @@ window._incConfig = {
                     </tbody>
 
                     <tfoot class="border-t-2 border-gray-300 bg-gray-50">
+                        {{-- Fila: Total mes --}}
                         <tr>
                             <td class="sticky left-0 z-10 bg-gray-50 px-4 py-3 text-xs font-bold text-gray-700 uppercase border-r border-gray-200">Total mes</td>
 
@@ -370,6 +373,69 @@ window._incConfig = {
                                 Bs. <span x-text="fmtAmt(getGrandTotal())"></span>
                             </td>
                             <td></td>
+                        </tr>
+
+                        {{-- Fila: Total Ingresos S/G Banco --}}
+                        <tr class="border-t border-gray-300" style="background:#fefce8;">
+                            <td class="sticky left-0 z-10 px-4 py-2 text-xs font-bold text-amber-800 uppercase border-r border-gray-200" style="background:#fefce8;">
+                                Total S/G Banco
+                            </td>
+
+                            <template x-for="col in visibleColumns()" :key="col.key">
+                                <td class="px-1 py-1 text-center">
+                                    <template x-if="col.type === 'month'">
+                                        <button @click="openBancoModal(null, col.mes)"
+                                                class="w-full min-h-[2rem] rounded px-1 py-1 text-xs font-bold transition-colors"
+                                                :class="getBancoMonthTotal(col.mes) > 0
+                                                    ? 'text-amber-700 hover:bg-amber-100'
+                                                    : 'text-gray-300 hover:bg-amber-50 hover:text-amber-400'">
+                                            <span x-text="getBancoMonthTotal(col.mes) > 0 ? 'Bs. ' + fmtAmt(getBancoMonthTotal(col.mes)) : '–'"></span>
+                                        </button>
+                                    </template>
+                                    <template x-if="col.type === 'entity'">
+                                        <button @click="openBancoModal(col.entityId, col.mes)"
+                                                class="w-full min-h-[2rem] rounded px-1 py-1 text-xs font-bold transition-colors"
+                                                :class="getBancoAmount(col.entityId, col.mes) > 0
+                                                    ? 'text-amber-700 hover:bg-amber-100'
+                                                    : 'text-gray-300 hover:bg-amber-50 hover:text-amber-400'">
+                                            <span x-text="getBancoAmount(col.entityId, col.mes) > 0 ? fmtAmt(getBancoAmount(col.entityId, col.mes)) : '–'"></span>
+                                        </button>
+                                    </template>
+                                </td>
+                            </template>
+
+                            <td class="px-4 py-2 text-right text-sm font-bold text-amber-800 border-l border-gray-200" style="background:#fefce8;">
+                                Bs. <span x-text="fmtAmt(getBancoGrandTotal())"></span>
+                            </td>
+                            <td style="background:#fefce8;"></td>
+                        </tr>
+
+                        {{-- Fila: Diferencia --}}
+                        <tr class="border-t border-gray-200" style="background:#f0fdf4;">
+                            <td class="sticky left-0 z-10 px-4 py-2 text-xs font-bold text-gray-600 uppercase border-r border-gray-200" style="background:#f0fdf4;">
+                                Diferencia
+                            </td>
+
+                            <template x-for="col in visibleColumns()" :key="col.key">
+                                <td class="px-2 py-2 text-center text-xs font-bold">
+                                    <template x-if="col.type === 'month'">
+                                        <span :class="getDiferencia(col.mes) === 0 ? 'text-gray-400' : (getDiferencia(col.mes) > 0 ? 'text-green-600' : 'text-red-600')"
+                                              x-text="getDiferencia(col.mes) === 0 ? '0.00' : fmtAmt(getDiferencia(col.mes))">
+                                        </span>
+                                    </template>
+                                    <template x-if="col.type === 'entity'">
+                                        <span :class="getDiferenciaEntity(col.entityId, col.mes) === 0 ? 'text-gray-400' : (getDiferenciaEntity(col.entityId, col.mes) > 0 ? 'text-green-600' : 'text-red-600')"
+                                              x-text="getDiferenciaEntity(col.entityId, col.mes) === 0 ? '0.00' : fmtAmt(getDiferenciaEntity(col.entityId, col.mes))">
+                                        </span>
+                                    </template>
+                                </td>
+                            </template>
+
+                            <td class="px-4 py-2 text-right text-sm font-bold border-l border-gray-200" style="background:#f0fdf4;"
+                                :class="(getGrandTotal() - getBancoGrandTotal()) === 0 ? 'text-gray-400' : ((getGrandTotal() - getBancoGrandTotal()) > 0 ? 'text-green-700' : 'text-red-700')">
+                                <span x-text="fmtAmt(getGrandTotal() - getBancoGrandTotal())"></span>
+                            </td>
+                            <td style="background:#f0fdf4;"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -553,6 +619,114 @@ window._incConfig = {
         </div>
     </div>
 
+
+    {{-- ══════════════════════════════════════════════════════════════ --}}
+    {{-- MODAL BANCO                                                    --}}
+    {{-- ══════════════════════════════════════════════════════════════ --}}
+    <div x-show="bancoModal.open"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @click="closeBancoModal()"
+         @keydown.escape.window="closeBancoModal()"
+         style="position:fixed;inset:0;z-index:50;background:rgba(0,0,0,0.5);">
+        <div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:1rem;">
+        <div @click.stop
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             style="background:#fff;border-radius:1rem;box-shadow:0 25px 50px rgba(0,0,0,0.25);width:100%;max-width:420px;">
+
+            {{-- Header --}}
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #e5e7eb;">
+                <div>
+                    <p style="font-size:0.7rem;font-weight:600;text-transform:uppercase;color:#9ca3af;letter-spacing:0.05em;">
+                        Ingresos S/G Banco
+                    </p>
+                    <h2 style="font-size:1rem;font-weight:700;color:#111827;margin-top:2px;">
+                        <span x-text="bancoModal.entityName ? bancoModal.entityName + ' — ' : ''"></span>
+                        <span x-text="monthFull[(bancoModal.mes ?? 1) - 1]"></span>
+                        <span x-text="gestion"></span>
+                    </h2>
+                </div>
+                <button @click="closeBancoModal()" style="color:#9ca3af;padding:4px;border-radius:6px;background:none;border:none;cursor:pointer;" onmouseover="this.style.color='#374151'" onmouseout="this.style.color='#9ca3af'">
+                    <svg style="width:1.25rem;height:1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div style="padding:1.25rem;">
+
+                {{-- Si no hay entidades seleccionadas (mes total), mostrar lista de entidades --}}
+                <template x-if="bancoModal.entityId === null">
+                    <div>
+                        <p style="font-size:0.8rem;color:#6b7280;margin-bottom:1rem;">
+                            Ingresa el monto banco por entidad para <span x-text="monthFull[(bancoModal.mes ?? 1) - 1]" style="font-weight:600;"></span>.
+                        </p>
+                        <template x-for="ent in entities" :key="ent.id">
+                            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;">
+                                <label :for="'banco-ent-' + ent.id" style="font-size:0.8rem;font-weight:500;color:#374151;min-width:7rem;flex-shrink:0;" x-text="ent.name"></label>
+                                <div style="position:relative;flex:1;">
+                                    <span style="position:absolute;left:0.5rem;top:50%;transform:translateY(-50%);font-size:0.75rem;color:#9ca3af;pointer-events:none;">Bs.</span>
+                                    <input :id="'banco-ent-' + ent.id"
+                                           type="number" min="0" step="0.01"
+                                           :value="getBancoAmount(ent.id, bancoModal.mes)"
+                                           @change="saveBancoAmount(ent.id, bancoModal.mes, $event.target.value)"
+                                           style="width:100%;padding:0.4rem 0.6rem 0.4rem 2rem;border:1px solid #d1d5db;border-radius:6px;font-size:0.8rem;outline:none;"
+                                           onfocus="this.style.borderColor='#f59e0b';this.style.boxShadow='0 0 0 2px rgba(245,158,11,0.15)'"
+                                           onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'">
+                                </div>
+                            </div>
+                        </template>
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem;padding-top:0.75rem;border-top:1px solid #e5e7eb;">
+                            <span style="font-size:0.875rem;color:#6b7280;">Total banco del mes</span>
+                            <span style="font-size:1.1rem;font-weight:700;color:#92400e;">
+                                Bs. <span x-text="fmtAmt(getBancoMonthTotal(bancoModal.mes))"></span>
+                            </span>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Si es una entidad específica --}}
+                <template x-if="bancoModal.entityId !== null">
+                    <div>
+                        <label style="display:block;font-size:0.75rem;color:#6b7280;margin-bottom:6px;font-weight:500;">Monto banco (Bs.)</label>
+                        <div style="position:relative;">
+                            <span style="position:absolute;left:0.6rem;top:50%;transform:translateY(-50%);font-size:0.8rem;color:#9ca3af;pointer-events:none;">Bs.</span>
+                            <input type="number" min="0" step="0.01"
+                                   id="banco-single-amount"
+                                   :value="getBancoAmount(bancoModal.entityId, bancoModal.mes)"
+                                   @keydown.enter.prevent="saveBancoSingle()"
+                                   @keydown.escape.prevent="closeBancoModal()"
+                                   style="width:100%;padding:0.5rem 0.75rem 0.5rem 2.25rem;border:1px solid #d1d5db;border-radius:8px;font-size:0.875rem;outline:none;"
+                                   onfocus="this.style.borderColor='#f59e0b';this.style.boxShadow='0 0 0 2px rgba(245,158,11,0.15)'"
+                                   onblur="this.style.borderColor='#d1d5db';this.style.boxShadow='none'">
+                        </div>
+                        <div style="display:flex;gap:0.5rem;margin-top:0.875rem;">
+                            <button @click="saveBancoSingle()" :disabled="bancoModal.saving"
+                                    style="flex:1;padding:0.45rem 1rem;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:background 0.1s;"
+                                    onmouseover="if(!this.disabled)this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
+                                <span x-text="bancoModal.saving ? 'Guardando…' : 'Guardar'"></span>
+                            </button>
+                            <button @click="closeBancoModal()"
+                                    style="flex:1;padding:0.45rem 1rem;background:#e5e7eb;color:#374151;border:none;border-radius:6px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:background 0.1s;"
+                                    onmouseover="this.style.background='#d1d5db'" onmouseout="this.style.background='#e5e7eb'">
+                                Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+        </div>
+        </div>
+    </div>
+
 </div>{{-- /x-data --}}
 
 <script>
@@ -566,6 +740,7 @@ function incomeGrid() {
         // Entity support
         entities:          cfg.entities || [],
         entityAmountsGrid: cfg.entityAmountsGrid || {},
+        bancoGrid:         cfg.bancoGrid || {},
         expandedMonths:    [],
         addingEntity:      false,
         newEntityName:     '',
@@ -587,6 +762,14 @@ function incomeGrid() {
         renamingItem: null,
         renameValue:  '',
         renaming:     false,
+
+        bancoModal: {
+            open:       false,
+            saving:     false,
+            entityId:   null,
+            entityName: '',
+            mes:        null,
+        },
 
         calModal: {
             open:        false,
@@ -1010,6 +1193,91 @@ function incomeGrid() {
                     this.cancelRename();
                 }
             } finally { this.renaming = false; }
+        },
+
+        // ── Banco ─────────────────────────────────────────────────────────
+        getBancoAmount(entityId, mes) {
+            return parseFloat(this.bancoGrid[entityId]?.[mes] ?? 0);
+        },
+
+        getBancoMonthTotal(mes) {
+            return this.entities.reduce((t, ent) => t + this.getBancoAmount(ent.id, mes), 0);
+        },
+
+        getBancoGrandTotal() {
+            let t = 0;
+            for (let m = 1; m <= 12; m++) t += this.getBancoMonthTotal(m);
+            return t;
+        },
+
+        getDiferencia(mes) {
+            return this.getMonthTotal(mes) - this.getBancoMonthTotal(mes);
+        },
+
+        getDiferenciaEntity(entityId, mes) {
+            return this.getEntityMonthTotal(entityId, mes) - this.getBancoAmount(entityId, mes);
+        },
+
+        openBancoModal(entityId, mes) {
+            const ent = entityId !== null ? this.entities.find(e => e.id === entityId) : null;
+            this.bancoModal = {
+                open:       true,
+                saving:     false,
+                entityId:   entityId,
+                entityName: ent ? ent.name : '',
+                mes,
+            };
+            if (entityId !== null) {
+                this.$nextTick(() => {
+                    const el = document.getElementById('banco-single-amount');
+                    if (el) { el.focus(); el.select(); }
+                });
+            }
+        },
+
+        closeBancoModal() {
+            this.bancoModal.open = false;
+        },
+
+        async saveBancoAmount(entityId, mes, rawValue) {
+            const amount = parseFloat(rawValue) || 0;
+            await this._persistBanco(entityId, mes, amount);
+        },
+
+        async saveBancoSingle() {
+            if (this.bancoModal.saving) return;
+            const el = document.getElementById('banco-single-amount');
+            const amount = parseFloat(el?.value) || 0;
+            this.bancoModal.saving = true;
+            try {
+                await this._persistBanco(this.bancoModal.entityId, this.bancoModal.mes, amount);
+                this.closeBancoModal();
+            } finally {
+                this.bancoModal.saving = false;
+            }
+        },
+
+        async _persistBanco(entityId, mes, amount) {
+            const res = await fetch(cfg.entityBancoUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept':       'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: JSON.stringify({ entity_id: entityId, mes, gestion: this.gestion, amount }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                const g = { ...this.bancoGrid };
+                if (!g[entityId]) g[entityId] = {};
+                if (amount === 0 || data.deleted) {
+                    delete g[entityId][mes];
+                } else {
+                    g[entityId] = { ...g[entityId], [mes]: data.amount };
+                }
+                this.bancoGrid = g;
+            }
         },
 
         async importFromYear(fromGestion) {
