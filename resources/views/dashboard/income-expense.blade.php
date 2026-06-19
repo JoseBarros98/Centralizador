@@ -9,10 +9,12 @@
                 <p class="mt-1 text-gray-600">Comparativa anual de ingresos y egresos por gestión</p>
             </div>
 
-            <form method="GET" action="{{ route('dashboard.income-expense') }}" style="display:flex;align-items:center;gap:0.5rem;">
+            <form method="GET" action="{{ route('dashboard.income-expense') }}" style="display:flex;flex-wrap:wrap;align-items:center;gap:0.5rem;">
+                {{-- Gestión --}}
                 <label style="font-size:0.875rem;font-weight:500;color:#374151;">Gestión</label>
                 <div style="position:relative;display:inline-flex;align-items:center;">
                     <select name="year"
+                            onchange="this.form.submit()"
                             style="appearance:none;-webkit-appearance:none;padding:0.375rem 1.75rem 0.375rem 0.75rem;font-size:0.875rem;border:1px solid #d1d5db;border-radius:0.375rem;outline:none;cursor:pointer;background:#fff;color:#374151;"
                             onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor='#d1d5db'">
                         @foreach($availableYears as $availableYear)
@@ -24,8 +26,52 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                     </svg>
                 </div>
+
+                @if($incomeEntities->isNotEmpty())
+                {{-- Entidad Ingresos --}}
+                <label style="font-size:0.875rem;font-weight:500;color:#059669;margin-left:0.5rem;">Entidad Ingresos</label>
+                <div style="position:relative;display:inline-flex;align-items:center;">
+                    <select name="income_entity"
+                            style="appearance:none;-webkit-appearance:none;padding:0.375rem 1.75rem 0.375rem 0.75rem;font-size:0.875rem;border:1px solid {{ $incomeEntity ? '#059669' : '#d1d5db' }};border-radius:0.375rem;outline:none;cursor:pointer;background:{{ $incomeEntity ? '#ecfdf5' : '#fff' }};color:{{ $incomeEntity ? '#065f46' : '#374151' }};font-weight:{{ $incomeEntity ? '600' : '400' }};"
+                            onfocus="this.style.borderColor='#059669'" onblur="this.style.borderColor='{{ $incomeEntity ? '#059669' : '#d1d5db' }}'">
+                        <option value="">Todas</option>
+                        @foreach($incomeEntities as $entity)
+                            <option value="{{ $entity->id }}" @selected($incomeEntity == $entity->id)>{{ $entity->name }}</option>
+                        @endforeach
+                    </select>
+                    <svg style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);width:0.7rem;height:0.7rem;color:#9ca3af;pointer-events:none;"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                @endif
+
+                @if($expenseEntities->isNotEmpty())
+                {{-- Entidad Egresos --}}
+                <label style="font-size:0.875rem;font-weight:500;color:#dc2626;margin-left:0.5rem;">Entidad Egresos</label>
+                <div style="position:relative;display:inline-flex;align-items:center;">
+                    <select name="expense_entity"
+                            style="appearance:none;-webkit-appearance:none;padding:0.375rem 1.75rem 0.375rem 0.75rem;font-size:0.875rem;border:1px solid {{ $expenseEntity ? '#dc2626' : '#d1d5db' }};border-radius:0.375rem;outline:none;cursor:pointer;background:{{ $expenseEntity ? '#fff1f2' : '#fff' }};color:{{ $expenseEntity ? '#7f1d1d' : '#374151' }};font-weight:{{ $expenseEntity ? '600' : '400' }};"
+                            onfocus="this.style.borderColor='#dc2626'" onblur="this.style.borderColor='{{ $expenseEntity ? '#dc2626' : '#d1d5db' }}'">
+                        <option value="">Todas</option>
+                        @foreach($expenseEntities as $entity)
+                            <option value="{{ $entity->id }}" @selected($expenseEntity == $entity->id)>{{ $entity->name }}</option>
+                        @endforeach
+                    </select>
+                    <svg style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);width:0.7rem;height:0.7rem;color:#9ca3af;pointer-events:none;"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                @endif
+
                 <button type="submit" style="padding:0.375rem 1rem;background:#4f46e5;color:#fff;border:none;border-radius:0.375rem;font-size:0.875rem;font-weight:500;cursor:pointer;"
                         onmouseover="this.style.background='#4338ca'" onmouseout="this.style.background='#4f46e5'">Aplicar</button>
+
+                @if($incomeEntity || $expenseEntity)
+                <a href="{{ route('dashboard.income-expense', ['year' => $year]) }}"
+                   style="padding:0.375rem 0.75rem;background:#6b7280;color:#fff;border-radius:0.375rem;font-size:0.875rem;font-weight:500;text-decoration:none;">Limpiar</a>
+                @endif
             </form>
         </div>
 
@@ -63,6 +109,22 @@
             <div class="bg-white rounded-lg shadow p-6">
                 <h3 class="text-lg font-semibold text-gray-900 mb-4">Proyección de Cierre Anual</h3>
                 <canvas id="annualProjectionChart"></canvas>
+            </div>
+
+            {{-- Egresos por categoría: dona + barras mensuales --}}
+            <div class="bg-white rounded-lg shadow p-6" style="display:flex;flex-direction:column;">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Egresos por Categoría</h3>
+                <div style="flex:1;display:flex;align-items:center;justify-content:center;gap:3rem;">
+                    <div style="width:220px;height:220px;flex-shrink:0;">
+                        <canvas id="expenseCategoryDonut" width="220" height="220"></canvas>
+                    </div>
+                    <div id="expenseCategoryLegend"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Egresos Mensuales por Categoría</h3>
+                <canvas id="expenseCategoryMonthly"></canvas>
             </div>
 
             <div class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
@@ -394,6 +456,119 @@
                 },
                 scales: {
                     y: moneyScale
+                }
+            }
+        });
+    }
+
+    // ── Egresos por Categoría (dona) ─────────────────────────────────────────
+    const expenseCategoryData = @json([
+        'operativo' => (float)($expenseByCategory['operativo'] ?? 0),
+        'otro'      => (float)($expenseByCategory['otro'] ?? 0),
+    ]);
+    const categoryMonthly = @json([
+        'operativo' => array_values($categoryMonthlyData['operativo']),
+        'otro'      => array_values($categoryMonthlyData['otro']),
+    ]);
+
+    const donutCanvas = document.getElementById('expenseCategoryDonut');
+    const totalCat = expenseCategoryData.operativo + expenseCategoryData.otro;
+
+    if (totalCat === 0) {
+        renderEmptyState(donutCanvas, 'Sin datos de categorías');
+    } else {
+        const catMeta = [
+            { label: 'Gastos Operativos', value: expenseCategoryData.operativo, bg: 'rgba(239,68,68,0.85)',  border: 'rgb(220,38,38)',  dot: 'rgb(220,38,38)'  },
+            { label: 'Otros Egresos',     value: expenseCategoryData.otro,      bg: 'rgba(245,158,11,0.85)', border: 'rgb(217,119,6)',   dot: 'rgb(217,119,6)'  },
+        ].filter(c => c.value > 0);
+
+        new Chart(donutCanvas, {
+            type: 'doughnut',
+            data: {
+                labels: catMeta.map(c => c.label),
+                datasets: [{
+                    data: catMeta.map(c => c.value),
+                    backgroundColor: catMeta.map(c => c.bg),
+                    borderColor: catMeta.map(c => c.border),
+                    borderWidth: 2,
+                    hoverOffset: 6,
+                }]
+            },
+            options: {
+                responsive: false,
+                cutout: '68%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ' Bs. ' + ctx.parsed.toLocaleString('es-BO', {minimumFractionDigits:2, maximumFractionDigits:2})
+                        }
+                    }
+                }
+            }
+        });
+
+        // Leyenda personalizada — muestra las dos categorías aunque una sea 0
+        const legend = document.getElementById('expenseCategoryLegend');
+        const allCats = [
+            { label: 'Gastos Operativos', value: expenseCategoryData.operativo, dot: 'rgb(220,38,38)'  },
+            { label: 'Otros Egresos',     value: expenseCategoryData.otro,      dot: 'rgb(217,119,6)'  },
+        ];
+        legend.innerHTML = allCats.map(c => {
+            const pct = totalCat > 0 ? ((c.value / totalCat) * 100).toFixed(1) : '0.0';
+            return `<div style="display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:1rem;">
+                <span style="width:11px;height:11px;border-radius:50%;background:${c.dot};flex-shrink:0;margin-top:4px;"></span>
+                <div>
+                    <div style="font-size:0.8rem;font-weight:600;color:#374151;">${c.label}</div>
+                    <div style="font-size:0.78rem;color:#374151;font-weight:500;">Bs. ${c.value.toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+                    <div style="font-size:0.72rem;color:#9ca3af;">${pct}% del total</div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Egresos Mensuales por Categoría (barras apiladas) ────────────────────
+    const catMonthlyCanvas = document.getElementById('expenseCategoryMonthly');
+    const hasCatData = categoryMonthly.operativo.some(v => v > 0) || categoryMonthly.otro.some(v => v > 0);
+    if (!hasCatData) {
+        renderEmptyState(catMonthlyCanvas, 'Sin datos de categorías por mes');
+    } else {
+        new Chart(catMonthlyCanvas, {
+            type: 'bar',
+            data: {
+                labels: chartData.months,
+                datasets: [
+                    {
+                        label: 'Gastos Operativos',
+                        data: categoryMonthly.operativo,
+                        backgroundColor: 'rgba(239,68,68,0.7)',
+                        borderColor: 'rgb(220,38,38)',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                    },
+                    {
+                        label: 'Otros Egresos',
+                        data: categoryMonthly.otro,
+                        backgroundColor: 'rgba(245,158,11,0.7)',
+                        borderColor: 'rgb(217,119,6)',
+                        borderWidth: 1,
+                        borderRadius: 3,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => ' ' + ctx.dataset.label + ': Bs. ' + ctx.parsed.y.toLocaleString('es-BO',{minimumFractionDigits:2,maximumFractionDigits:2})
+                        }
+                    }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, ...moneyScale }
                 }
             }
         });
